@@ -43,12 +43,9 @@ GrGLCaps::GrGLCaps(const GrContextOptions& contextOptions,
     fIsCoreProfile = false;
     fBindFragDataLocationSupport = false;
     fRectangleTextureSupport = false;
-    fRGBA8888PixelsOpsAreSlow = false;
-    fPartialFBOReadIsSlow = false;
     fBindUniformLocationSupport = false;
     fMipmapLevelControlSupport = false;
     fMipmapLodControlSupport = false;
-    fRGBAToBGRAReadbackConversionsAreSlow = false;
     fUseBufferDataNullHint = false;
     fDoManualMipmapping = false;
     fClearToBoundaryValuesIsBroken = false;
@@ -283,27 +280,6 @@ void GrGLCaps::init(const GrContextOptions& contextOptions,
             fMipmapLodControlSupport = true;
         }
     } // no WebGL support
-
-#ifdef SK_BUILD_FOR_WIN
-    // We're assuming that on Windows Chromium we're using ANGLE.
-    bool isANGLE = ctxInfo.driver() == GrGLDriver::kANGLE ||
-                   ctxInfo.driver() == GrGLDriver::kChromium;
-    // Angle has slow read/write pixel paths for 32bit RGBA (but fast for BGRA).
-    fRGBA8888PixelsOpsAreSlow = isANGLE;
-    // On DX9 ANGLE reading a partial FBO is slow. TODO: Check whether this is still true and
-    // check DX11 ANGLE.
-    fPartialFBOReadIsSlow = isANGLE;
-#endif
-
-    bool isMESA = ctxInfo.driver() == GrGLDriver::kMesa;
-    bool isMAC = false;
-#ifdef SK_BUILD_FOR_MAC
-    isMAC = true;
-#endif
-
-    // Both mesa and mac have reduced performance if reading back an RGBA framebuffer as BGRA or
-    // vis-versa.
-    fRGBAToBGRAReadbackConversionsAreSlow = isMESA || isMAC;
 
     // Chrome's command buffer will zero out a buffer if null is passed to glBufferData to
     // avoid letting an application see uninitialized memory.
@@ -588,6 +564,9 @@ void GrGLCaps::init(const GrContextOptions& contextOptions,
     }
 
 #ifdef SK_BUILD_FOR_WIN
+    // We're assuming that on Windows Chromium we're using ANGLE.
+    bool isANGLE = ctxInfo.angleBackend() != GrGLANGLEBackend::kUnknown ||
+                   ctxInfo.driver()       == GrGLDriver::kChromium;
     // On ANGLE deferring flushes can lead to GPU starvation
     fPreferVRAMUseOverFlushes = !isANGLE;
 #endif
@@ -663,6 +642,13 @@ void GrGLCaps::init(const GrContextOptions& contextOptions,
         // The indirect structs need to reside in CPU memory for the WebGL version.
         fUseClientSideIndirectBuffers = true;
         fDrawRangeElementsSupport = version >= GR_GL_VER(2,0);
+    }
+    // We used to disable this as a correctness workaround (http://anglebug.com/4536). Now it is
+    // disabled because of poor performance (http://skbug.com/11998).
+    if (ctxInfo.angleBackend() == GrGLANGLEBackend::kD3D11) {
+        fBaseVertexBaseInstanceSupport = false;
+        fNativeDrawIndirectSupport = false;
+        fMultiDrawType = MultiDrawType::kNone;
     }
 
     // We prefer GL sync objects but also support NV_fence_sync. The former can be
@@ -882,11 +868,12 @@ void GrGLCaps::initGLSL(const GrGLContextInfo& ctxInfo, const GrGLInterface* gli
             ctxInfo.glslGeneration() >= k330_GrGLSLGeneration; // This is the value for GLSL ES 3.0.
     } // not sure for WebGL
 
-    // Flat interpolation appears to be slow on Qualcomm GPUs (tested Adreno 405 and 530). ANGLE
+    // Flat interpolation appears to be slow on Qualcomm GPUs (tested Adreno 405 and 530).
     // Avoid on ANGLE too, it inserts a geometry shader into the pipeline to implement flat interp.
+    // Is this only true on ANGLE's D3D backends or also on the GL backend?
     shaderCaps->fPreferFlatInterpolation = shaderCaps->fFlatInterpolationSupport &&
                                            ctxInfo.vendor() != GrGLVendor::kQualcomm &&
-                                           ctxInfo.driver() != GrGLDriver::kANGLE;
+                                           ctxInfo.angleBackend() == GrGLANGLEBackend::kUnknown;
     if (GR_IS_GR_GL(standard)) {
         shaderCaps->fNoPerspectiveInterpolationSupport =
             ctxInfo.glslGeneration() >= k130_GrGLSLGeneration;
@@ -1174,14 +1161,10 @@ void GrGLCaps::onDumpJSON(SkJSONWriter* writer) const {
     writer->appendBool("ES2 compatibility support", fES2CompatibilitySupport);
     writer->appendBool("drawRangeElements support", fDrawRangeElementsSupport);
     writer->appendBool("Base (vertex base) instance support", fBaseVertexBaseInstanceSupport);
-    writer->appendBool("RGBA 8888 pixel ops are slow", fRGBA8888PixelsOpsAreSlow);
-    writer->appendBool("Partial FBO read is slow", fPartialFBOReadIsSlow);
     writer->appendBool("Bind uniform location support", fBindUniformLocationSupport);
     writer->appendBool("Rectangle texture support", fRectangleTextureSupport);
     writer->appendBool("Mipmap LOD control support", fMipmapLodControlSupport);
     writer->appendBool("Mipmap level control support", fMipmapLevelControlSupport);
-    writer->appendBool("BGRA to RGBA readback conversions are slow",
-                       fRGBAToBGRAReadbackConversionsAreSlow);
     writer->appendBool("Use buffer data null hint", fUseBufferDataNullHint);
     writer->appendBool("Clear texture support", fClearTextureSupport);
     writer->appendBool("Program binary support", fProgramBinarySupport);
@@ -3527,8 +3510,9 @@ void GrGLCaps::applyDriverCorrectnessWorkarounds(const GrGLContextInfo& ctxInfo,
         fTransferBufferType = TransferBufferType::kNone;
     }
 
-    // The TransferPixelsToTexture test fails on ANGLE.
-    if (ctxInfo.driver() == GrGLDriver::kANGLE) {
+    // The TransferPixelsToTexture test fails on ANGLE D3D.
+    if (ctxInfo.angleBackend() == GrGLANGLEBackend::kD3D9 ||
+        ctxInfo.angleBackend() == GrGLANGLEBackend::kD3D11) {
         fTransferFromBufferToTextureSupport = false;
     }
 
@@ -3712,14 +3696,6 @@ void GrGLCaps::applyDriverCorrectnessWorkarounds(const GrGLContextInfo& ctxInfo,
         fDrawArraysBaseVertexIsBroken = true;
     }
 
-    // http://anglebug.com/4536
-    if (ctxInfo.driver() == GrGLDriver::kANGLE &&
-        ctxInfo.angleBackend() != GrGLANGLEBackend::kOpenGL) {
-        fBaseVertexBaseInstanceSupport = false;
-        fNativeDrawIndirectSupport = false;
-        fMultiDrawType = MultiDrawType::kNone;
-    }
-
     // http://anglebug.com/4538
     if (fBaseVertexBaseInstanceSupport && !fDrawInstancedSupport) {
         fBaseVertexBaseInstanceSupport = false;
@@ -3816,7 +3792,8 @@ void GrGLCaps::applyDriverCorrectnessWorkarounds(const GrGLContextInfo& ctxInfo,
     // we've explicitly guarded the division with a check against zero. This manifests in much
     // more complex ways in some of our shaders, so we use this caps bit to add an epsilon value
     // to the denominator of divisions, even when we've added checks that the denominator isn't 0.
-    if (ctxInfo.driver() == GrGLDriver::kANGLE || ctxInfo.driver() == GrGLDriver::kChromium) {
+    if (ctxInfo.angleBackend() != GrGLANGLEBackend::kUnknown ||
+        ctxInfo.driver()       == GrGLDriver::kChromium) {
         shaderCaps->fMustGuardDivisionEvenAfterExplicitZeroCheck = true;
     }
 #endif
@@ -3975,8 +3952,7 @@ void GrGLCaps::applyDriverCorrectnessWorkarounds(const GrGLContextInfo& ctxInfo,
 #ifdef SK_BUILD_FOR_WIN
     // glDrawElementsIndirect fails GrMeshTest on every Win10 Intel bot.
     if (ctxInfo.driver() == GrGLDriver::kIntel ||
-        (ctxInfo.driver()       == GrGLDriver::kANGLE      &&
-         ctxInfo.angleVendor()  == GrGLANGLEVendor::kIntel &&
+        (ctxInfo.angleVendor()  == GrGLVendor::kIntel &&
          ctxInfo.angleBackend() == GrGLANGLEBackend::kOpenGL)) {
         fNativeDrawIndexedIndirectIsBroken = true;
         fUseClientSideIndirectBuffers = true;
@@ -4088,14 +4064,14 @@ void GrGLCaps::applyDriverCorrectnessWorkarounds(const GrGLContextInfo& ctxInfo,
         fMSFBOType = kNone_MSFBOType;
     }
 
-    // ANGLE doesn't support do-while loops
-    if (ctxInfo.driver() == GrGLDriver::kANGLE) {
+    // ANGLE doesn't support do-while loops.
+    if (ctxInfo.angleBackend() != GrGLANGLEBackend::kUnknown) {
         shaderCaps->fCanUseDoLoops = false;
     }
 
     // ANGLE's D3D9 backend + AMD GPUs are flaky with program binary caching (skbug.com/10395)
     if (ctxInfo.angleBackend() == GrGLANGLEBackend::kD3D9 &&
-        ctxInfo.angleVendor() == GrGLANGLEVendor::kAMD) {
+        ctxInfo.angleVendor()  == GrGLVendor::kATI) {
         fProgramBinarySupport = false;
     }
 
