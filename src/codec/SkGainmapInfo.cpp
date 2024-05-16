@@ -44,7 +44,7 @@ static void write_rational_be(SkWStream* s, float x) {
     if (std::abs(x) > 1.f) {
         denominator = 0x1000;
     }
-    int32_t numerator = static_cast<int32_t>(static_cast<double>(x) * denominator + 0.5);
+    int32_t numerator = static_cast<int32_t>(std::llround(static_cast<double>(x) * denominator));
     write_s32_be(s, numerator);
     write_u32_be(s, denominator);
 }
@@ -55,7 +55,7 @@ static void write_positive_rational_be(SkWStream* s, float x) {
     if (x > 1.f) {
         denominator = 0x1000;
     }
-    uint32_t numerator = static_cast<uint32_t>(static_cast<double>(x) * denominator + 0.5);
+    uint32_t numerator = static_cast<uint32_t>(std::llround(static_cast<double>(x) * denominator));
     write_u32_be(s, numerator);
     write_u32_be(s, denominator);
 }

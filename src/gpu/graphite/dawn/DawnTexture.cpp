@@ -198,9 +198,22 @@ void DawnTexture::freeGpuData() {
 }
 
 void DawnTexture::setBackendLabel(char const* label) {
+    if (!sharedContext()->caps()->setBackendLabels()) {
+        return;
+    }
     SkASSERT(label);
-    if (sharedContext()->caps()->setBackendLabels()) {
+    // Wrapped texture views won't have an associated texture here.
+    if (fTexture) {
         fTexture.SetLabel(label);
+    }
+    // But we always have the texture views available.
+    SkASSERT(fSampleTextureView);
+    SkASSERT(fRenderTextureView);
+    if (fSampleTextureView.Get() == fRenderTextureView.Get()) {
+        fSampleTextureView.SetLabel(SkStringPrintf("%s_%s", label, "_TextureView").c_str());
+    } else {
+        fSampleTextureView.SetLabel(SkStringPrintf("%s_%s", label, "_SampleTextureView").c_str());
+        fRenderTextureView.SetLabel(SkStringPrintf("%s_%s", label, "_RenderTextureView").c_str());
     }
 }
 
