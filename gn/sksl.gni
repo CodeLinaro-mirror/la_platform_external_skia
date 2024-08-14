@@ -104,6 +104,8 @@ skia_sksl_core_sources = [
   "$_src/sksl/analysis/SkSLProgramUsage.h",
   "$_src/sksl/analysis/SkSLProgramVisitor.h",
   "$_src/sksl/analysis/SkSLReturnsInputAlpha.cpp",
+  "$_src/sksl/analysis/SkSLSpecialization.cpp",
+  "$_src/sksl/analysis/SkSLSpecialization.h",
   "$_src/sksl/analysis/SkSLSwitchCaseContainsExit.cpp",
   "$_src/sksl/analysis/SkSLSymbolTableStackBuilder.cpp",
   "$_src/sksl/codegen/SkSLRasterPipelineBuilder.cpp",
@@ -345,8 +347,3 @@ skslc_deps = [
   "$_src/utils/SkShaderUtils.cpp",
   "$_src/utils/SkShaderUtils.h",
 ]
-
-# TODO(kjlubick) remove after migrating Chromium and Flutter
-skia_sksl_gpu_sources = skia_sksl_pipeline_sources + skia_sksl_codegen_sources
-
-skia_sksl_sources = skia_sksl_core_sources + skia_sksl_default_module_sources

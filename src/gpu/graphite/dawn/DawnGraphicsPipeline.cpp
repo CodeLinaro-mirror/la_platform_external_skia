@@ -273,7 +273,7 @@ sk_sp<DawnGraphicsPipeline> DawnGraphicsPipeline::Make(const DawnSharedContext* 
     ShaderErrorHandler* errorHandler = caps.shaderErrorHandler();
 
     const RenderStep* step = sharedContext->rendererProvider()->lookup(pipelineDesc.renderStepID());
-    const bool useStorageBuffers = caps.storageBufferPreferred();
+    const bool useStorageBuffers = caps.storageBufferSupport();
 
     std::string vsCode, fsCode;
     wgpu::ShaderModule fsModule, vsModule;
@@ -595,7 +595,7 @@ sk_sp<DawnGraphicsPipeline> DawnGraphicsPipeline::Make(const DawnSharedContext* 
                                      step->primitiveType(),
                                      depthStencilSettings.fStencilReferenceValue,
                                      /*hasStepUniforms=*/!step->uniforms().empty(),
-                                     /*hasPaintUniforms=*/fsSkSLInfo.fNumPaintUniforms > 0,
+                                     /*hasPaintUniforms=*/fsSkSLInfo.fHasPaintUniforms,
                                      /*hasGradientbuffer=*/fsSkSLInfo.fHasGradientBuffer,
                                      numTexturesAndSamplers));
 }
