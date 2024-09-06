@@ -3,6 +3,9 @@
  *
  * Use of this source code is governed by a BSD-style license that can be
  * found in the LICENSE file.
+ * Changes from Qualcomm Technologies, Inc. are provided under the following license:
+ * Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+ * SPDX-License-Identifier: BSD-3-Clause-Clear
  */
 
 #include "src/codec/SkJpegCodec.h"
@@ -435,7 +438,17 @@ SkCodec::Result SkJpegCodec::readRows(const SkImageInfo& dstInfo, void* dst, siz
     }
 
     for (int y = 0; y < count; y++) {
-        uint32_t lines = jpeg_read_scanlines(fDecoderMgr->dinfo(), &decodeDst, 1);
+        uint32_t lines;
+#ifdef QC_JPEG_MT
+        if (QCJPEG_DECODER.mAllSymbolsFound && fDecoderMgr->mQcJpeghandler) {
+             lines = QCJPEG_DECODER.mQcJpeg_read_scanlines(fDecoderMgr->mQcJpeghandler,
+                                                           fDecoderMgr->dinfo(), &decodeDst, 1);
+        } else {
+#endif
+             lines = jpeg_read_scanlines(fDecoderMgr->dinfo(), &decodeDst, 1);
+#ifdef QC_JPEG_MT
+        }
+#endif
         if (0 == lines) {
             *rowsDecoded = y;
             return kSuccess;
