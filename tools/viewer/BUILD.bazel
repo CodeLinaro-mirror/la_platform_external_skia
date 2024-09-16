@@ -99,10 +99,15 @@ skia_cc_binary(
         "//tools/fonts:test_font_manager_srcs",
         "//tools/trace",
     ],
+    data = [
+        "//resources",
+    ],
     deps = [
         "//:core",
         "//:fontmgr_directory_freetype",
         "//:fontmgr_empty_fontations",
+        "//:skshaper_core",
+        "//:svg_renderer",
         "//gm",
         "//modules/audioplayer",
         "//modules/skottie",
