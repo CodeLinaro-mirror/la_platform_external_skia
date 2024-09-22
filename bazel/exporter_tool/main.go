@@ -54,6 +54,31 @@ var gniExportDescs = []exporter.GNIExportDesc{
 				"//src/codec:common_png_srcs",
 			},
 		},
+		{Var: "skia_codec_rust_png_public",
+			Rules: []string{
+				"//experimental/rust_png:hdrs",
+			},
+		},
+		{Var: "skia_codec_rust_png",
+			Rules: []string{
+				"//experimental/rust_png:srcs",
+			},
+		},
+		{Var: "skia_codec_rust_png_ffi_rs_srcs",
+			Rules: []string{
+				"//experimental/rust_png/ffi:rs_srcs",
+			},
+		},
+		{Var: "skia_codec_rust_png_ffi_cxx_bridge_srcs",
+			Rules: []string{
+				"//experimental/rust_png/ffi:cxx_bridge_srcs",
+			},
+		},
+		{Var: "skia_codec_rust_png_ffi_cpp_hdrs",
+			Rules: []string{
+				"//experimental/rust_png/ffi:ffi_cpp",
+			},
+		},
 	}},
 	{GNI: "gn/core.gni", Vars: []exporter.GNIFileListExportDesc{
 		{Var: "skia_core_public",
@@ -421,6 +446,7 @@ var gniExportDescs = []exporter.GNIExportDesc{
 		{Var: "skia_gpu_public",
 			Rules: []string{
 				"//include/gpu/mock:public_hdrs",
+				"//include/gpu/ganesh/mock:public_hdrs",
 				"//include/gpu:ganesh_hdrs",
 				"//include/gpu:shared_public_hdrs",
 				"//include/gpu/ganesh:ganesh_hdrs",
