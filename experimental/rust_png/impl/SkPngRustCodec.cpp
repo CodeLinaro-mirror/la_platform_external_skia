@@ -7,6 +7,7 @@
 
 #include "experimental/rust_png/impl/SkPngRustCodec.h"
 
+#include <limits>
 #include <memory>
 #include <utility>
 
@@ -250,6 +251,7 @@ SkCodec::Result SkPngRustCodec::startDecoding(const SkImageInfo& dstInfo,
                                               DecodingState* decodingState) {
     decodingState->dst = SkSpan(static_cast<uint8_t*>(pixels), rowBytes * dstInfo.height());
     decodingState->dstRowSize = rowBytes;
+    decodingState->bytesPerPixel = dstInfo.bytesPerPixel();
 
     // TODO(https://crbug.com/356922876): Expose `png` crate's ability to decode
     // multiple frames.
@@ -268,14 +270,12 @@ SkCodec::Result SkPngRustCodec::startDecoding(const SkImageInfo& dstInfo,
 
 SkCodec::Result SkPngRustCodec::incrementalDecode(DecodingState& decodingState,
                                                   int* rowsDecodedPtr) {
-    if (fReader->interlaced()) {
-        // TODO(https://crbug.com/356923435): Support incremental decoding of
-        // interlaced images.
-        return kUnimplemented;
-    }
     this->initializeXformParams();
 
     int rowsDecoded = 0;
+    bool interlaced = fReader->interlaced();
+    std::vector<uint8_t> decodedInterlacedFullWidthRow;
+    std::vector<uint8_t> xformedInterlacedRow;
     while (true) {
         // TODO(https://crbug.com/357876243): Avoid an unconditional buffer hop
         // through buffer owned by `fReader` (e.g. when we can decode directly
@@ -283,7 +283,7 @@ SkCodec::Result SkPngRustCodec::incrementalDecode(DecodingState& decodingState,
         // similar enough to `dstInfo`).
         rust::Slice<const uint8_t> decodedRow;
 
-        Result result = ToSkCodecResult(fReader->next_row(decodedRow));
+        Result result = ToSkCodecResult(fReader->next_interlaced_row(decodedRow));
         if (result != kSuccess) {
             if (result == kIncompleteInput && rowsDecodedPtr) {
                 // TODO(https://crbug.com/356923435): Handle `kIncompleteInput` (right
@@ -302,40 +302,36 @@ SkCodec::Result SkPngRustCodec::incrementalDecode(DecodingState& decodingState,
             return kSuccess;
         }
 
-        this->applyXformRow(decodingState.dst, decodedRow);
-        decodingState.dst = decodingState.dst.subspan(decodingState.dstRowSize);
-        rowsDecoded++;
+        if (interlaced) {
+            // Copy (potentially shorter for initial Adam7 passes) `decodedRow`
+            // into a full-width `decodedInterlacedFullWidthRow`.  This is
+            // needed becxause `applyXformRow` requires full-width rows as
+            // input (can't change `SkSwizzler::fSrcWidth` after
+            // `initializeXforms`).
+            //
+            // TODO(https://crbug.com/357876243): Having `Reader.read_row` API (see
+            // https://github.com/image-rs/image-png/pull/493) would help avoid
+            // an extra copy here.
+            decodedInterlacedFullWidthRow.resize(this->getEncodedInfoRowSize(), 0x00);
+            SkASSERT(decodedInterlacedFullWidthRow.size() >= decodedRow.size());
+            memcpy(decodedInterlacedFullWidthRow.data(), decodedRow.data(), decodedRow.size());
+
+            xformedInterlacedRow.resize(decodingState.dstRowSize, 0x00);
+            this->applyXformRow(xformedInterlacedRow, decodedInterlacedFullWidthRow);
+
+            fReader->expand_last_interlaced_row(rust::Slice<uint8_t>(decodingState.dst),
+                                                decodingState.dstRowSize,
+                                                rust::Slice<const uint8_t>(xformedInterlacedRow),
+                                                decodingState.bytesPerPixel * 8);
+            // `rowsDecoded` is not incremented, because full, contiguous rows
+            // are not decoded until pass 6 (or 7 depending on how you look) of
+            // Adam7 interlacing scheme.
+        } else {
+            this->applyXformRow(decodingState.dst, decodedRow);
+            decodingState.dst = decodingState.dst.subspan(decodingState.dstRowSize);
+            rowsDecoded++;
+        }
     }
-}
-
-SkCodec::Result SkPngRustCodec::decodeInterlacedImage(DecodingState& decodingState) {
-    // Decode the whole PNG image into an intermediate buffer.
-    //
-    // TODO(https://crbug.com/356923435): Handle interlaced images in
-    // `incrementalDecode` and stop using (and remove) `next_frame` below.
-    std::vector<uint8_t> decodedPixels(fReader->output_buffer_size(), 0x00);
-    Result result = ToSkCodecResult(fReader->next_frame(rust::Slice<uint8_t>(decodedPixels)));
-
-    if (result != kSuccess) {
-        // TODO(https://crbug.com/356923435): Handle `kIncompleteInput` (right
-        // now the FFI layer will never return `kIncompleteInput` but we will
-        // need to handle it for incremental, row-by-row decoding).
-        SkASSERT_RELEASE(result != kIncompleteInput);
-
-        return result;
-    }
-
-    // Convert the `decodedPixels` into the `dstInfo` format.
-    SkSpan<const uint8_t> src = decodedPixels;
-    size_t srcRowSize = this->getEncodedInfoRowSize();
-    int height = this->getEncodedInfo().height();
-    for (int y = 0; y < height; ++y) {
-        this->applyXformRow(decodingState.dst, src);
-        decodingState.dst = decodingState.dst.subspan(decodingState.dstRowSize);
-        src = src.subspan(srcRowSize);
-    }
-
-    return kSuccess;
 }
 
 SkCodec::Result SkPngRustCodec::onGetPixels(const SkImageInfo& dstInfo,
@@ -349,13 +345,6 @@ SkCodec::Result SkPngRustCodec::onGetPixels(const SkImageInfo& dstInfo,
         return result;
     }
 
-    // TODO(https://crbug.com/356923435): Handle interlaced images in
-    // `incrementalDecode` and then: remove the `if` statement below
-    // (and remove `SkPngRustCodec::decodeInterlacedImage` as well as
-    // `ffi::Reader::next_frame`).
-    if (fReader->interlaced()) {
-        return this->decodeInterlacedImage(decodingState);
-    }
     return this->incrementalDecode(decodingState, rowsDecoded);
 }
 
@@ -388,6 +377,32 @@ bool SkPngRustCodec::onGetFrameInfo(int index, FrameInfo* info) const {
     }
 
     return false;
+}
+
+int SkPngRustCodec::onGetRepetitionCount() {
+    if (!fReader->has_actl_chunk()) {
+        return 0;
+    }
+
+    uint32_t num_frames = fReader->get_actl_num_frames();
+    if (num_frames <= 1) {
+        return 0;
+    }
+
+    // APNG spec says that "`num_plays` indicates the number of times that this
+    // animation should play; if it is 0, the animation should play
+    // indefinitely."
+    uint32_t num_plays = fReader->get_actl_num_plays();
+    constexpr unsigned int kMaxInt = static_cast<unsigned int>(std::numeric_limits<int>::max());
+    if ((num_plays == 0) || (num_plays > kMaxInt)) {
+        return kRepetitionCountInfinite;
+    }
+
+    // Subtracting 1, because `SkCodec::onGetRepetitionCount` doc comment says
+    // that "This number does not include the first play through of each frame.
+    // For example, a repetition count of 4 means that each frame is played 5
+    // times and then the animation stops."
+    return num_plays - 1;
 }
 
 std::optional<SkSpan<const SkPngCodecBase::PaletteColorEntry>> SkPngRustCodec::onTryGetPlteChunk() {

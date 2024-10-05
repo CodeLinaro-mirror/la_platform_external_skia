@@ -62,6 +62,28 @@ skia_cc_library(
 )
 
 skia_cc_library(
+    name = "common_flags_config",
+    testonly = True,
+    srcs = [
+        "CommonFlagsConfig.cpp",
+        "CommonFlagsConfig.h",
+    ],
+    hdrs = [
+        "CommonFlagsConfig.h",
+    ],
+    visibility = [
+        "//dm:__pkg__",
+    ],
+    deps = [
+        ":common_flags",
+        "//:core",
+        # CommonFlagsConfig currently depends on GL.
+        # TODO(fmalita): refactor as a file group to avoid hard coding the dependency at this level.
+        "//tools/gpu:ganesh_gl_utils",
+    ],
+)
+
+skia_cc_library(
     name = "cmd_flags",
     testonly = True,
     srcs = [
@@ -116,10 +138,12 @@ skia_cc_library(
     visibility = [
         "//bench:__pkg__",
         "//dm:__pkg__",
+        "//tools/viewer:__pkg__",
     ],
     deps = [
         ":cmd_flags",
         "//:core",
         "//src/gpu/graphite:graphite_TEST_UTIL",
+        "//tools/graphite:graphite_utils",
     ],
 )

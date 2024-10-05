@@ -24,7 +24,7 @@ template <typename T> class SkSpan;
 //   Rust)
 // * Skia's `SkSwizzler` and `skcms_Transform` (pixel format and color space
 //   transformations implemented in C++).
-class SkPngRustCodec : public SkPngCodecBase {
+class SkPngRustCodec final : public SkPngCodecBase {
 public:
     static std::unique_ptr<SkPngRustCodec> MakeFromStream(std::unique_ptr<SkStream>, Result*);
 
@@ -37,6 +37,7 @@ private:
     struct DecodingState {
         SkSpan<uint8_t> dst;
         size_t dstRowSize;  // in bytes.
+        size_t bytesPerPixel;
     };
 
     // Helper for validating parameters of `onGetPixels` and/or
@@ -52,13 +53,6 @@ private:
     // `onIncrementalDecode`.
     Result incrementalDecode(DecodingState& decodingState, int* rowsDecoded);
 
-    // Temporary helper for *non*-row-by-row decoding of interlaced images.
-    //
-    // TODO(https://crbug.com/356923435): Remove this method after implementing
-    // row-by-row decoding of interlaced images (see WIP CL at
-    // http://review.skia.org/894576).
-    Result decodeInterlacedImage(DecodingState& decodingState);
-
     // SkCodec overrides:
     Result onGetPixels(const SkImageInfo& dstInfo,
                        void* pixels,
@@ -71,6 +65,7 @@ private:
                                     const Options&) override;
     Result onIncrementalDecode(int* rowsDecoded) override;
     bool onGetFrameInfo(int, FrameInfo*) const override;
+    int onGetRepetitionCount() override;
 
     // SkPngCodecBase overrides:
     std::optional<SkSpan<const PaletteColorEntry>> onTryGetPlteChunk() override;
