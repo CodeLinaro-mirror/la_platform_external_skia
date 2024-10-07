@@ -29,7 +29,7 @@ var deps = deps_parser.DepsEntries{
 	},
 	"chromium.googlesource.com/angle/angle": {
 		Id:      "chromium.googlesource.com/angle/angle",
-		Version: "1e74ce33a56cba63bfce14465260d63e37e91033",
+		Version: "eaffa034c7ffdd47fcce27eda60c65291cc34bb2",
 		Path:    "third_party/externals/angle2",
 	},
 	"chromium.googlesource.com/chromium/deps/icu": {
@@ -144,7 +144,7 @@ var deps = deps_parser.DepsEntries{
 	},
 	"chromium.googlesource.com/vulkan-deps": {
 		Id:      "chromium.googlesource.com/vulkan-deps",
-		Version: "685cc1e1e3d501529233d3186803032def1c9026",
+		Version: "13d1d0b93ffd149932ec26f8ecb14fac66133bd3",
 		Path:    "third_party/externals/vulkan-deps",
 	},
 	"chromium.googlesource.com/webm/libwebp": {
@@ -154,7 +154,7 @@ var deps = deps_parser.DepsEntries{
 	},
 	"dawn.googlesource.com/dawn": {
 		Id:      "dawn.googlesource.com/dawn",
-		Version: "803ff2bdaf8e409b3d326f6e544ed7ea1ccf63d6",
+		Version: "876bb88cb06345fcbe92743290e2187a9514cac1",
 		Path:    "third_party/externals/dawn",
 	},
 	"infra/3pp/tools/ninja": {
@@ -164,7 +164,7 @@ var deps = deps_parser.DepsEntries{
 	},
 	"skia.googlesource.com/buildbot": {
 		Id:      "skia.googlesource.com/buildbot",
-		Version: "a2950260d0fbeed4e3e3a2d1628442c90e7e1f69",
+		Version: "67cb227058fafab7cad0f0c01fc23056b0db9c05",
 		Path:    "infra/skia-infra",
 	},
 	"skia.googlesource.com/external/github.com/AOMediaCodec/libavif": {
@@ -194,12 +194,12 @@ var deps = deps_parser.DepsEntries{
 	},
 	"skia.googlesource.com/external/github.com/KhronosGroup/SPIRV-Headers": {
 		Id:      "skia.googlesource.com/external/github.com/KhronosGroup/SPIRV-Headers",
-		Version: "2a9b6f951c7d6b04b6c21fe1bf3f475b68b84801",
+		Version: "ec59c77a3bb5c747a369931ef101ac7c14823f2f",
 		Path:    "third_party/externals/spirv-headers",
 	},
 	"skia.googlesource.com/external/github.com/KhronosGroup/SPIRV-Tools": {
 		Id:      "skia.googlesource.com/external/github.com/KhronosGroup/SPIRV-Tools",
-		Version: "24849751c4d16d52994c097d821fdba6f385f2d1",
+		Version: "44936c4a9d42f1c67e34babb5792adf5bce7f76b",
 		Path:    "third_party/externals/spirv-tools",
 	},
 	"skia.googlesource.com/external/github.com/abseil/abseil-cpp": {
@@ -244,12 +244,12 @@ var deps = deps_parser.DepsEntries{
 	},
 	"skia/tools/sk": {
 		Id:      "skia/tools/sk",
-		Version: "git_revision:a2950260d0fbeed4e3e3a2d1628442c90e7e1f69",
+		Version: "git_revision:67cb227058fafab7cad0f0c01fc23056b0db9c05",
 		Path:    "bin",
 	},
 	"swiftshader.googlesource.com/SwiftShader": {
 		Id:      "swiftshader.googlesource.com/SwiftShader",
-		Version: "2afc8c97882a5c66abf5f26670ae420d2e30adc3",
+		Version: "8580e3a98e50357e295a792a984a06cc0bb500ad",
 		Path:    "third_party/externals/swiftshader",
 	},
 }
