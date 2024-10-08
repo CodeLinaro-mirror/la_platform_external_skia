@@ -256,13 +256,16 @@ std::string get_node_ssbo_fields(const ShaderNode* node, bool* wrotePaintColor) 
 
 std::string get_node_texture_samplers(const ResourceBindingRequirements& bindingReqs,
                                       const ShaderNode* node,
-                                      int* binding) {
+                                      int* binding,
+                                      skia_private::TArray<SamplerDesc>* outDescs) {
     std::string result;
     SkSpan<const TextureAndSampler> samplers = node->entry()->fTexturesAndSamplers;
 
     if (!samplers.empty()) {
         SkSL::String::appendf(&result, "// %d - %s samplers\n",
                               node->keyIndex(), node->entry()->fName);
+
+        // TODO(b/898301): If outDescs is a valid ptr, populate it appropriately.
 
         for (const TextureAndSampler& t : samplers) {
             result += EmitSamplerLayout(bindingReqs, binding);
@@ -272,14 +275,13 @@ std::string get_node_texture_samplers(const ResourceBindingRequirements& binding
     }
 
     for (const ShaderNode* child : node->children()) {
-        result += get_node_texture_samplers(bindingReqs, child, binding);
+        result += get_node_texture_samplers(bindingReqs, child, binding, outDescs);
     }
     return result;
 }
 
-static constexpr Uniform kIntrinsicUniforms[] = { {"rtAdjust",          SkSLType::kFloat4},
-                                                  {"replayTranslation", SkSLType::kFloat2},
-                                                  {"dstCopyOffset",     SkSLType::kFloat2} };
+static constexpr Uniform kIntrinsicUniforms[] = { {"viewport",      SkSLType::kFloat4},
+                                                  {"dstCopyBounds", SkSLType::kFloat4} };
 
 std::string emit_intrinsic_uniforms(int bufferID, Layout layout) {
     auto offsetter = UniformOffsetCalculator::ForTopLevel(layout);
@@ -298,31 +300,39 @@ std::string emit_intrinsic_uniforms(int bufferID, Layout layout) {
 
 void CollectIntrinsicUniforms(const Caps* caps,
                               SkIRect viewport,
-                              SkIPoint replayTranslation,
-                              SkIPoint dstCopyOffset,
+                              SkIRect dstCopyBounds,
                               UniformManager* uniforms) {
     SkDEBUGCODE(uniforms->setExpectedUniforms(kIntrinsicUniforms, /*isSubstruct=*/false);)
 
-    // rtAdjust
+    // viewport
     {
-        // The rtAdjust defines the linear transform from logical pixel space (before any replay
-        // translation) to the NDC space. So we have to subtract off the replay offset.
-        const float x = viewport.left() - replayTranslation.x();
-        const float y = viewport.top()  - replayTranslation.y();
-        const float invTwoW = 2.f / viewport.width();
-        const float invTwoH = 2.f / viewport.height();
-        // Depending on how the backend defines its NDC space, we may have to flip the Y axis
-        // even though all logical rendering and actual pixel storage is assumed to be top-left.
-        const float yFlip = caps->ndcYAxisPointsDown() ? 1.f : -1.f;
-        SkV4 rtAdjust = {invTwoW, yFlip*invTwoH, -1.f - x*invTwoW, yFlip*(-1.f - y*invTwoH)};
-        uniforms->write(rtAdjust);
+        // The vertex shader needs to divide by the dimension and then multiply by 2, so do this
+        // once on the CPU. This is because viewport normalization wants to range from -1 to 1, and
+        // not 0 to 1. If any other user of the viewport uniform requires the true reciprocal or
+        // original dimensions, this can be adjusted.
+        SkASSERT(!viewport.isEmpty());
+        float invTwoW = 2.f / viewport.width();
+        float invTwoH = 2.f / viewport.height();
+
+        // If the NDC Y axis points up (opposite normal skia convention and the underlying view
+        // convention), upload the inverse height as a negative value. See BuildVertexSkSL
+        // for how this is used.
+        if (!caps->ndcYAxisPointsDown()) {
+            invTwoH *= -1.f;
+        }
+        uniforms->write(SkV4{(float) viewport.left(), (float) viewport.top(), invTwoW, invTwoH});
     }
 
-    // replayTranslation
-    uniforms->write(SkV2{(float) replayTranslation.fX, (float) replayTranslation.fY});
-
-    // dstCopyOffset
-    uniforms->write(SkV2{(float) dstCopyOffset.fX, (float) dstCopyOffset.fY});
+    // dstCopyBounds
+    {
+        // Unlike viewport, dstCopyBounds can be empty so check for 0 dimensions and set the
+        // reciprocal to 0. It is also not doubled since its purpose is to normalize texture coords
+        // to 0 to 1, and not -1 to 1.
+        int width = dstCopyBounds.width();
+        int height = dstCopyBounds.height();
+        uniforms->write(SkV4{(float) dstCopyBounds.left(), (float) dstCopyBounds.top(),
+                             width ? 1.f / width : 0.f, height ? 1.f / height : 0.f});
+    }
 
     SkDEBUGCODE(uniforms->doneWithExpectedUniforms());
 }
@@ -432,10 +442,11 @@ std::string EmitStorageBufferAccess(const char* bufferNamePrefix,
 
 std::string EmitTexturesAndSamplers(const ResourceBindingRequirements& bindingReqs,
                                     SkSpan<const ShaderNode*> nodes,
-                                    int* binding) {
+                                    int* binding,
+                                    skia_private::TArray<SamplerDesc>* outDescs) {
     std::string result;
     for (const ShaderNode* n : nodes) {
-        result += get_node_texture_samplers(bindingReqs, n, binding);
+        result += get_node_texture_samplers(bindingReqs, n, binding, outDescs);
     }
     return result;
 }
@@ -576,7 +587,17 @@ VertSkSLInfo BuildVertexSkSL(const ResourceBindingRequirements& bindingReqs,
     }
 
     sksl += step->vertexSkSL();
-    sksl += "sk_Position = float4(devPosition.xy * rtAdjust.xy + devPosition.ww * rtAdjust.zw,"
+
+    // We want to map the rectangle of logical device pixels from (0,0) to (viewWidth, viewHeight)
+    // to normalized device coordinates: (-1,-1) to (1,1) (actually -w to w since it's before
+    // homogenous division).
+    //
+    // For efficiency, this assumes viewport.zw holds the reciprocol of twice the viewport width and
+    // height. On some backends the NDC Y axis is flipped relative to the device and
+    // viewport coords (i.e. it points up instead of down). In those cases, it's also assumed that
+    // viewport.w holds a negative value. In that case the sign(viewport.zw) changes from
+    // subtracting w to adding w.
+    sksl += "sk_Position = float4(viewport.zw*devPosition.xy - sign(viewport.zw)*devPosition.ww,"
             "devPosition.zw);";
 
     if (useShadingStorageBuffer) {
@@ -609,7 +630,8 @@ FragSkSLInfo BuildFragmentSkSL(const Caps* caps,
                                const RenderStep* step,
                                UniquePaintParamsID paintID,
                                bool useStorageBuffers,
-                               skgpu::Swizzle writeSwizzle) {
+                               skgpu::Swizzle writeSwizzle,
+                               skia_private::TArray<SamplerDesc>* outDescs) {
     FragSkSLInfo result;
     if (!paintID.isValid()) {
         // Depth-only draw so no fragment shader to compile
@@ -623,10 +645,11 @@ FragSkSLInfo BuildFragmentSkSL(const Caps* caps,
     result.fSkSL = shaderInfo.toSkSL(caps,
                                      step,
                                      useStorageBuffers,
+                                     writeSwizzle,
                                      &result.fNumTexturesAndSamplers,
                                      &result.fHasPaintUniforms,
                                      &result.fHasGradientBuffer,
-                                     writeSwizzle);
+                                     outDescs);
 
     // Extract blend info after integrating the RenderStep into the final fragment shader in case
     // that changes the HW blending choice to handle analytic coverage.
