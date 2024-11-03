@@ -49,11 +49,11 @@ private:
         // passed to `onGetPixels` or `onStartIncrementalDecode`.
         size_t fDstRowSize = 0;
 
-        // Stashed `dstInfo.bytesPerPixel()`
-        size_t fBytesPerPixel = 0;
-
         // Index (in `fFrameHolder`) of the frame being currently decoded.
         size_t fFrameIndex = 0;
+
+        // Stashed `dstInfo.bytesPerPixel()`
+        uint8_t fBytesPerPixel = 0;
     };
 
     // Helper for validating parameters of `onGetPixels` and/or
@@ -69,11 +69,23 @@ private:
     // `onIncrementalDecode`.
     Result incrementalDecode(DecodingState& decodingState, int* rowsDecoded);
 
+    // Helper for reading until the start of the next `fdAT` sequence.
+    Result readToStartOfNextFrame();
+
     // Helper for seeking to the start of image data for the given frame.
     Result seekToStartOfFrame(int index);
 
-    // Helper for reading until the start of the next `fdAT` sequence.
-    Result readToStartOfNextFrame();
+    // The number of frames calculated based on 1) the presence, and 2) the
+    // contents of an `acTL` chunk.  "raw" in the sense that it reports all the
+    // frames, while `SkCodec::getFrameCount` and
+    // `SkPngRustCodec::onGetFrameCount` only report frames for which we have
+    // successfully populated `fFrameHolder` with frame info parsed from `IHDR`
+    // and/or `fcTL` chunks.
+    int getRawFrameCount() const;
+
+    // Attempts to read through the input stream to parse the additional `fcTL`
+    // chunks.
+    Result parseAdditionalFrameInfos();
 
     // SkCodec overrides:
     Result onGetPixels(const SkImageInfo& dstInfo,
@@ -114,21 +126,32 @@ private:
         FrameHolder& operator=(const FrameHolder&) = delete;
         FrameHolder& operator=(FrameHolder&&) = delete;
 
-        size_t size() const;
+        // Returning an `int` (rather than `size_t`) for easier interop with
+        // other parts of the SkCodec API.
+        int size() const;
 
-        void appendNewFrame(const rust_png::Reader& reader, const SkEncodedInfo& info);
+        Result appendNewFrame(const rust_png::Reader& reader, const SkEncodedInfo& info);
         void markFrameAsFullyReceived(size_t index);
-        bool isLastFrameFullyReceived() const;
         bool getFrameInfo(int index, FrameInfo* info) const;
 
     private:
-        const SkFrame* onGetFrame(int i) const override;
-        void setLastFrameInfoFromCurrentFctlChunk(const rust_png::Reader& reader);
-
         class PngFrame;
+
+        const SkFrame* onGetFrame(int unverifiedIndex) const override;
+        Result setFrameInfoFromCurrentFctlChunk(const rust_png::Reader& reader,
+                                                PngFrame* out_frame);
+
         std::vector<PngFrame> fFrames;
     };
     FrameHolder fFrameHolder;
+
+    // Whether there may still be additional `fcTL` chunks to discover and parse.
+    //
+    // `true` if the stream hasn't been fully received (i.e. only
+    // `kIncompleteInput` errors so far, no hard errors) and `fFrameHolder`
+    // doesn't yet contain frame info for all `num_frames` declared in an `acTL`
+    // chunk.
+    bool fCanParseAdditionalFrameInfos = true;
 };
 
 #endif  // SkPngRustCodec_DEFINED
