@@ -5,7 +5,7 @@
  * found in the LICENSE file.
  */
 
-#include "experimental/rust_png/SkPngRustDecoder.h"
+#include "experimental/rust_png/decoder/SkPngRustDecoder.h"
 #include "include/codec/SkCodec.h"
 #include "include/codec/SkCodecAnimation.h"
 #include "include/core/SkBitmap.h"
@@ -624,4 +624,19 @@ DEF_TEST(Codec_png_was_encoded_with_16_bits_or_more_per_component, r) {
             REPORTER_ASSERT(r, codec->hasHighBitDepthEncodedData() == test.fEncodedWith16bits);
         }
     }
+}
+
+DEF_TEST(Codec_png_cicp, r) {
+    std::unique_ptr<SkCodec> codec = SkPngRustDecoderDecode(r, "images/cicp_pq.png");
+    if (!codec) {
+        return;
+    }
+
+    const skcms_ICCProfile* profile = codec->getICCProfile();
+    REPORTER_ASSERT(r, profile);
+    if (!profile) {
+        return;
+    }
+
+    REPORTER_ASSERT(r, skcms_TransferFunction_isPQish(&profile->trc[0].parametric));
 }
