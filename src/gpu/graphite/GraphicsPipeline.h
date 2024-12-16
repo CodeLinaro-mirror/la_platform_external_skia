@@ -14,15 +14,14 @@
 
 namespace skgpu::graphite {
 
-struct FragSkSLInfo;
-struct VertSkSLInfo;
+class ShaderInfo;
 class RenderStep;
 
 enum class PipelineCreationFlags : uint8_t {
     kNone             = 0b000,
-    // This flag is Dawn specific. It overrides the DawnCaps::fUseAsyncPipelineCreation
-    // parameter and forces Synchronous Pipeline creation (for Precompilation).
-    kForceSynchronous = 0b001,
+    // For Dawn, this flag overrides the DawnCaps::fUseAsyncPipelineCreation
+    // parameter and forces Synchronous Pipeline creation.
+    kForPrecompilation = 0b001,
 };
 
 /**
@@ -52,7 +51,7 @@ public:
         PipelineInfo() = default;
 
         // NOTE: Subclasses must manually fill in native shader code in GPU_TEST_UTILS builds.
-        PipelineInfo(const VertSkSLInfo&, const FragSkSLInfo&);
+        PipelineInfo(const ShaderInfo&, SkEnumBitMask<PipelineCreationFlags>);
 
         DstReadRequirement fDstReadReq = DstReadRequirement::kNone;
         int  fNumFragTexturesAndSamplers = 0;
@@ -71,12 +70,18 @@ public:
         std::string fNativeVertexShader;
         std::string fNativeFragmentShader;
 #endif
+#if SK_HISTOGRAMS_ENABLED
+        bool fFromPrecompile = false;
+#endif
     };
 
 #if defined(GPU_TEST_UTILS)
     const PipelineInfo& getPipelineInfo() const {
         return fPipelineInfo;
     }
+#endif
+#if SK_HISTOGRAMS_ENABLED
+    bool fromPrecompile() const { return fPipelineInfo.fFromPrecompile; }
 #endif
 
 protected:

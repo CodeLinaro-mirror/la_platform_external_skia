@@ -52,7 +52,7 @@ skia_cc_library(
     features = ["layering_check"],
     local_defines = ["SK_DISABLE_LEGACY_INIT_DECODERS"],
     visibility = [
-        "//experimental/rust_png:__pkg__",
+        "//experimental/rust_png/decoder:__pkg__",
         "//src/encode:__pkg__",
         "//src/ports:__pkg__",
     ],
@@ -88,6 +88,7 @@ skia_cc_library(
     ] + PRIVATE_CODEC_HEADERS,
     visibility = [
         "//modules/skottie:__pkg__",
+        "//modules/skottie/src:__pkg__",
         "//modules/skresources:__pkg__",
         "//src/android:__pkg__",
         "//tools:__pkg__",
