@@ -350,9 +350,9 @@
         "Build-Debian10-Clang-x86_64-Debug-Fontations"
       ]
     },
-    "Build-Debian10-Clang-x86_64-Debug-FreeType": {
+    "Build-Debian10-Clang-x86_64-Debug-FreeType_ASAN": {
       "tasks": [
-        "Build-Debian10-Clang-x86_64-Debug-FreeType"
+        "Build-Debian10-Clang-x86_64-Debug-FreeType_ASAN"
       ]
     },
     "Build-Debian10-Clang-x86_64-Debug-Graphite_Dawn_Vulkan": {
@@ -2459,9 +2459,9 @@
         "Test-Debian10-Clang-GCE-CPU-AVX2-x86_64-Debug-All-NativeFonts_Fontations"
       ]
     },
-    "Test-Debian10-Clang-GCE-CPU-AVX2-x86_64-Debug-All-NativeFonts_FreeType": {
+    "Test-Debian10-Clang-GCE-CPU-AVX2-x86_64-Debug-All-NativeFonts_FreeType_ASAN_Upload": {
       "tasks": [
-        "Test-Debian10-Clang-GCE-CPU-AVX2-x86_64-Debug-All-NativeFonts_FreeType"
+        "Test-Debian10-Clang-GCE-CPU-AVX2-x86_64-Debug-All-NativeFonts_FreeType_ASAN_Upload"
       ]
     },
     "Test-Debian10-Clang-GCE-CPU-AVX2-x86_64-Debug-All-OldestSupportedSkpVersion": {
@@ -3653,6 +3653,9 @@
         "os:Debian-10.3",
         "pool:Skia"
       ],
+      "environment": {
+        "USE_BAZEL_FALLBACK_VERSION": "error"
+      },
       "env_prefixes": {
         "PATH": [
           "cipd_bin_packages",
@@ -3723,6 +3726,9 @@
         "os:Debian-10.3",
         "pool:Skia"
       ],
+      "environment": {
+        "USE_BAZEL_FALLBACK_VERSION": "error"
+      },
       "env_prefixes": {
         "PATH": [
           "cipd_bin_packages",
@@ -3796,6 +3802,9 @@
         "os:Debian-10.3",
         "pool:Skia"
       ],
+      "environment": {
+        "USE_BAZEL_FALLBACK_VERSION": "error"
+      },
       "env_prefixes": {
         "PATH": [
           "cipd_bin_packages",
@@ -3869,6 +3878,9 @@
         "os:Debian-10.3",
         "pool:Skia"
       ],
+      "environment": {
+        "USE_BAZEL_FALLBACK_VERSION": "error"
+      },
       "env_prefixes": {
         "PATH": [
           "cipd_bin_packages",
@@ -3942,6 +3954,9 @@
         "os:Debian-10.3",
         "pool:Skia"
       ],
+      "environment": {
+        "USE_BAZEL_FALLBACK_VERSION": "error"
+      },
       "env_prefixes": {
         "PATH": [
           "cipd_bin_packages",
@@ -4015,6 +4030,9 @@
         "os:Debian-10.3",
         "pool:Skia"
       ],
+      "environment": {
+        "USE_BAZEL_FALLBACK_VERSION": "error"
+      },
       "env_prefixes": {
         "PATH": [
           "cipd_bin_packages",
@@ -4081,6 +4099,9 @@
         "os:Windows-Server-17763",
         "pool:Skia"
       ],
+      "environment": {
+        "USE_BAZEL_FALLBACK_VERSION": "error"
+      },
       "env_prefixes": {
         "PATH": [
           "cipd_bin_packages",
@@ -4151,6 +4172,9 @@
         "os:Debian-10.3",
         "pool:Skia"
       ],
+      "environment": {
+        "USE_BAZEL_FALLBACK_VERSION": "error"
+      },
       "env_prefixes": {
         "PATH": [
           "cipd_bin_packages",
@@ -4221,6 +4245,9 @@
         "os:Debian-10.3",
         "pool:Skia"
       ],
+      "environment": {
+        "USE_BAZEL_FALLBACK_VERSION": "error"
+      },
       "env_prefixes": {
         "PATH": [
           "cipd_bin_packages",
@@ -4294,6 +4321,9 @@
         "os:Debian-10.3",
         "pool:Skia"
       ],
+      "environment": {
+        "USE_BAZEL_FALLBACK_VERSION": "error"
+      },
       "env_prefixes": {
         "PATH": [
           "cipd_bin_packages",
@@ -4367,6 +4397,9 @@
         "os:Debian-10.3",
         "pool:Skia"
       ],
+      "environment": {
+        "USE_BAZEL_FALLBACK_VERSION": "error"
+      },
       "env_prefixes": {
         "PATH": [
           "cipd_bin_packages",
@@ -4437,6 +4470,9 @@
         "os:Debian-10.3",
         "pool:Skia"
       ],
+      "environment": {
+        "USE_BAZEL_FALLBACK_VERSION": "error"
+      },
       "env_prefixes": {
         "PATH": [
           "cipd_bin_packages",
@@ -4503,6 +4539,9 @@
         "os:Windows-Server-17763",
         "pool:Skia"
       ],
+      "environment": {
+        "USE_BAZEL_FALLBACK_VERSION": "error"
+      },
       "env_prefixes": {
         "PATH": [
           "cipd_bin_packages",
@@ -4573,6 +4612,9 @@
         "os:Debian-10.3",
         "pool:Skia"
       ],
+      "environment": {
+        "USE_BAZEL_FALLBACK_VERSION": "error"
+      },
       "env_prefixes": {
         "PATH": [
           "cipd_bin_packages",
@@ -4643,6 +4685,9 @@
         "os:Debian-10.3",
         "pool:Skia"
       ],
+      "environment": {
+        "USE_BAZEL_FALLBACK_VERSION": "error"
+      },
       "env_prefixes": {
         "PATH": [
           "cipd_bin_packages",
@@ -4683,6 +4728,9 @@
         "os:Debian-10.3",
         "pool:Skia"
       ],
+      "environment": {
+        "USE_BAZEL_FALLBACK_VERSION": "error"
+      },
       "env_prefixes": {
         "PATH": [
           "bazelisk_linux_amd64"
@@ -4721,6 +4769,9 @@
         "os:Debian-10.3",
         "pool:Skia"
       ],
+      "environment": {
+        "USE_BAZEL_FALLBACK_VERSION": "error"
+      },
       "env_prefixes": {
         "PATH": [
           "bazelisk_linux_amd64"
@@ -4777,6 +4828,7 @@
         "pool:Skia"
       ],
       "environment": {
+        "USE_BAZEL_FALLBACK_VERSION": "error",
         "VPYTHON_LOG_TRACE": "1"
       },
       "env_prefixes": {
@@ -4843,6 +4895,7 @@
         "pool:Skia"
       ],
       "environment": {
+        "USE_BAZEL_FALLBACK_VERSION": "error",
         "VPYTHON_LOG_TRACE": "1"
       },
       "env_prefixes": {
@@ -4909,6 +4962,7 @@
         "pool:Skia"
       ],
       "environment": {
+        "USE_BAZEL_FALLBACK_VERSION": "error",
         "VPYTHON_LOG_TRACE": "1"
       },
       "env_prefixes": {
@@ -4975,6 +5029,7 @@
         "pool:Skia"
       ],
       "environment": {
+        "USE_BAZEL_FALLBACK_VERSION": "error",
         "VPYTHON_LOG_TRACE": "1"
       },
       "env_prefixes": {
@@ -5041,6 +5096,7 @@
         "pool:Skia"
       ],
       "environment": {
+        "USE_BAZEL_FALLBACK_VERSION": "error",
         "VPYTHON_LOG_TRACE": "1"
       },
       "env_prefixes": {
@@ -5107,6 +5163,7 @@
         "pool:Skia"
       ],
       "environment": {
+        "USE_BAZEL_FALLBACK_VERSION": "error",
         "VPYTHON_LOG_TRACE": "1"
       },
       "env_prefixes": {
@@ -5173,6 +5230,7 @@
         "pool:Skia"
       ],
       "environment": {
+        "USE_BAZEL_FALLBACK_VERSION": "error",
         "VPYTHON_LOG_TRACE": "1"
       },
       "env_prefixes": {
@@ -5239,6 +5297,7 @@
         "pool:Skia"
       ],
       "environment": {
+        "USE_BAZEL_FALLBACK_VERSION": "error",
         "VPYTHON_LOG_TRACE": "1"
       },
       "env_prefixes": {
@@ -5305,6 +5364,7 @@
         "pool:Skia"
       ],
       "environment": {
+        "USE_BAZEL_FALLBACK_VERSION": "error",
         "VPYTHON_LOG_TRACE": "1"
       },
       "env_prefixes": {
@@ -5371,6 +5431,7 @@
         "pool:Skia"
       ],
       "environment": {
+        "USE_BAZEL_FALLBACK_VERSION": "error",
         "VPYTHON_LOG_TRACE": "1"
       },
       "env_prefixes": {
@@ -5437,6 +5498,7 @@
         "pool:Skia"
       ],
       "environment": {
+        "USE_BAZEL_FALLBACK_VERSION": "error",
         "VPYTHON_LOG_TRACE": "1"
       },
       "env_prefixes": {
@@ -5503,6 +5565,7 @@
         "pool:Skia"
       ],
       "environment": {
+        "USE_BAZEL_FALLBACK_VERSION": "error",
         "VPYTHON_LOG_TRACE": "1"
       },
       "env_prefixes": {
@@ -9245,6 +9308,7 @@
       ],
       "environment": {
         "RECIPES_USE_PY3": "true",
+        "USE_BAZEL_FALLBACK_VERSION": "error",
         "VPYTHON_LOG_TRACE": "1"
       },
       "env_prefixes": {
@@ -9273,7 +9337,7 @@
       ],
       "service_account": "skia-external-compile-tasks@skia-swarming-bots.iam.gserviceaccount.com"
     },
-    "Build-Debian10-Clang-x86_64-Debug-FreeType": {
+    "Build-Debian10-Clang-x86_64-Debug-FreeType_ASAN": {
       "caches": [
         {
           "name": "ccache",
@@ -9323,7 +9387,7 @@
         "skia/infra/bots/run_recipe.py",
         "${ISOLATED_OUTDIR}",
         "compile",
-        "{\"$kitchen\":{\"devshell\":true,\"git_auth\":true},\"buildername\":\"Build-Debian10-Clang-x86_64-Debug-FreeType\",\"swarm_out_dir\":\"build\"}",
+        "{\"$kitchen\":{\"devshell\":true,\"git_auth\":true},\"buildername\":\"Build-Debian10-Clang-x86_64-Debug-FreeType_ASAN\",\"swarm_out_dir\":\"build\"}",
         "skia"
       ],
       "dependencies": [
@@ -9579,6 +9643,7 @@
       ],
       "environment": {
         "RECIPES_USE_PY3": "true",
+        "USE_BAZEL_FALLBACK_VERSION": "error",
         "VPYTHON_LOG_TRACE": "1"
       },
       "env_prefixes": {
@@ -9797,6 +9862,7 @@
       ],
       "environment": {
         "RECIPES_USE_PY3": "true",
+        "USE_BAZEL_FALLBACK_VERSION": "error",
         "VPYTHON_LOG_TRACE": "1"
       },
       "env_prefixes": {
@@ -12178,6 +12244,7 @@
       ],
       "environment": {
         "RECIPES_USE_PY3": "true",
+        "USE_BAZEL_FALLBACK_VERSION": "error",
         "VPYTHON_LOG_TRACE": "1"
       },
       "env_prefixes": {
@@ -14971,6 +15038,7 @@
       ],
       "environment": {
         "RECIPES_USE_PY3": "true",
+        "USE_BAZEL_FALLBACK_VERSION": "error",
         "VPYTHON_LOG_TRACE": "1"
       },
       "env_prefixes": {
@@ -15762,6 +15830,7 @@
       ],
       "environment": {
         "RECIPES_USE_PY3": "true",
+        "USE_BAZEL_FALLBACK_VERSION": "error",
         "VPYTHON_LOG_TRACE": "1"
       },
       "env_prefixes": {
@@ -18080,6 +18149,7 @@
       ],
       "environment": {
         "RECIPES_USE_PY3": "true",
+        "USE_BAZEL_FALLBACK_VERSION": "error",
         "VPYTHON_LOG_TRACE": "1"
       },
       "env_prefixes": {
@@ -18496,6 +18566,7 @@
       ],
       "environment": {
         "RECIPES_USE_PY3": "true",
+        "USE_BAZEL_FALLBACK_VERSION": "error",
         "VPYTHON_LOG_TRACE": "1"
       },
       "env_prefixes": {
@@ -21148,6 +21219,7 @@
       ],
       "environment": {
         "RECIPES_USE_PY3": "true",
+        "USE_BAZEL_FALLBACK_VERSION": "error",
         "VPYTHON_LOG_TRACE": "1"
       },
       "env_prefixes": {
@@ -21395,6 +21467,7 @@
       ],
       "environment": {
         "RECIPES_USE_PY3": "true",
+        "USE_BAZEL_FALLBACK_VERSION": "error",
         "VPYTHON_LOG_TRACE": "1"
       },
       "env_prefixes": {
@@ -21619,6 +21692,7 @@
       ],
       "environment": {
         "RECIPES_USE_PY3": "true",
+        "USE_BAZEL_FALLBACK_VERSION": "error",
         "VPYTHON_LOG_TRACE": "1"
       },
       "env_prefixes": {
@@ -22154,6 +22228,7 @@
       ],
       "environment": {
         "RECIPES_USE_PY3": "true",
+        "USE_BAZEL_FALLBACK_VERSION": "error",
         "VPYTHON_LOG_TRACE": "1"
       },
       "env_prefixes": {
@@ -22378,6 +22453,7 @@
       ],
       "environment": {
         "RECIPES_USE_PY3": "true",
+        "USE_BAZEL_FALLBACK_VERSION": "error",
         "VPYTHON_LOG_TRACE": "1"
       },
       "env_prefixes": {
@@ -29060,6 +29136,9 @@
         "os:Debian-10.3",
         "pool:Skia"
       ],
+      "environment": {
+        "USE_BAZEL_FALLBACK_VERSION": "error"
+      },
       "env_prefixes": {
         "PATH": [
           "bazelisk_linux_amd64"
@@ -29089,6 +29168,9 @@
         "os:Debian-10.3",
         "pool:Skia"
       ],
+      "environment": {
+        "USE_BAZEL_FALLBACK_VERSION": "error"
+      },
       "env_prefixes": {
         "PATH": [
           "bazelisk_linux_amd64"
@@ -29118,6 +29200,9 @@
         "os:Debian-10.3",
         "pool:Skia"
       ],
+      "environment": {
+        "USE_BAZEL_FALLBACK_VERSION": "error"
+      },
       "env_prefixes": {
         "PATH": [
           "bazelisk_linux_amd64"
@@ -29255,6 +29340,9 @@
         "os:Debian-10.3",
         "pool:Skia"
       ],
+      "environment": {
+        "USE_BAZEL_FALLBACK_VERSION": "error"
+      },
       "env_prefixes": {
         "PATH": [
           "bazelisk_linux_amd64",
@@ -29323,6 +29411,9 @@
         "os:Debian-10.3",
         "pool:Skia"
       ],
+      "environment": {
+        "USE_BAZEL_FALLBACK_VERSION": "error"
+      },
       "env_prefixes": {
         "PATH": [
           "bazelisk_linux_amd64",
@@ -47701,7 +47792,7 @@
       ],
       "service_account": "skia-external-gm-uploader@skia-swarming-bots.iam.gserviceaccount.com"
     },
-    "Test-Debian10-Clang-GCE-CPU-AVX2-x86_64-Debug-All-NativeFonts_FreeType": {
+    "Test-Debian10-Clang-GCE-CPU-AVX2-x86_64-Debug-All-NativeFonts_FreeType_ASAN_Upload": {
       "caches": [
         {
           "name": "vpython3",
@@ -47729,6 +47820,11 @@
           "name": "infra/tools/luci/vpython3/${platform}",
           "path": "cipd_bin_packages",
           "version": "git_revision:513455d301ce256eee5e41f9eb17190a25ef0abd"
+        },
+        {
+          "name": "skia/bots/clang_linux",
+          "path": "clang_linux",
+          "version": "version:30"
         },
         {
           "name": "skia/bots/gsutil",
@@ -47762,11 +47858,11 @@
         "skia/infra/bots/run_recipe.py",
         "${ISOLATED_OUTDIR}",
         "test",
-        "{\"$kitchen\":{\"devshell\":true,\"git_auth\":true},\"buildbucket_build_id\":\"<(BUILDBUCKET_BUILD_ID)\",\"buildername\":\"Test-Debian10-Clang-GCE-CPU-AVX2-x86_64-Debug-All-NativeFonts_FreeType\",\"dm_flags\":\"[\\\"dm\\\",\\\"--nameByHash\\\",\\\"--key\\\",\\\"arch\\\",\\\"x86_64\\\",\\\"compiler\\\",\\\"Clang\\\",\\\"configuration\\\",\\\"Debug\\\",\\\"cpu_or_gpu\\\",\\\"CPU\\\",\\\"cpu_or_gpu_value\\\",\\\"AVX2\\\",\\\"extra_config\\\",\\\"NativeFonts_FreeType\\\",\\\"model\\\",\\\"GCE\\\",\\\"os\\\",\\\"Debian10\\\",\\\"style\\\",\\\"default\\\",\\\"--randomProcessorTest\\\",\\\"--nogpu\\\",\\\"--config\\\",\\\"8888\\\",\\\"--src\\\",\\\"tests\\\",\\\"gm\\\",\\\"--skip\\\",\\\"_\\\",\\\"test\\\",\\\"_\\\",\\\"BigImageTest_Ganesh\\\",\\\"_\\\",\\\"image\\\",\\\"gen_platf\\\",\\\"error\\\",\\\"--nativeFonts\\\",\\\"--paragraph_fonts\\\",\\\"extra_fonts\\\",\\\"--norun_paragraph_tests_needing_system_fonts\\\",\\\"--verbose\\\"]\",\"dm_properties\":\"{\\\"buildbucket_build_id\\\":\\\"<(BUILDBUCKET_BUILD_ID)\\\",\\\"builder\\\":\\\"Test-Debian10-Clang-GCE-CPU-AVX2-x86_64-Debug-All-NativeFonts_FreeType\\\",\\\"gitHash\\\":\\\"<(REVISION)\\\",\\\"issue\\\":\\\"<(ISSUE)\\\",\\\"patch_storage\\\":\\\"<(PATCH_STORAGE)\\\",\\\"patchset\\\":\\\"<(PATCHSET)\\\",\\\"swarming_bot_id\\\":\\\"${SWARMING_BOT_ID}\\\",\\\"swarming_task_id\\\":\\\"${SWARMING_TASK_ID}\\\",\\\"task_id\\\":\\\"<(TASK_ID)\\\"}\",\"do_upload\":\"true\",\"gold_hashes_url\":\"https://gold.skia.org/json/v1/hashes\",\"gs_bucket\":\"skia-infra-gm\",\"images\":\"true\",\"patch_issue\":\"<(ISSUE_INT)\",\"patch_ref\":\"<(PATCH_REF)\",\"patch_repo\":\"<(PATCH_REPO)\",\"patch_set\":\"<(PATCHSET_INT)\",\"patch_storage\":\"<(PATCH_STORAGE)\",\"repository\":\"<(REPO)\",\"resources\":\"true\",\"revision\":\"<(REVISION)\",\"skps\":\"true\",\"svgs\":\"true\",\"swarm_out_dir\":\"test\",\"task_id\":\"<(TASK_ID)\"}",
+        "{\"$kitchen\":{\"devshell\":true,\"git_auth\":true},\"buildbucket_build_id\":\"<(BUILDBUCKET_BUILD_ID)\",\"buildername\":\"Test-Debian10-Clang-GCE-CPU-AVX2-x86_64-Debug-All-NativeFonts_FreeType_ASAN_Upload\",\"dm_flags\":\"[\\\"dm\\\",\\\"--nameByHash\\\",\\\"--key\\\",\\\"arch\\\",\\\"x86_64\\\",\\\"compiler\\\",\\\"Clang\\\",\\\"configuration\\\",\\\"Debug\\\",\\\"cpu_or_gpu\\\",\\\"CPU\\\",\\\"cpu_or_gpu_value\\\",\\\"AVX2\\\",\\\"extra_config\\\",\\\"NativeFonts_FreeType_ASAN_Upload\\\",\\\"model\\\",\\\"GCE\\\",\\\"os\\\",\\\"Debian10\\\",\\\"style\\\",\\\"default\\\",\\\"--randomProcessorTest\\\",\\\"--nogpu\\\",\\\"--config\\\",\\\"8888\\\",\\\"--src\\\",\\\"tests\\\",\\\"gm\\\",\\\"--skip\\\",\\\"_\\\",\\\"test\\\",\\\"_\\\",\\\"BigImageTest_Ganesh\\\",\\\"_\\\",\\\"image\\\",\\\"gen_platf\\\",\\\"error\\\",\\\"--nativeFonts\\\",\\\"--paragraph_fonts\\\",\\\"extra_fonts\\\",\\\"--norun_paragraph_tests_needing_system_fonts\\\",\\\"--verbose\\\"]\",\"dm_properties\":\"{\\\"buildbucket_build_id\\\":\\\"<(BUILDBUCKET_BUILD_ID)\\\",\\\"builder\\\":\\\"Test-Debian10-Clang-GCE-CPU-AVX2-x86_64-Debug-All-NativeFonts_FreeType_ASAN_Upload\\\",\\\"gitHash\\\":\\\"<(REVISION)\\\",\\\"issue\\\":\\\"<(ISSUE)\\\",\\\"patch_storage\\\":\\\"<(PATCH_STORAGE)\\\",\\\"patchset\\\":\\\"<(PATCHSET)\\\",\\\"swarming_bot_id\\\":\\\"${SWARMING_BOT_ID}\\\",\\\"swarming_task_id\\\":\\\"${SWARMING_TASK_ID}\\\",\\\"task_id\\\":\\\"<(TASK_ID)\\\"}\",\"do_upload\":\"true\",\"gold_hashes_url\":\"https://gold.skia.org/json/v1/hashes\",\"gs_bucket\":\"skia-infra-gm\",\"images\":\"true\",\"patch_issue\":\"<(ISSUE_INT)\",\"patch_ref\":\"<(PATCH_REF)\",\"patch_repo\":\"<(PATCH_REPO)\",\"patch_set\":\"<(PATCHSET_INT)\",\"patch_storage\":\"<(PATCH_STORAGE)\",\"repository\":\"<(REPO)\",\"resources\":\"true\",\"revision\":\"<(REVISION)\",\"skps\":\"true\",\"svgs\":\"true\",\"swarm_out_dir\":\"test\",\"task_id\":\"<(TASK_ID)\"}",
         "skia"
       ],
       "dependencies": [
-        "Build-Debian10-Clang-x86_64-Debug-FreeType",
+        "Build-Debian10-Clang-x86_64-Debug-FreeType_ASAN",
         "Housekeeper-PerCommit-BundleRecipes"
       ],
       "dimensions": [
@@ -47800,7 +47896,7 @@
         "log_location": "logdog://logs.chromium.org/skia/${SWARMING_TASK_ID}/+/annotations"
       },
       "io_timeout_ns": 14400000000000,
-      "max_attempts": 2,
+      "max_attempts": 1,
       "outputs": [
         "test"
       ],
@@ -47952,7 +48048,7 @@
         "skia/infra/bots/run_recipe.py",
         "${ISOLATED_OUTDIR}",
         "test",
-        "{\"$kitchen\":{\"devshell\":true,\"git_auth\":true},\"buildbucket_build_id\":\"<(BUILDBUCKET_BUILD_ID)\",\"buildername\":\"Test-Debian10-Clang-GCE-CPU-AVX2-x86_64-Debug-All-RustPNG\",\"dm_flags\":\"[\\\"dm\\\",\\\"--nameByHash\\\",\\\"--key\\\",\\\"arch\\\",\\\"x86_64\\\",\\\"compiler\\\",\\\"Clang\\\",\\\"configuration\\\",\\\"Debug\\\",\\\"cpu_or_gpu\\\",\\\"CPU\\\",\\\"cpu_or_gpu_value\\\",\\\"AVX2\\\",\\\"extra_config\\\",\\\"RustPNG\\\",\\\"model\\\",\\\"GCE\\\",\\\"os\\\",\\\"Debian10\\\",\\\"style\\\",\\\"default\\\",\\\"--randomProcessorTest\\\",\\\"--nogpu\\\",\\\"--config\\\",\\\"8888\\\",\\\"--src\\\",\\\"tests\\\",\\\"gm\\\",\\\"image\\\",\\\"colorImage\\\",\\\"--skip\\\",\\\"_\\\",\\\"test\\\",\\\"_\\\",\\\"BigImageTest_Ganesh\\\",\\\"_\\\",\\\"image\\\",\\\"gen_platf\\\",\\\"error\\\",\\\"--nonativeFonts\\\",\\\"--verbose\\\"]\",\"dm_properties\":\"{\\\"buildbucket_build_id\\\":\\\"<(BUILDBUCKET_BUILD_ID)\\\",\\\"builder\\\":\\\"Test-Debian10-Clang-GCE-CPU-AVX2-x86_64-Debug-All-RustPNG\\\",\\\"gitHash\\\":\\\"<(REVISION)\\\",\\\"issue\\\":\\\"<(ISSUE)\\\",\\\"patch_storage\\\":\\\"<(PATCH_STORAGE)\\\",\\\"patchset\\\":\\\"<(PATCHSET)\\\",\\\"swarming_bot_id\\\":\\\"${SWARMING_BOT_ID}\\\",\\\"swarming_task_id\\\":\\\"${SWARMING_TASK_ID}\\\",\\\"task_id\\\":\\\"<(TASK_ID)\\\"}\",\"do_upload\":\"true\",\"gold_hashes_url\":\"https://gold.skia.org/json/v1/hashes\",\"gs_bucket\":\"skia-infra-gm\",\"images\":\"true\",\"patch_issue\":\"<(ISSUE_INT)\",\"patch_ref\":\"<(PATCH_REF)\",\"patch_repo\":\"<(PATCH_REPO)\",\"patch_set\":\"<(PATCHSET_INT)\",\"patch_storage\":\"<(PATCH_STORAGE)\",\"repository\":\"<(REPO)\",\"resources\":\"true\",\"revision\":\"<(REVISION)\",\"skps\":\"true\",\"svgs\":\"true\",\"swarm_out_dir\":\"test\",\"task_id\":\"<(TASK_ID)\"}",
+        "{\"$kitchen\":{\"devshell\":true,\"git_auth\":true},\"buildbucket_build_id\":\"<(BUILDBUCKET_BUILD_ID)\",\"buildername\":\"Test-Debian10-Clang-GCE-CPU-AVX2-x86_64-Debug-All-RustPNG\",\"dm_flags\":\"[\\\"dm\\\",\\\"--nameByHash\\\",\\\"--key\\\",\\\"arch\\\",\\\"x86_64\\\",\\\"compiler\\\",\\\"Clang\\\",\\\"configuration\\\",\\\"Debug\\\",\\\"cpu_or_gpu\\\",\\\"CPU\\\",\\\"cpu_or_gpu_value\\\",\\\"AVX2\\\",\\\"extra_config\\\",\\\"RustPNG\\\",\\\"model\\\",\\\"GCE\\\",\\\"os\\\",\\\"Debian10\\\",\\\"style\\\",\\\"default\\\",\\\"--randomProcessorTest\\\",\\\"--nogpu\\\",\\\"--config\\\",\\\"8888\\\",\\\"--src\\\",\\\"tests\\\",\\\"gm\\\",\\\"image\\\",\\\"colorImage\\\",\\\"--match\\\",\\\"RustPngCodec\\\",\\\"RustEncodePng\\\",\\\"--nonativeFonts\\\",\\\"--verbose\\\"]\",\"dm_properties\":\"{\\\"buildbucket_build_id\\\":\\\"<(BUILDBUCKET_BUILD_ID)\\\",\\\"builder\\\":\\\"Test-Debian10-Clang-GCE-CPU-AVX2-x86_64-Debug-All-RustPNG\\\",\\\"gitHash\\\":\\\"<(REVISION)\\\",\\\"issue\\\":\\\"<(ISSUE)\\\",\\\"patch_storage\\\":\\\"<(PATCH_STORAGE)\\\",\\\"patchset\\\":\\\"<(PATCHSET)\\\",\\\"swarming_bot_id\\\":\\\"${SWARMING_BOT_ID}\\\",\\\"swarming_task_id\\\":\\\"${SWARMING_TASK_ID}\\\",\\\"task_id\\\":\\\"<(TASK_ID)\\\"}\",\"do_upload\":\"true\",\"gold_hashes_url\":\"https://gold.skia.org/json/v1/hashes\",\"gs_bucket\":\"skia-infra-gm\",\"images\":\"true\",\"patch_issue\":\"<(ISSUE_INT)\",\"patch_ref\":\"<(PATCH_REF)\",\"patch_repo\":\"<(PATCH_REPO)\",\"patch_set\":\"<(PATCHSET_INT)\",\"patch_storage\":\"<(PATCH_STORAGE)\",\"repository\":\"<(REPO)\",\"resources\":\"true\",\"revision\":\"<(REVISION)\",\"skps\":\"true\",\"svgs\":\"true\",\"swarm_out_dir\":\"test\",\"task_id\":\"<(TASK_ID)\"}",
         "skia"
       ],
       "dependencies": [
