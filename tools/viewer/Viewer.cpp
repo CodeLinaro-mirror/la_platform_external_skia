@@ -69,6 +69,7 @@
 #include "tools/skui/Key.h"
 #include "tools/skui/ModifierKey.h"
 #include "tools/trace/EventTracingPriv.h"
+#include "tools/viewer/AnimatedImageSlide.h"
 #include "tools/viewer/BisectSlide.h"
 #include "tools/viewer/GMSlide.h"
 #include "tools/viewer/ImageSlide.h"
@@ -1004,6 +1005,12 @@ void Viewer::initSlides() {
          [](const SkString& name, const SkString& path) -> sk_sp<Slide> {
              return sk_make_sp<SKPSlide>(name, path);
          }},
+        {".gif",
+         "gif-dir",
+         FLAGS_jpgs,
+         [](const SkString& name, const SkString& path) -> sk_sp<Slide> {
+             return sk_make_sp<AnimatedImageSlide>(name, path);
+         }},
         {".jpg",
          "jpg-dir",
          FLAGS_jpgs,
@@ -1016,6 +1023,12 @@ void Viewer::initSlides() {
          [](const SkString& name, const SkString& path) -> sk_sp<Slide> {
              return sk_make_sp<ImageSlide>(name, path);
          }},
+         {".webp",
+         "webp-dir",
+         FLAGS_jpgs,
+         [](const SkString& name, const SkString& path) -> sk_sp<Slide> {
+             return sk_make_sp<AnimatedImageSlide>(name, path);
+         }},
 #if defined(SK_ENABLE_SKOTTIE)
         {".json",
          "skottie-dir",
@@ -1024,7 +1037,6 @@ void Viewer::initSlides() {
              return sk_make_sp<SkottieSlide>(name, path);
          }},
 #endif
-
 #if defined(SK_ENABLE_SVG)
         {".svg",
          "svg-dir",
@@ -3032,21 +3044,13 @@ void Viewer::drawImGui() {
             }
         }
         if (displayParamsChanged || uiParamsChanged) {
-            // Lambdas and unique_ptrs are a bit tricky. We can't have the lambda capture
-            // the unique ptr by reference because the unique_ptr will go out of scope at
-            // the end of this function. We can't capture a unique_ptr with a copy either
-            // because the copy constructor was deleted (by design). Lambdas need to be
-            // able to make copies of all the things they capture. Because we are pretty
-            // sure the deferred actions will be called once, we can pass a pointer in by
-            // reference and re-wrap it to be passed to the window. Just to be safe,
-            // we overwrite the pointer with nullptr after wrapping it to make sure we don't
-            // have two "unique" pointers pointing to the same object.
+            // The unique_ptr cannot be captured, so release it and capture the raw pointer value in
+            // the lambda. The lambda is responsible for deleting it, which will only be called once
             skwindow::DisplayParams* newParams = newParamsBuilder.build().release();
-            fDeferredActions.emplace_back([displayParamsChanged, &newParams, this]() {
-                if (displayParamsChanged && newParams) {
-                    auto npp = std::unique_ptr<skwindow::DisplayParams>(newParams);
-                    newParams = nullptr;
-                    fWindow->setRequestedDisplayParams(std::move(npp));
+            fDeferredActions.emplace_back([displayParamsChanged, newParams, this]() {
+                if (displayParamsChanged) {
+                    fWindow->setRequestedDisplayParams(
+                            std::unique_ptr<skwindow::DisplayParams>(newParams));
                 }
                 fWindow->inval();
                 this->updateTitle();
