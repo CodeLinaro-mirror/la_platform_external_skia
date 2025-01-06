@@ -48,27 +48,30 @@ var gniExportDescs = []exporter.GNIExportDesc{
 				"//src/codec:jpeg_xmp_srcs",
 			},
 		},
+		{Var: "skia_codec_png_base",
+			Rules: []string{
+				"//src/codec:png_codec_base_hdrs",
+				"//src/codec:png_codec_base_srcs",
+			},
+		},
+		// TODO(https://crbug.com/381900683): Replace this with more granular lists.
 		{Var: "skia_codec_png",
 			Rules: []string{
 				"//src/codec:buffet_png_srcs",
 				"//src/codec:common_png_srcs",
+				"//src/codec:png_codec_base_hdrs",
+				"//src/codec:png_codec_base_srcs",
 			},
 		},
 		{Var: "skia_codec_rust_png_public",
 			Rules: []string{
-				// TODO(https://crbug.com/379312510): Delete
-				// the `rust_png:hdrs` line once Chromium is
-				// modified to use the header from the new
-				// location.  See also
-				// http://review.skia.org/924317 and
-				// https://crrev.com/c/6050534.
-				"//experimental/rust_png:hdrs",
 				"//experimental/rust_png/decoder:hdrs",
 			},
 		},
 		{Var: "skia_codec_rust_png",
 			Rules: []string{
 				"//experimental/rust_png/decoder:srcs",
+				"//experimental/rust_png/ffi:utils",
 			},
 		},
 		{Var: "skia_codec_rust_png_ffi_rs_srcs",
@@ -135,10 +138,26 @@ var gniExportDescs = []exporter.GNIExportDesc{
 		{Var: "skia_encode_jpeg_srcs",
 			Rules: []string{"//src/encode:jpeg_encode_srcs",
 				"//src/encode:jpeg_encode_hdrs"}},
+		{Var: "skia_encode_rust_png_public",
+			Rules: []string{"//experimental/rust_png/encoder:hdrs"}},
+		{Var: "skia_encode_rust_png_srcs",
+			Rules: []string{
+				"//experimental/rust_png/encoder:srcs",
+				"//experimental/rust_png/ffi:utils",
+			}},
+		{Var: "skia_encode_png_base",
+			Rules: []string{
+				"//src/encode:png_encode_base_srcs",
+				"//src/encode:png_encode_base_hdrs",
+			}},
+		// TODO(https://crbug.com/381900683): Rename this list.
 		{Var: "skia_encode_png_public",
 			Rules: []string{"//include/encode:png_hdrs"}},
+		// TODO(https://crbug.com/381900683): Replace this with more granular lists.
 		{Var: "skia_encode_png_srcs",
 			Rules: []string{
+				"//src/encode:png_encode_base_srcs",
+				"//src/encode:png_encode_base_hdrs",
 				"//src/encode:png_encode_srcs",
 				"//src/encode:png_encode_hdrs",
 			}},
