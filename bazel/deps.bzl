@@ -30,7 +30,7 @@ def c_plus_plus_deps(ws = "@skia"):
     new_git_repository(
         name = "dawn",
         build_file = ws + "//bazel/external/dawn:BUILD.bazel",
-        commit = "324cda6fe64005da75503d69f9a1551f85693c2d",
+        commit = "cc2acb18f2a8c0f5f5fcf0f28f365dfe3a73f8d9",
         remote = "https://dawn.googlesource.com/dawn.git",
     )
 
@@ -44,7 +44,7 @@ def c_plus_plus_deps(ws = "@skia"):
         name = "delaunator",
         build_file = ws + "//bazel/external/delaunator:BUILD.bazel",
         commit = "98305ef6c4e862f7d48df9cc647b690d796fec68",
-        remote = "https://github.com/skia-dev/delaunator-cpp",
+        remote = "https://skia.googlesource.com/external/github.com/skia-dev/delaunator-cpp.git",
     )
 
     new_git_repository(
@@ -64,7 +64,7 @@ def c_plus_plus_deps(ws = "@skia"):
     new_git_repository(
         name = "freetype",
         build_file = ws + "//bazel/external/freetype:BUILD.bazel",
-        commit = "83af801b552111e37d9466a887e1783a0fb5f196",
+        commit = "59320b2d3c2584ac01914ed0deff64bcc8fb23b2",
         remote = "https://chromium.googlesource.com/chromium/src/third_party/freetype2.git",
     )
 
@@ -197,7 +197,7 @@ def c_plus_plus_deps(ws = "@skia"):
 
     git_repository(
         name = "spirv_tools",
-        commit = "4d2f0b40bfe290dea6c6904dafdf7fd8328ba346",
+        commit = "1a84052a5c332faaed12ea2431420b72febda807",
         remote = "https://skia.googlesource.com/external/github.com/KhronosGroup/SPIRV-Tools.git",
     )
 
@@ -225,7 +225,7 @@ def c_plus_plus_deps(ws = "@skia"):
     new_git_repository(
         name = "vulkan_utility_libraries",
         build_file = ws + "//bazel/external/vulkan_utility_libraries:BUILD.bazel",
-        commit = "5a72ae0208f1bf116af74ef31cc6f6c7ff4acec6",
+        commit = "0ab12c1668642874f77bad0e4f4006cbd2f7eaee",
         remote = "https://chromium.googlesource.com/external/github.com/KhronosGroup/Vulkan-Utility-Libraries",
     )
 

@@ -29,7 +29,7 @@ var deps = deps_parser.DepsEntries{
 	},
 	"chromium.googlesource.com/angle/angle": {
 		Id:      "chromium.googlesource.com/angle/angle",
-		Version: "76691d278280c0ded88084bde84601c3ca2dea67",
+		Version: "c0ee7b203bada326dd67ace69d1c33736f258c13",
 		Path:    "third_party/externals/angle2",
 	},
 	"chromium.googlesource.com/chromium/deps/icu": {
@@ -54,7 +54,7 @@ var deps = deps_parser.DepsEntries{
 	},
 	"chromium.googlesource.com/chromium/src/third_party/freetype2": {
 		Id:      "chromium.googlesource.com/chromium/src/third_party/freetype2",
-		Version: "83af801b552111e37d9466a887e1783a0fb5f196",
+		Version: "59320b2d3c2584ac01914ed0deff64bcc8fb23b2",
 		Path:    "third_party/externals/freetype",
 	},
 	"chromium.googlesource.com/chromium/src/third_party/jinja2": {
@@ -99,7 +99,7 @@ var deps = deps_parser.DepsEntries{
 	},
 	"chromium.googlesource.com/external/github.com/KhronosGroup/Vulkan-Utility-Libraries": {
 		Id:      "chromium.googlesource.com/external/github.com/KhronosGroup/Vulkan-Utility-Libraries",
-		Version: "5a72ae0208f1bf116af74ef31cc6f6c7ff4acec6",
+		Version: "0ab12c1668642874f77bad0e4f4006cbd2f7eaee",
 		Path:    "third_party/externals/vulkan-utility-libraries",
 	},
 	"chromium.googlesource.com/external/github.com/google/highway": {
@@ -144,7 +144,7 @@ var deps = deps_parser.DepsEntries{
 	},
 	"chromium.googlesource.com/vulkan-deps": {
 		Id:      "chromium.googlesource.com/vulkan-deps",
-		Version: "a28df2bbdf4222aa083e8d4a41bc3469213b374d",
+		Version: "ae8417f428a15380a0db17729d938ae0b20d6a83",
 		Path:    "third_party/externals/vulkan-deps",
 	},
 	"chromium.googlesource.com/webm/libwebp": {
@@ -154,13 +154,8 @@ var deps = deps_parser.DepsEntries{
 	},
 	"dawn.googlesource.com/dawn": {
 		Id:      "dawn.googlesource.com/dawn",
-		Version: "324cda6fe64005da75503d69f9a1551f85693c2d",
+		Version: "cc2acb18f2a8c0f5f5fcf0f28f365dfe3a73f8d9",
 		Path:    "third_party/externals/dawn",
-	},
-	"github.com/skia-dev/delaunator-cpp": {
-		Id:      "github.com/skia-dev/delaunator-cpp",
-		Version: "98305ef6c4e862f7d48df9cc647b690d796fec68",
-		Path:    "third_party/externals/delaunator-cpp",
 	},
 	"infra/3pp/tools/ninja": {
 		Id:      "infra/3pp/tools/ninja",
@@ -169,7 +164,7 @@ var deps = deps_parser.DepsEntries{
 	},
 	"skia.googlesource.com/buildbot": {
 		Id:      "skia.googlesource.com/buildbot",
-		Version: "48b61740d60f63a7563ba0fcae4cd56c0652b39c",
+		Version: "7544f7c1ccbb2d1bf74462f668f7b626bbd35e1f",
 		Path:    "infra/skia-infra",
 	},
 	"skia.googlesource.com/external/github.com/AOMediaCodec/libavif": {
@@ -204,7 +199,7 @@ var deps = deps_parser.DepsEntries{
 	},
 	"skia.googlesource.com/external/github.com/KhronosGroup/SPIRV-Tools": {
 		Id:      "skia.googlesource.com/external/github.com/KhronosGroup/SPIRV-Tools",
-		Version: "4d2f0b40bfe290dea6c6904dafdf7fd8328ba346",
+		Version: "1a84052a5c332faaed12ea2431420b72febda807",
 		Path:    "third_party/externals/spirv-tools",
 	},
 	"skia.googlesource.com/external/github.com/abseil/abseil-cpp": {
@@ -237,6 +232,11 @@ var deps = deps_parser.DepsEntries{
 		Version: "55d35d8387c15bf0cfd71861df67af8cfbda7456",
 		Path:    "third_party/externals/imgui",
 	},
+	"skia.googlesource.com/external/github.com/skia-dev/delaunator-cpp": {
+		Id:      "skia.googlesource.com/external/github.com/skia-dev/delaunator-cpp",
+		Version: "98305ef6c4e862f7d48df9cc647b690d796fec68",
+		Path:    "third_party/externals/delaunator-cpp",
+	},
 	"skia.googlesource.com/third_party/libpng": {
 		Id:      "skia.googlesource.com/third_party/libpng",
 		Version: "ed217e3e601d8e462f7fd1e04bed43ac42212429",
@@ -249,12 +249,12 @@ var deps = deps_parser.DepsEntries{
 	},
 	"skia/tools/sk": {
 		Id:      "skia/tools/sk",
-		Version: "git_revision:48b61740d60f63a7563ba0fcae4cd56c0652b39c",
+		Version: "git_revision:7544f7c1ccbb2d1bf74462f668f7b626bbd35e1f",
 		Path:    "bin",
 	},
 	"swiftshader.googlesource.com/SwiftShader": {
 		Id:      "swiftshader.googlesource.com/SwiftShader",
-		Version: "4074d9674b3e5a9a96a34b1c63fbed7dce35772f",
+		Version: "23b93c7cfe27e205e178a135a6ea24d1dcba1068",
 		Path:    "third_party/externals/swiftshader",
 	},
 }
