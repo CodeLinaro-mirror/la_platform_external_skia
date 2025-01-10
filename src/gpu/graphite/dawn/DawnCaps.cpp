@@ -1125,7 +1125,6 @@ ImmutableSamplerInfo DawnCaps::getImmutableSamplerInfo(const TextureProxy* proxy
 void DawnCaps::buildKeyForTexture(SkISize dimensions,
                                   const TextureInfo& info,
                                   ResourceType type,
-                                  Shareable shareable,
                                   GraphiteResourceKey* key) const {
     const DawnTextureSpec dawnSpec = TextureInfos::GetDawnTextureSpec(info);
 
@@ -1154,7 +1153,7 @@ void DawnCaps::buildKeyForTexture(SkISize dimensions,
         num32DataCnt += 3; // non-format flags and 64-bit format
     }
 #endif
-    GraphiteResourceKey::Builder builder(key, type, num32DataCnt, shareable);
+    GraphiteResourceKey::Builder builder(key, type, num32DataCnt);
 
     builder[0] = dimensions.width();
     builder[1] = dimensions.height();
@@ -1175,23 +1174,6 @@ void DawnCaps::buildKeyForTexture(SkISize dimensions,
         builder[6] = (uint32_t) (packedInfo.fFormat >> 32);
     }
 #endif
-}
-
-GraphiteResourceKey DawnCaps::makeSamplerKey(const SamplerDesc& samplerDesc) const {
-    GraphiteResourceKey samplerKey;
-    const SkSpan<const uint32_t>& samplerData = samplerDesc.asSpan();
-    static const ResourceType kSamplerType = GraphiteResourceKey::GenerateResourceType();
-    // Non-format ycbcr and sampler information are guaranteed to fit within one uint32, so the size
-    // of the returned span accurately captures the quantity of uint32s needed whether the sampler
-    // is immutable or not.
-    GraphiteResourceKey::Builder builder(&samplerKey, kSamplerType, samplerData.size(),
-                                         Shareable::kYes);
-
-    for (size_t i = 0; i < samplerData.size(); i++) {
-        builder[i] = samplerData[i];
-    }
-    builder.finish();
-    return samplerKey;
 }
 
 } // namespace skgpu::graphite
