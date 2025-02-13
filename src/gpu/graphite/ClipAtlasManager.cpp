@@ -8,6 +8,8 @@
 #include "src/gpu/graphite/ClipAtlasManager.h"
 
 #include "include/gpu/graphite/Recorder.h"
+#include "include/private/base/SkFixed.h"
+#include "src/base/SkFloatBits.h"
 #include "src/gpu/graphite/AtlasProvider.h"
 #include "src/gpu/graphite/RasterPathUtils.h"
 #include "src/gpu/graphite/RecorderPriv.h"
@@ -184,7 +186,7 @@ const TextureProxy* ClipAtlasManager::addToAtlas(const ClipStack::ElementList* e
     // Offset to plot location and draw
     iShapeBounds.offset(renderPos.x() + kEntryPadding, renderPos.y() + kEntryPadding);
 
-    SkASSERT(elementsForMask->size() > 0);
+    SkASSERT(!elementsForMask->empty());
     for (int i = 0; i < elementsForMask->size(); ++i) {
         draw_to_sw_mask(&helper, *(*elementsForMask)[i], i == 0, iShapeBounds);
     }
@@ -217,7 +219,7 @@ void ClipAtlasManager::evict(PlotLocator plotLocator) {
             }
         }
         // If we removed the last one, remove the hash entry
-        if (cachedArray->size() == 0) {
+        if (cachedArray->empty()) {
             fMaskCache.remove(currEntry->fKey);
         }
         fKeyLists[index].remove(currEntry);
@@ -225,7 +227,7 @@ void ClipAtlasManager::evict(PlotLocator plotLocator) {
     }
 }
 
-void ClipAtlasManager::evictAll() {
+void ClipAtlasManager::evictAtlases() {
     fDrawAtlas->evictAllPlots();
     SkASSERT(fMaskCache.empty());
 }

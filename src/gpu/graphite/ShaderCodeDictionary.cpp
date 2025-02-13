@@ -269,20 +269,25 @@ std::string ShaderNode::invokeAndAssign(const ShaderInfo& shaderInfo,
 
 UniquePaintParamsID ShaderCodeDictionary::findOrCreate(PaintParamsKeyBuilder* builder) {
     AutoLockBuilderAsKey keyView{builder};
-    if (!keyView->isValid()) {
+
+    return this->findOrCreate(*keyView);
+}
+
+UniquePaintParamsID ShaderCodeDictionary::findOrCreate(const PaintParamsKey& ppk) {
+    if (!ppk.isValid()) {
         return UniquePaintParamsID::InvalidID();
     }
 
     SkAutoSpinlock lock{fSpinLock};
 
-    UniquePaintParamsID* existingEntry = fPaintKeyToID.find(*keyView);
+    UniquePaintParamsID* existingEntry = fPaintKeyToID.find(ppk);
     if (existingEntry) {
-        SkASSERT(fIDToPaintKey[(*existingEntry).asUInt()] == *keyView);
+        SkASSERT(fIDToPaintKey[(*existingEntry).asUInt()] == ppk);
         return *existingEntry;
     }
 
     // Detach from the builder and copy into the arena
-    PaintParamsKey key = keyView->clone(&fArena);
+    PaintParamsKey key = ppk.clone(&fArena);
     UniquePaintParamsID newID{SkTo<uint32_t>(fIDToPaintKey.size())};
 
     fPaintKeyToID.set(key, newID);
@@ -1138,12 +1143,6 @@ ShaderCodeDictionary::ShaderCodeDictionary(Layout layout)
                            { "dstGABC",     SkSLType::kHalf4 },
                            { "dstDEF_args", SkSLType::kHalf4 } }
     };
-    fBuiltInCodeSnippets[(int) BuiltInCodeSnippetID::kPremulAlphaColorFilter] = {
-            /*name=*/"PremulAlpha",
-            /*staticFn=*/"sk_premul_alpha",
-            SnippetRequirementFlags::kPriorStageOutput,
-            /*uniforms=*/{}
-    };
 
     fBuiltInCodeSnippets[(int) BuiltInCodeSnippetID::kColorSpaceXformPremul] = {
             /*name=*/"ColorSpaceTransformPremul",
@@ -1169,22 +1168,26 @@ ShaderCodeDictionary::ShaderCodeDictionary(Layout layout)
             /*uniforms=*/{}
     };
 
-    fBuiltInCodeSnippets[(int) BuiltInCodeSnippetID::kCircularRRectClip] = {
-            /*name=*/"CircularRRectClip",
-            /*staticFn=*/"sk_circular_rrect_clip",
+    fBuiltInCodeSnippets[(int) BuiltInCodeSnippetID::kAnalyticClip] = {
+            /*name=*/"AnalyticClip",
+            /*staticFn=*/"sk_analytic_clip",
             SnippetRequirementFlags::kLocalCoords,
             /*uniforms=*/{ { "rect",           SkSLType::kFloat4 },
                            { "radiusPlusHalf", SkSLType::kFloat2 },
                            { "edgeSelect",     SkSLType::kHalf4 } }
     };
 
-    fBuiltInCodeSnippets[(int) BuiltInCodeSnippetID::kAtlasClip] = {
-            /*name=*/"AtlasClip",
-            /*staticFn=*/"sk_atlas_clip",
+    fBuiltInCodeSnippets[(int) BuiltInCodeSnippetID::kAnalyticAndAtlasClip] = {
+            /*name=*/"AnalyticAndAtlasClip",
+            /*staticFn=*/"sk_analytic_and_atlas_clip",
             SnippetRequirementFlags::kLocalCoords,
-            /*uniforms=*/{ { "texCoordOffset", SkSLType::kHalf2 },
+            /*uniforms=*/{ { "rect",           SkSLType::kFloat4 },
+                           { "radiusPlusHalf", SkSLType::kFloat2 },
+                           { "edgeSelect",     SkSLType::kHalf4 },
+                           { "texCoordOffset", SkSLType::kHalf2 },
                            { "maskBounds",     SkSLType::kHalf4 },
-                           { "invAtlasSize",   SkSLType::kFloat2 } }
+                           { "invAtlasSize",   SkSLType::kFloat2 } },
+            /*texturesAndSamplers=*/{"atlasSampler"}
     };
 
     fBuiltInCodeSnippets[(int) BuiltInCodeSnippetID::kCompose] = {
