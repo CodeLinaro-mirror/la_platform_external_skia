@@ -36,6 +36,10 @@ std::unique_ptr<GraphiteTestContext> DawnTestContext::Make(wgpu::BackendType bac
     static SkOnce sOnce;
 
     static constexpr const char* kToggles[] = {
+#if !defined(SK_DEBUG)
+        "skip_validation",
+#endif
+        "disable_lazy_clear_for_mapped_at_creation_buffer", // matches Chromes toggles
         "allow_unsafe_apis",  // Needed for dual-source blending.
         "use_user_defined_labels_in_backend",
         // Robustness impacts performance and is always disabled when running Graphite in Chrome,
