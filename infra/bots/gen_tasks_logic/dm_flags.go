@@ -480,6 +480,8 @@ func (b *taskBuilder) dmFlags(internalHardwareLabel string) {
 					if b.extraConfig("TSAN") {
 						// b/389706939 - Dawn/Metal reports a data race for LazyClearCountForTesting w/ TSAN
 						skip(ALL, "test", ALL, "ThreadedPipelineCompilePurgingTest")
+						// The TSAN_Graphite_Dawn_Metal job seems to consistently get stuck on this unit test
+						skip(ALL, "test", ALL, "BigImageTest_Graphite")
 					}
 				}
 			} else if b.extraConfig("Native") {
@@ -576,6 +578,18 @@ func (b *taskBuilder) dmFlags(internalHardwareLabel string) {
 			skip(ALL, "test", ALL, "SkSLIncrementDisambiguation_Ganesh")
 			skip(ALL, "test", ALL, "SkSLArrayFolding_Ganesh")
 			skip(ALL, "test", ALL, "SkSLIntrinsicModf_Ganesh")
+		}
+
+		if b.model("MacMini8.1") && b.extraConfig("Metal") {
+			// https://g-issues.skia.org/issues/391573668
+			skip(ALL, "test", ALL, "SkSLIntrinsicAll_Graphite")
+			skip(ALL, "test", ALL, "SkSLIntrinsicAny_Graphite")
+			skip(ALL, "test", ALL, "SkSLIntrinsicNot_Graphite")
+			skip(ALL, "test", ALL, "SkSLIntrinsicMixFloatES3_Graphite")
+			skip(ALL, "test", ALL, "SkSLIntrinsicAll_Ganesh")
+			skip(ALL, "test", ALL, "SkSLIntrinsicAny_Ganesh")
+			skip(ALL, "test", ALL, "SkSLIntrinsicNot_Ganesh")
+			skip(ALL, "test", ALL, "SkSLIntrinsicMixFloatES3_Ganesh")
 		}
 
 		if b.model("Spin513") {
@@ -1403,11 +1417,6 @@ func (b *taskBuilder) dmFlags(internalHardwareLabel string) {
 		match = append(match, "~^WritePixelsMSAA_Gpu$")
 	}
 
-	if b.extraConfig("Vulkan") && b.gpu("GTX660") && b.matchOs("Win") {
-		// skbug.com/8047
-		match = append(match, "~FloatingPointTextureTest$")
-	}
-
 	if b.extraConfig("Metal") && !b.extraConfig("Graphite") && b.gpu("RadeonHD8870M") && b.matchOs("Mac") {
 		// skia:9255
 		match = append(match, "~WritePixelsNonTextureMSAA_Gpu")
@@ -1467,6 +1476,11 @@ func (b *taskBuilder) dmFlags(internalHardwareLabel string) {
 	}
 
 	if b.matchOs("Mac") && b.gpu("IntelIrisPlus") {
+		// skia:7603
+		match = append(match, "~^GrMeshTest$")
+	}
+
+	if b.matchOs("Mac") && b.gpu("IntelUHDGraphics630") {
 		// skia:7603
 		match = append(match, "~^GrMeshTest$")
 	}
