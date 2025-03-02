@@ -1288,6 +1288,7 @@ optional("png_decode_libpng") {
     "SK_CODEC_DECODES_PNG",
     "SK_CODEC_DECODES_PNG_WITH_LIBPNG",
   ]
+  sources_for_tests = [ "tests/PngGainmapTest.cpp" ]
 
   deps = [ "//third_party/libpng" ]
   sources = [ "src/codec/SkIcoCodec.cpp" ] + skia_codec_png_base +
@@ -2253,6 +2254,14 @@ if (skia_enable_tools) {
           "tools/graphite/vk/GraphiteVulkanTestContext.h",
         ]
       }
+      if (skia_enable_precompile) {
+        sources += [
+          "tools/graphite/precompile/PipelineCallbackHandler.cpp",
+          "tools/graphite/precompile/PipelineCallbackHandler.h",
+          "tools/graphite/precompile/PrecompileEffectFactories.cpp",
+          "tools/graphite/precompile/PrecompileEffectFactories.h",
+        ]
+      }
     }
 
     if (is_fuchsia && using_fuchsia_sdk) {
@@ -2519,6 +2528,7 @@ if (skia_enable_tools) {
       ":fontmgr_fontconfig_tests",
       ":fontmgr_mac_ct_tests",
       ":fontscanner_tests",
+      ":png_decode_libpng_tests",
       ":png_decode_rust_tests",
       ":png_encode_rust_tests",
       ":skia",

@@ -311,7 +311,7 @@ public:
     SkFontationsScalerContext(const SkTypeface_Fontations& realTypeface,
                               const SkScalerContextEffects& effects,
                               const SkDescriptor* desc,
-                              sk_sp<SkTypeface> proxyTypeface)
+                              SkTypeface& proxyTypeface)
             : SkScalerContext(proxyTypeface, effects, desc) // proxyTypeface owns the realTypeface
             , fBridgeFontRef(realTypeface.getBridgeFontRef())
             , fBridgeNormalizedCoords(realTypeface.getBridgeNormalizedCoords())
@@ -684,7 +684,11 @@ protected:
             SkASSERT(SkMask::kARGB32_Format != mask.fFormat);
             const bool doBGR = SkToBool(fRec.fFlags & SkScalerContext::kLCD_BGROrder_Flag);
             const bool doVert = SkToBool(fRec.fFlags & SkScalerContext::kLCD_Vertical_Flag);
-            const bool a8LCD = SkToBool(fRec.fFlags & SkScalerContext::kGenA8FromLCD_Flag);
+            // See https://issues.skia.org/issues/396360753
+            // We would like Fontations anti-aliasing on a surface with unknown pixel geometry to
+            // look like the FreeType backend in order to avoid perceived regressions
+            // in sharpness, so we ignore SkScalerContext::kGenA8FromLCD_Flag in fRec.fFlags.
+            const bool a8LCD = false;
             const bool hairline = glyph.pathIsHairline();
 
             // Path offseting for subpixel positioning is not needed here,
@@ -933,12 +937,12 @@ std::unique_ptr<SkScalerContext> SkTypeface_Fontations::onCreateScalerContext(
 std::unique_ptr<SkScalerContext> SkTypeface_Fontations::onCreateScalerContextAsProxyTypeface(
                                     const SkScalerContextEffects& effects,
                                     const SkDescriptor* desc,
-                                    sk_sp<SkTypeface> proxyTypeface) const {
+                                    SkTypeface* proxyTypeface) const {
     return std::make_unique<SkFontationsScalerContext>(
             *this,
             effects,
             desc,
-            proxyTypeface ? proxyTypeface : sk_ref_sp(const_cast<SkTypeface_Fontations*>(this)));
+            proxyTypeface ? *proxyTypeface : *const_cast<SkTypeface_Fontations*>(this));
 }
 
 std::unique_ptr<SkAdvancedTypefaceMetrics> SkTypeface_Fontations::onGetAdvancedMetrics() const {
