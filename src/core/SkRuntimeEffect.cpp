@@ -747,7 +747,6 @@ SkRuntimeEffect::SkRuntimeEffect(std::unique_ptr<SkSL::Program> baseProgram,
                                  uint32_t flags)
         : fHash(SkChecksum::Hash32(baseProgram->fSource->c_str(), baseProgram->fSource->size()))
         , fStableKey(options.fStableKey)
-        , fName(options.fName)
         , fBaseProgram(std::move(baseProgram))
         , fMain(main)
         , fUniforms(std::move(uniforms))
@@ -762,9 +761,7 @@ SkRuntimeEffect::SkRuntimeEffect(std::unique_ptr<SkSL::Program> baseProgram,
     // assert below to trigger, please incorporate your field into `fHash` and update KnownOptions
     // to match the layout of Options.
     struct KnownOptions {
-        bool forceUnoptimized;
-        std::string_view fName;
-        bool allowPrivateAccess;
+        bool forceUnoptimized, allowPrivateAccess;
         uint32_t fStableKey;
         SkSL::Version maxVersionAllowed;
     };

@@ -690,16 +690,16 @@ std::pair<sk_sp<SkShader>, sk_sp<PrecompileShader>> create_gradient_shader(
     // TODO: fuzz more of the gradient parameters
 
     static constexpr int kMaxNumStops = 9;
-    SkColor4f colors[kMaxNumStops] = {
-            random_color4f(rand, constraint),
-            random_color4f(rand, constraint),
-            random_color4f(rand, constraint),
-            random_color4f(rand, constraint),
-            random_color4f(rand, constraint),
-            random_color4f(rand, constraint),
-            random_color4f(rand, constraint),
-            random_color4f(rand, constraint),
-            random_color4f(rand, constraint)
+    SkColor colors[kMaxNumStops] = {
+            random_color(rand, constraint),
+            random_color(rand, constraint),
+            random_color(rand, constraint),
+            random_color(rand, constraint),
+            random_color(rand, constraint),
+            random_color(rand, constraint),
+            random_color(rand, constraint),
+            random_color(rand, constraint),
+            random_color(rand, constraint)
     };
     static const SkPoint kPts[kMaxNumStops] = {
             { -100.0f, -100.0f },
@@ -727,13 +727,7 @@ std::pair<sk_sp<SkShader>, sk_sp<PrecompileShader>> create_gradient_shader(
     SkMatrix lmStorage;
     SkMatrix* lmPtr = random_local_matrix(rand, &lmStorage);
 
-    const SkGradientShader::Interpolation::InPremul inPremul =
-            rand->nextBool() ? SkGradientShader::Interpolation::InPremul::kYes
-                             : SkGradientShader::Interpolation::InPremul::kNo;
-    const SkGradientShader::Interpolation::ColorSpace colorSpace =
-            static_cast<SkGradientShader::Interpolation::ColorSpace>(
-                    rand->nextULessThan(SkGradientShader::Interpolation::kColorSpaceCount));
-    SkGradientShader::Interpolation interpolation = {inPremul, colorSpace};
+    uint32_t flags = rand->nextBool() ? 0x0 : SkGradientShader::kInterpolateColorsInPremul_Flag;
 
     sk_sp<SkShader> s;
     sk_sp<PrecompileShader> o;
@@ -743,32 +737,28 @@ std::pair<sk_sp<SkShader>, sk_sp<PrecompileShader>> create_gradient_shader(
     switch (type) {
         case SkShaderBase::GradientType::kLinear:
             s = SkGradientShader::MakeLinear(kPts,
-                                             colors, /* colorSpace= */ nullptr, kOffsets, numStops,
-                                             tm, interpolation, lmPtr);
-            o = PrecompileShaders::LinearGradient(interpolation);
+                                             colors, kOffsets, numStops, tm, flags, lmPtr);
+            o = PrecompileShaders::LinearGradient();
             break;
         case SkShaderBase::GradientType::kRadial:
             s = SkGradientShader::MakeRadial(/* center= */ {0, 0}, /* radius= */ 100,
-                                             colors, /* colorSpace= */ nullptr, kOffsets, numStops,
-                                             tm, interpolation, lmPtr);
-            o = PrecompileShaders::RadialGradient(interpolation);
+                                             colors, kOffsets, numStops, tm, flags, lmPtr);
+            o = PrecompileShaders::RadialGradient();
             break;
         case SkShaderBase::GradientType::kSweep:
             s = SkGradientShader::MakeSweep(/* cx= */ 0, /* cy= */ 0,
-                                            colors, /* colorSpace= */ nullptr, kOffsets, numStops,
-                                            tm, /* startAngle= */ 0, /* endAngle= */ 359,
-                                            interpolation, lmPtr);
-            o = PrecompileShaders::SweepGradient(interpolation);
+                                            colors, kOffsets, numStops, tm,
+                                            /* startAngle= */ 0, /* endAngle= */ 359,
+                                            flags, lmPtr);
+            o = PrecompileShaders::SweepGradient();
             break;
         case SkShaderBase::GradientType::kConical:
             s = SkGradientShader::MakeTwoPointConical(/* start= */ {100, 100},
                                                       /* startRadius= */ 100,
                                                       /* end= */ {-100, -100},
                                                       /* endRadius= */ 100,
-                                                      colors,
-                                                      /* colorSpace= */ nullptr,
-                                                      kOffsets, numStops, tm, interpolation, lmPtr);
-            o = PrecompileShaders::TwoPointConicalGradient(interpolation);
+                                                      colors, kOffsets, numStops, tm, flags, lmPtr);
+            o = PrecompileShaders::TwoPointConicalGradient();
             break;
         case SkShaderBase::GradientType::kNone:
             SkDEBUGFAIL("Gradient shader says its type is none");
@@ -1104,10 +1094,9 @@ std::pair<sk_sp<SkColorFilter>, sk_sp<PrecompileColorFilter>> create_matrix_colo
 
 std::pair<sk_sp<SkColorFilter>, sk_sp<PrecompileColorFilter>> create_color_space_colorfilter(
         SkRandom* rand) {
-    sk_sp<SkColorSpace> src = random_colorspace(rand);
-    sk_sp<SkColorSpace> dst = random_colorspace(rand);
-    return { SkColorFilterPriv::MakeColorSpaceXform(src, dst),
-             PrecompileColorFiltersPriv::ColorSpaceXform({ src }, { dst }) };
+    return { SkColorFilterPriv::MakeColorSpaceXform(random_colorspace(rand),
+                                                    random_colorspace(rand)),
+             PrecompileColorFiltersPriv::ColorSpaceXform() };
 }
 
 std::pair<sk_sp<SkColorFilter>, sk_sp<PrecompileColorFilter>> create_linear_to_srgb_colorfilter() {
@@ -1174,15 +1163,14 @@ std::pair<sk_sp<SkColorFilter>, sk_sp<PrecompileColorFilter>> create_workingform
 
     SkASSERT(childCF && childO);
 
-    const skcms_TransferFunction* tf = rand->nextBool() ? &random_xfer_function(rand) : nullptr;
-    const skcms_Matrix3x3* gamut = rand->nextBool() ? &random_gamut(rand) : nullptr;
-    const SkAlphaType unpremul = kUnpremul_SkAlphaType;
-
-    sk_sp<SkColorFilter> cf =
-            SkColorFilterPriv::WithWorkingFormat(std::move(childCF), tf, gamut, &unpremul);
+    SkAlphaType unpremul = kUnpremul_SkAlphaType;
+    sk_sp<SkColorFilter> cf = SkColorFilterPriv::WithWorkingFormat(std::move(childCF),
+                                                                   &random_xfer_function(rand),
+                                                                   &random_gamut(rand),
+                                                                   &unpremul);
 
     sk_sp<PrecompileColorFilter> o = PrecompileColorFiltersPriv::WithWorkingFormat(
-            { std::move(childO) }, tf, gamut, &unpremul);
+            { std::move(childO) });
 
     return { std::move(cf), std::move(o) };
 }
@@ -2021,11 +2009,9 @@ void precompile_vs_real_draws_subtest(skiatest::Reporter* reporter,
 
     static const RenderPassProperties kDepth_Stencil_4 { DepthStencilFlags::kDepthStencil,
                                                          kColorType,
-                                                         /* dstColorSpace= */ nullptr,
                                                          /* requiresMSAA= */ true };
     static const RenderPassProperties kDepth_1 { DepthStencilFlags::kDepth,
                                                  kColorType,
-                                                 /* dstColorSpace= */ nullptr,
                                                  /* requiresMSAA= */ false };
 
     TextureInfo textureInfo = caps->getDefaultSampledTextureInfo(kColorType,
@@ -2053,8 +2039,7 @@ void precompile_vs_real_draws_subtest(skiatest::Reporter* reporter,
         // The skp draws a rect w/ a default SkPaint and RGBA dst color type
         PaintOptions skpPaintOptions;
         Precompile(precompileContext, skpPaintOptions, DrawTypeFlags::kSimpleShape,
-                   { { kDepth_1.fDSFlags, kRGBA_8888_SkColorType, kDepth_1.fDstCS,
-                       kDepth_1.fRequiresMSAA } });
+                   { { kDepth_1.fDSFlags, kRGBA_8888_SkColorType, kDepth_1.fRequiresMSAA } });
     }
     int after = globalCache->numGraphicsPipelines();
 

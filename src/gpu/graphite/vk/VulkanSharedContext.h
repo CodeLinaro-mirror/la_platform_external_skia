@@ -55,8 +55,7 @@ private:
     VulkanSharedContext(const VulkanBackendContext&,
                         sk_sp<const skgpu::VulkanInterface> interface,
                         sk_sp<skgpu::VulkanMemoryAllocator> memoryAllocator,
-                        std::unique_ptr<const VulkanCaps> caps,
-                        SkSpan<sk_sp<SkRuntimeEffect>> userDefinedKnownRuntimeEffects);
+                        std::unique_ptr<const VulkanCaps> caps);
 
     sk_sp<const skgpu::VulkanInterface> fInterface;
     sk_sp<skgpu::VulkanMemoryAllocator> fMemoryAllocator;

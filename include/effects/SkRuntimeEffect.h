@@ -126,8 +126,6 @@ public:
         // don't run the inliner directly, but they still get an inlining pass once they are
         // painted.)
         bool forceUnoptimized = false;
-        // When possible this name will be used to identify the created runtime effect.
-        std::string_view fName;
 
     private:
         friend class SkRuntimeEffect;
@@ -319,9 +317,8 @@ private:
     friend class SkRuntimeEffectPriv;
 
     uint32_t fHash;
-    // When not 0, this field holds a StableKey value or a user-defined stable key
+    // When not 0, this field holds a StableKey value (or, in the future, a first party stable key)
     uint32_t fStableKey = 0;
-    SkString fName;
 
     std::unique_ptr<SkSL::Program> fBaseProgram;
     std::unique_ptr<SkSL::RP::Program> fRPProgram;

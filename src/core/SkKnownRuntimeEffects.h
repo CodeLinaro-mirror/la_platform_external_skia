@@ -106,14 +106,12 @@ static_assert(static_cast<uint32_t>(StableKey::kStart) != 0);
 static_assert(static_cast<int>(StableKey::kLast) < kSkiaKnownRuntimeEffectsEnd);
 
 // Is 'candidate' a viable StableKey value. Note that this includes the kInvalid value.
-bool IsSkiaKnownRuntimeEffect(int candidate);
-
-bool IsUserDefinedRuntimeEffect(int candidate);
+bool IsSkiaKnownRuntimeEffect(uint32_t candidate);
 
 // This call provides a rough check on 'candidate's viability as a user-defined known
 // run-time effect stable key. Every use of this method should be followed up with a call to
 // ShaderCodeDictionary::isUserDefinedKnownRuntimeEffect - which provides tighter bounds.
-bool IsViableUserDefinedKnownRuntimeEffect(int candidate);
+bool IsViableUserDefinedKnownRuntimeEffect(uint32_t candidate);
 
 // Validate 'candidate' before calling GetKnownRuntimeEffect
 sk_sp<SkRuntimeEffect> MaybeGetKnownRuntimeEffect(uint32_t candidate);

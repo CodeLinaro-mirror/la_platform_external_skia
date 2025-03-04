@@ -31,6 +31,7 @@ skia_cc_library(
     srcs = [
         "SkOpts_hsw.cpp",
         "//include/core:opts_srcs",
+        "//include/private:opts_srcs",
         "//src/core:opts_srcs",
         "//src/shaders:opts_srcs",
         "//src/sksl/tracing:opts_srcs",
@@ -52,6 +53,7 @@ skia_cc_library(
     srcs = [
         "SkOpts_skx.cpp",
         "//include/core:opts_srcs",
+        "//include/private:opts_srcs",
         "//src/core:opts_srcs",
         "//src/shaders:opts_srcs",
         "//src/sksl/tracing:opts_srcs",

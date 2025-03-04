@@ -15,7 +15,6 @@ DEPS = [
   'recipe_engine/step',
   'run',
   'vars',
-  'xcode',
 ]
 
 from recipe_engine.recipe_api import Property

@@ -1271,7 +1271,7 @@ bool RuntimeEffectBlock::BeginBlock(const KeyContext& keyContext,
         return false;
     }
 
-    if (SkKnownRuntimeEffects::IsUserDefinedRuntimeEffect(codeSnippetID)) {
+    if (codeSnippetID >= SkKnownRuntimeEffects::kUnknownRuntimeEffectIDStart) {
         keyContext.rtEffectDict()->set(codeSnippetID, shaderData.fEffect);
     }
 

@@ -166,7 +166,11 @@ static int key_to_string(SkString* str,
         return currentIndex;
     }
 
-    str->append(entry->fName);
+    std::string_view name = entry->fName;
+    if (skstd::ends_with(name, "Shader")) {
+        name.remove_suffix(6);
+    }
+    str->append(name);
 
     if (entry->storesSamplerDescData()) {
         SkASSERT(currentIndex + 1 < SkTo<int>(keyData.size()));
@@ -259,9 +263,7 @@ namespace {
     }
 
     uint32_t id = keyData[(*currentIndex)++];
-    if (id >= kBuiltInCodeSnippetIDCount &&
-        !SkKnownRuntimeEffects::IsSkiaKnownRuntimeEffect(id) &&
-        !dict->isUserDefinedKnownRuntimeEffect(id)) {
+    if (id >= kBuiltInCodeSnippetIDCount && !SkKnownRuntimeEffects::IsSkiaKnownRuntimeEffect(id)) {
         return false;
     }
 

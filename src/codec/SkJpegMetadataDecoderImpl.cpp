@@ -486,16 +486,6 @@ bool SkJpegMetadataDecoderImpl::findGainmapImage(sk_sp<SkData> baseImageData,
 #endif
 }
 
-sk_sp<SkData> SkJpegMetadataDecoderImpl::getJUMBFMetadata(bool copyData) const {
-    return read_metadata(fMarkerList,
-                         kJumbfMarker,
-                         kJumbfSig,
-                         sizeof(kJumbfSig),
-                         /*signaturePadding=*/0,
-                         /*bytesInindex=*/0,
-                         copyData);
-}
-
 std::unique_ptr<SkJpegMetadataDecoder> SkJpegMetadataDecoder::Make(std::vector<Segment> segments) {
     return std::make_unique<SkJpegMetadataDecoderImpl>(std::move(segments));
 }

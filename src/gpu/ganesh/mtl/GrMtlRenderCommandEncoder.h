@@ -10,7 +10,7 @@
 
 #include <memory>
 
-#include "src/core/SkColorData.h"
+#include "include/private/SkColorData.h"
 #include "src/gpu/ganesh/GrSamplerState.h"
 #include "src/gpu/ganesh/mtl/GrMtlSampler.h"
 #include "src/gpu/ganesh/mtl/GrMtlUniformHandler.h"
