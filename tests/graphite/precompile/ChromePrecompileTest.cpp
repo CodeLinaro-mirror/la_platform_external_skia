@@ -85,19 +85,28 @@ PaintOptions lineargrad_srcover_dithered() {
 // "RP(color: Dawn(f=23,s=1), resolve: {}, ds: Dawn(f=39,s=1), samples: 1, swizzle: rgba)"
 // Single sampled BGRA w/ just depth
 RenderPassProperties bgra_1_depth() {
-    return { DepthStencilFlags::kDepth, kBGRA_8888_SkColorType, /* requiresMSAA= */ false };
+    return { DepthStencilFlags::kDepth,
+             kBGRA_8888_SkColorType,
+             /* dstColorSpace= */ nullptr,
+             /* requiresMSAA= */ false };
 }
 
 // "RP(color: Dawn(f=23,s=4), resolve: Dawn(f=23,s=1), ds: Dawn(f=39,s=4), samples: 4, swizzle: rgba)"
 // MSAA BGRA w/ just depth
 RenderPassProperties bgra_4_depth() {
-    return { DepthStencilFlags::kDepth, kBGRA_8888_SkColorType, /* requiresMSAA= */ true };
+    return { DepthStencilFlags::kDepth,
+             kBGRA_8888_SkColorType,
+             /* dstColorSpace= */ nullptr,
+             /* requiresMSAA= */ true };
 }
 
 // "RP(color: Dawn(f=23,s=4), resolve: Dawn(f=23,s=1), ds: Dawn(f=41,s=4), samples: 4, swizzle: rgba)"
 // MSAA BGRA w/ depth and stencil
 RenderPassProperties bgra_4_depth_stencil() {
-    return { DepthStencilFlags::kDepthStencil, kBGRA_8888_SkColorType, /* requiresMSAA= */ true };
+    return { DepthStencilFlags::kDepthStencil,
+             kBGRA_8888_SkColorType,
+             /* dstColorSpace= */ nullptr,
+             /* requiresMSAA= */ true };
 }
 
 // Precompile with the provided paintOptions, drawType, and RenderPassSettings then verify that
@@ -236,13 +245,13 @@ DEF_GRAPHITE_TEST_FOR_CONTEXTS(ChromePrecompileTest, is_dawn_metal_context_type,
                  "LocalMatrix [ Compose [ HardwareImage(0) ColorSpaceTransform ] ] SrcOver",
         /*  7 */ "RP(color: Dawn(f=23,s=4), resolve: Dawn(f=23,s=1), ds: Dawn(f=41,s=4), samples: 4, swizzle: rgba) + "
                  "AnalyticRRectRenderStep + "
-                 "Compose [ LocalMatrix [ Compose [ LinearGradient4 ColorSpaceTransform ] ] Dither ] SrcOver",
+                 "Compose [ LocalMatrix [ Compose [ LinearGradient4 ColorSpaceTransformPremul ] ] Dither ] SrcOver",
         /*  8 */ "RP(color: Dawn(f=23,s=4), resolve: Dawn(f=23,s=1), ds: Dawn(f=41,s=4), samples: 4, swizzle: rgba) + "
                  "CoverBoundsRenderStep[NonAAFill] + "
-                 "Compose [ LocalMatrix [ Compose [ LinearGradient4 ColorSpaceTransform ] ] Dither ] SrcOver",
+                 "Compose [ LocalMatrix [ Compose [ LinearGradient4 ColorSpaceTransformPremul ] ] Dither ] SrcOver",
         /*  9 */ "RP(color: Dawn(f=23,s=4), resolve: Dawn(f=23,s=1), ds: Dawn(f=41,s=4), samples: 4, swizzle: rgba) + "
                  "BitmapTextRenderStep[Mask] + "
-                 "LocalMatrix [ Compose [ LinearGradient4 ColorSpaceTransform ] ] SrcOver",
+                 "LocalMatrix [ Compose [ LinearGradient4 ColorSpaceTransformPremul ] ] SrcOver",
         /* 10 */ "RP(color: Dawn(f=23,s=4), resolve: Dawn(f=23,s=1), ds: Dawn(f=41,s=4), samples: 4, swizzle: rgba) + "
                  "BitmapTextRenderStep[Mask] + "
                  "SolidColor SrcOver",
@@ -272,7 +281,7 @@ DEF_GRAPHITE_TEST_FOR_CONTEXTS(ChromePrecompileTest, is_dawn_metal_context_type,
                  "SolidColor Src",
         /* 19 */ "RP(color: Dawn(f=23,s=1), resolve: {}, ds: Dawn(f=39,s=1), samples: 1, swizzle: rgba) + "
                  "CoverBoundsRenderStep[NonAAFill] + "
-                 "Compose [ LocalMatrix [ Compose [ LinearGradient4 ColorSpaceTransform ] ] Dither ] SrcOver",
+                 "Compose [ LocalMatrix [ Compose [ LinearGradient4 ColorSpaceTransformPremul ] ] Dither ] SrcOver",
     };
 
     for (size_t i = 0; i < std::size(kCases); ++i) {
@@ -307,22 +316,20 @@ DEF_GRAPHITE_TEST_FOR_CONTEXTS(ChromePrecompileTest, is_dawn_metal_context_type,
                 paintOptions = image_srcover();
                 drawTypeFlags = DrawTypeFlags::kSimpleShape;
                 renderPassSettings = bgra_4_depth_stencil();
-                allowedOvergeneration = 90;
+                allowedOvergeneration = 60;
                 break;
             case 7: // 7 & 8 are combined pair
             case 8:
                 paintOptions = lineargrad_srcover_dithered();
                 drawTypeFlags = DrawTypeFlags::kSimpleShape;
                 renderPassSettings = bgra_4_depth_stencil();
-                allowedOvergeneration = 45; // 3x from gradient, 12x from RenderSteps,
-                                            // all x3 color space options
+                allowedOvergeneration = 15; // 3x from gradient, 12x from RenderSteps
                 break;
             case 9:
                 paintOptions = lineargrad_srcover();
                 drawTypeFlags = DrawTypeFlags::kBitmapText_Mask;
                 renderPassSettings = bgra_4_depth_stencil();
-                allowedOvergeneration = 9; // from the 3 internal gradient alternatives,
-                                           // x3 color space options
+                allowedOvergeneration = 3; // from the 3 internal gradient alternatives
                 break;
             case 10:
                 paintOptions = solid_srcover();
@@ -342,14 +349,14 @@ DEF_GRAPHITE_TEST_FOR_CONTEXTS(ChromePrecompileTest, is_dawn_metal_context_type,
                 drawTypeFlags = DrawTypeFlags::kSimpleShape;
                 renderPassSettings = bgra_1_depth();
                 // This is a lot for a kSrc image draw:
-                allowedOvergeneration = 90; // 9x of this are the paint combos,
+                allowedOvergeneration = 60; // 6x of this are the paint combos,
                                             // the rest are the RenderSteps!!
                 break;
             case 14:
                 paintOptions = image_srcover();
                 drawTypeFlags = DrawTypeFlags::kSimpleShape;
                 renderPassSettings = bgra_1_depth();
-                allowedOvergeneration = 90; // !!!! - a lot for just a non-aa image rect draw
+                allowedOvergeneration = 60; // !!!! - a lot for just a non-aa image rect draw
                 break;
             case 15:
             case 16:
@@ -377,7 +384,7 @@ DEF_GRAPHITE_TEST_FOR_CONTEXTS(ChromePrecompileTest, is_dawn_metal_context_type,
                 paintOptions = lineargrad_srcover_dithered();
                 drawTypeFlags = DrawTypeFlags::kSimpleShape;
                 renderPassSettings = bgra_1_depth();
-                allowedOvergeneration = 45; // 9x from gradient, rest from RenderSteps
+                allowedOvergeneration = 15; // 3x from gradient, rest from RenderSteps
                 break;
             default:
                 continue;

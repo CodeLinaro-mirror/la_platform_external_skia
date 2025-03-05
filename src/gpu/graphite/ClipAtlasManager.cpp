@@ -42,7 +42,7 @@ ClipAtlasManager::ClipAtlasManager(Recorder* recorder) : fRecorder(recorder) {
 }
 
 namespace {
-// TODO: is this necessary for clips?
+// Needed to ensure that we have surrounding context, e.g. for inverse clips this would be solid.
 constexpr int kEntryPadding = 1;
 }  // namespace
 
@@ -55,6 +55,7 @@ const TextureProxy* ClipAtlasManager::findOrCreateEntry(uint32_t stackRecordID,
     if (entryList) {
         MaskHashEntry* entry = entryList;
         do {
+            // If this entry is large enough to contain the clip, use it
             if (entry->fBounds.contains(iBounds)) {
                 SkIPoint topLeft = entry->fLocator.topLeft();
                 // We need to adjust the returned outPos to reflect the subset we're using
@@ -75,20 +76,37 @@ const TextureProxy* ClipAtlasManager::findOrCreateEntry(uint32_t stackRecordID,
         return nullptr;
     }
 
+    // Look up again (in case this entry got purged)
+    entryList = fMaskCache.find(maskKey);
+
     // Add locator and bounds to MaskCache.
     if (entryList) {
-        MaskHashEntry* newEntry = new MaskHashEntry{iBounds, locator, nullptr};
-        newEntry->fNext = entryList->fNext;
-        entryList->fNext = newEntry;
+        // Add new list entry to the end. This will sort them from smallest bounds to largest,
+        // so that when we search above we'll pick the one with the smallest bounds that contains
+        // the clip.
+        MaskHashEntry* entry = entryList;
+        while (entry->fNext) {
+            entry = entry->fNext;
+        }
+        SkASSERT(entry);
+        SkASSERT(entry->fNext == nullptr); // Should be at the end
+        entry->fNext = new MaskHashEntry{iBounds, locator, nullptr};
+        ++fHashEntryCount;
     } else {
         MaskHashEntry newEntry{iBounds, locator, nullptr};
         fMaskCache.set(maskKey, newEntry);
+        ++fHashEntryCount;
     }
 
     // Add key to Plot's MaskKeyList.
     uint32_t index = fDrawAtlas->getListIndex(locator.plotLocator());
     MaskKeyEntry* keyEntry = new MaskKeyEntry{maskKey, iBounds};
     fKeyLists[index].addToTail(keyEntry);
+    ++fListEntryCount;
+
+    SkASSERTF_RELEASE(fHashEntryCount == fListEntryCount,
+                      "=ClipAtlas=: Entry counts don't match after add: %d %d",
+                      fHashEntryCount, fListEntryCount);
 
     return proxy;
 }
@@ -207,32 +225,40 @@ void ClipAtlasManager::evict(PlotLocator plotLocator) {
     while ((currKeyEntry = iter.get())) {
         iter.next();
         MaskHashEntry* currHashEntry = fMaskCache.find(currKeyEntry->fKey);
+        SkASSERT(currHashEntry);
         MaskHashEntry* prevHashEntry = nullptr;
-        do {
-            SkASSERT(currHashEntry);
+        bool found = false;
+        while (currHashEntry && !found) {
             if (currHashEntry->fBounds == currKeyEntry->fBounds) {
+                found = true;
                 // Remove entry from hash list
                 if (prevHashEntry) {
                     prevHashEntry->fNext = currHashEntry->fNext;
                     delete currHashEntry;
+                    --fHashEntryCount;
                 } else if (currHashEntry->fNext) {
                     MaskHashEntry* next = currHashEntry->fNext;
                     currHashEntry->fBounds = next->fBounds;
                     currHashEntry->fLocator = next->fLocator;
                     currHashEntry->fNext = next->fNext;
                     delete next;
+                    --fHashEntryCount;
                 } else {
                     // Remove hash entry itself
                     fMaskCache.remove(currKeyEntry->fKey);
+                    --fHashEntryCount;
                 }
-                break;
             }
             prevHashEntry = currHashEntry;
             currHashEntry = currHashEntry->fNext;
-        } while (currHashEntry);
+        }
 
         fKeyLists[index].remove(currKeyEntry);
         delete currKeyEntry;
+        --fListEntryCount;
+        SkASSERTF_RELEASE(fHashEntryCount == fListEntryCount,
+                          "=ClipAtlas=: Entry counts don't match after delete: %d %d",
+                          fHashEntryCount, fListEntryCount);
     }
 }
 

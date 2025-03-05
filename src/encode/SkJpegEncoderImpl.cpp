@@ -110,16 +110,17 @@ bool SkJpegEncoderMgr::initializeRGB(const SkImageInfo& srcInfo,
     fUseColorXform = false;
 
     SkColorType srcCT = srcInfo.colorType();
-    const bool premul = srcInfo.alphaType() == kPremul_SkAlphaType;
+    const bool applyPremul = SkJpegEncoder::AlphaOption::kBlendOnBlack == options.fAlphaOption
+                              && srcInfo.alphaType() == kUnpremul_SkAlphaType;
     if (srcCT == kRGB_888x_SkColorType) {
-       jpegColorType = JCS_EXT_RGBX;
-       numComponents = 4;
-    } else if (!premul && srcCT == kRGBA_8888_SkColorType){
-       jpegColorType = JCS_EXT_RGBA;
-       numComponents = 4;
-    } else if (!premul && srcCT == kBGRA_8888_SkColorType) {
-       jpegColorType = JCS_EXT_BGRA;
-       numComponents = 4;
+        jpegColorType = JCS_EXT_RGBX;
+        numComponents = 4;
+    } else if (!applyPremul && srcCT == kRGBA_8888_SkColorType){
+        jpegColorType = JCS_EXT_RGBA;
+        numComponents = 4;
+    } else if (!applyPremul && srcCT == kBGRA_8888_SkColorType) {
+        jpegColorType = JCS_EXT_BGRA;
+        numComponents = 4;
     } else {
       // Color type conversion is needed.
       switch(SkColorTypeNumChannels(srcCT)) {
@@ -140,10 +141,7 @@ bool SkJpegEncoderMgr::initializeRGB(const SkImageInfo& srcInfo,
           fUseColorXform = true;
           break;
         case 4: {
-            SkAlphaType dstAT = kUnpremul_SkAlphaType;
-            if (premul && SkJpegEncoder::AlphaOption::kBlendOnBlack == options.fAlphaOption) {
-              dstAT = kPremul_SkAlphaType;
-            }
+            SkAlphaType dstAT = applyPremul ? kPremul_SkAlphaType : srcInfo.alphaType();
             jpegColorType = JCS_EXT_RGBA;
             numComponents = 4;
             dstInfo = SkImageInfo::Make(srcInfo.width(), 1, kRGBA_8888_SkColorType, dstAT);
@@ -157,8 +155,8 @@ bool SkJpegEncoderMgr::initializeRGB(const SkImageInfo& srcInfo,
     SkASSERT(numComponents != 0);
 
     if (fUseColorXform) {
-       fSrcInfo = srcInfo.makeWH(srcInfo.width(), 1).makeAlphaType(kUnpremul_SkAlphaType);
-       fDstInfo = dstInfo;
+        fSrcInfo = srcInfo.makeWH(srcInfo.width(), 1);
+        fDstInfo = dstInfo;
     }
 
     fCInfo.image_width = srcInfo.width();
