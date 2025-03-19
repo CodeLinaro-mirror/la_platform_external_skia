@@ -30,7 +30,7 @@ def c_plus_plus_deps(ws = "@skia"):
     new_git_repository(
         name = "dawn",
         build_file = ws + "//bazel/external/dawn:BUILD.bazel",
-        commit = "a1770b70c6be8d7fac253b83ace3a8241519c5fb",
+        commit = "be5b722c82af5aa6b2872400ea8fac57dc46c714",
         remote = "https://dawn.googlesource.com/dawn.git",
     )
 
@@ -50,7 +50,7 @@ def c_plus_plus_deps(ws = "@skia"):
     new_git_repository(
         name = "dng_sdk",
         build_file = ws + "//bazel/external/dng_sdk:BUILD.bazel",
-        commit = "c8d0c9b1d16bfda56f15165d39e0ffa360a11123",
+        commit = "dbe0a676450d9b8c71bf00688bb306409b779e90",
         remote = "https://android.googlesource.com/platform/external/dng_sdk.git",
     )
 
@@ -197,7 +197,7 @@ def c_plus_plus_deps(ws = "@skia"):
 
     git_repository(
         name = "spirv_tools",
-        commit = "114920c25df9f3fcde9dff0387fc424a7f4ac963",
+        commit = "9fa14b91414994e2bf4d9509b8efc8071f154991",
         remote = "https://skia.googlesource.com/external/github.com/KhronosGroup/SPIRV-Tools.git",
     )
 
@@ -218,7 +218,7 @@ def c_plus_plus_deps(ws = "@skia"):
     new_git_repository(
         name = "vulkan_tools",
         build_file = ws + "//bazel/external/vulkan_tools:BUILD.bazel",
-        commit = "a9f88a232a4cd6634e47f0f93c8fac5789387a7a",
+        commit = "dbe142e8f3a7f11478c2e4741c0d4c4b748fce4b",
         remote = "https://chromium.googlesource.com/external/github.com/KhronosGroup/Vulkan-Tools",
     )
 

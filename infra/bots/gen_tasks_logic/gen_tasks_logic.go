@@ -740,7 +740,7 @@ func (b *jobBuilder) deriveCompileTaskName() string {
 				"SkottieTracing", "SkottieWASM", "GpuTess", "DMSAAStats", "Docker", "PDF",
 				"Puppeteer", "SkottieFrames", "RenderSKP", "CanvasPerf", "AllPathsVolatile",
 				"WebGL2", "i5", "OldestSupportedSkpVersion", "FakeWGPU", "TintIR", "Protected",
-				"AndroidNDKFonts", "Upload"}
+				"AndroidNDKFonts", "Upload", "TestPrecompile"}
 			keep := make([]string, 0, len(ec))
 			for _, part := range ec {
 				if !In(part, ignore) {
@@ -896,6 +896,9 @@ func (b *taskBuilder) defaultSwarmDimensions() {
 		if os == "Win10" && b.parts["model"] == "Golo" {
 			// ChOps-owned machines have Windows 10 22H2.
 			d["os"] = "Windows-10-19045"
+		}
+		if strings.Contains(os, "iOS") {
+			d["pool"] = "SkiaIOS"
 		}
 		if b.parts["model"] == "iPadPro" {
 			d["os"] = "iOS-13.6"
