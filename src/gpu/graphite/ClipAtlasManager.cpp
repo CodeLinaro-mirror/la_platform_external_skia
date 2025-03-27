@@ -42,7 +42,7 @@ ClipAtlasManager::ClipAtlasManager(Recorder* recorder) : fRecorder(recorder) {
 }
 
 namespace {
-// TODO: is this necessary for clips?
+// Needed to ensure that we have surrounding context, e.g. for inverse clips this would be solid.
 constexpr int kEntryPadding = 1;
 }  // namespace
 
@@ -51,22 +51,20 @@ const TextureProxy* ClipAtlasManager::findOrCreateEntry(uint32_t stackRecordID,
                                                         SkIRect iBounds,
                                                         SkIPoint* outPos) {
     skgpu::UniqueKey maskKey = GenerateClipMaskKey(stackRecordID, elementList);
-    MaskHashEntry* entryList = fMaskCache.find(maskKey);
-    if (entryList) {
-        MaskHashEntry* entry = entryList;
-        do {
-            if (entry->fBounds.contains(iBounds)) {
-                SkIPoint topLeft = entry->fLocator.topLeft();
-                // We need to adjust the returned outPos to reflect the subset we're using
-                SkIPoint subsetRelativePos = iBounds.topLeft() - entry->fBounds.topLeft();
-                *outPos = SkIPoint::Make(topLeft.x() + kEntryPadding + subsetRelativePos.x(),
-                                         topLeft.y() + kEntryPadding + subsetRelativePos.y());
-                fDrawAtlas->setLastUseToken(entry->fLocator,
-                                            fRecorder->priv().tokenTracker()->nextFlushToken());
-                return fDrawAtlas->getProxies()[entry->fLocator.pageIndex()].get();
-            }
-            entry = entry->fNext;
-        } while (entry);
+    MaskHashEntry* entry = fMaskCache.find(maskKey);
+    while (entry) {
+        // If this entry is large enough to contain the clip, use it
+        if (entry->fBounds.contains(iBounds)) {
+            SkIPoint topLeft = entry->fLocator.topLeft();
+            // We need to adjust the returned outPos to reflect the subset we're using
+            SkIPoint subsetRelativePos = iBounds.topLeft() - entry->fBounds.topLeft();
+            *outPos = SkIPoint::Make(topLeft.x() + kEntryPadding + subsetRelativePos.x(),
+                                     topLeft.y() + kEntryPadding + subsetRelativePos.y());
+            fDrawAtlas->setLastUseToken(entry->fLocator,
+                                        fRecorder->priv().tokenTracker()->nextFlushToken());
+            return fDrawAtlas->getProxies()[entry->fLocator.pageIndex()].get();
+        }
+        entry = entry->fNext;
     }
 
     AtlasLocator locator;
@@ -75,14 +73,21 @@ const TextureProxy* ClipAtlasManager::findOrCreateEntry(uint32_t stackRecordID,
         return nullptr;
     }
 
-    // Look up again (in case this entry got purged)
-    entryList = fMaskCache.find(maskKey);
+    // Look up again (in case this entry got purged during addToAtlas())
+    MaskHashEntry* entryList = fMaskCache.find(maskKey);
 
     // Add locator and bounds to MaskCache.
     if (entryList) {
-        MaskHashEntry* newEntry = new MaskHashEntry{iBounds, locator, nullptr};
-        newEntry->fNext = entryList->fNext;
-        entryList->fNext = newEntry;
+        // Add new list entry to the end. This will sort them from smallest bounds to largest,
+        // so that when we search above we'll pick the one with the smallest bounds that contains
+        // the clip.
+        MaskHashEntry* currEntry = entryList;
+        while (currEntry->fNext) {
+            currEntry = currEntry->fNext;
+        }
+        SkASSERT(currEntry);
+        SkASSERT(currEntry->fNext == nullptr); // Should be at the end
+        currEntry->fNext = new MaskHashEntry{iBounds, locator, nullptr};
         ++fHashEntryCount;
     } else {
         MaskHashEntry newEntry{iBounds, locator, nullptr};
@@ -219,10 +224,8 @@ void ClipAtlasManager::evict(PlotLocator plotLocator) {
         MaskHashEntry* currHashEntry = fMaskCache.find(currKeyEntry->fKey);
         SkASSERT(currHashEntry);
         MaskHashEntry* prevHashEntry = nullptr;
-        bool found = false;
-        while (currHashEntry && !found) {
+        while (currHashEntry) {
             if (currHashEntry->fBounds == currKeyEntry->fBounds) {
-                found = true;
                 // Remove entry from hash list
                 if (prevHashEntry) {
                     prevHashEntry->fNext = currHashEntry->fNext;
@@ -240,6 +243,7 @@ void ClipAtlasManager::evict(PlotLocator plotLocator) {
                     fMaskCache.remove(currKeyEntry->fKey);
                     --fHashEntryCount;
                 }
+                break;
             }
             prevHashEntry = currHashEntry;
             currHashEntry = currHashEntry->fNext;
@@ -263,6 +267,12 @@ void ClipAtlasManager::compact(bool forceCompact) {
     auto tokenTracker = fRecorder->priv().tokenTracker();
     if (fDrawAtlas) {
         fDrawAtlas->compact(tokenTracker->nextFlushToken(), forceCompact);
+    }
+}
+
+void ClipAtlasManager::freeGpuResources() {
+    if (fDrawAtlas) {
+        fDrawAtlas->freeGpuResources(fRecorder->priv().tokenTracker()->nextFlushToken());
     }
 }
 

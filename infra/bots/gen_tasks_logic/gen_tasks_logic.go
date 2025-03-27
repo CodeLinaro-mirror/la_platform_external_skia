@@ -206,7 +206,9 @@ var (
 			Path: "mac_toolchain",
 			// When this is updated, also update
 			// https://skia.googlesource.com/skcms.git/+/f1e2b45d18facbae2dece3aca673fe1603077846/infra/bots/gen_tasks.go#56
-			Version: "git_revision:e6f45bde6c5ee56924b1f905159b6a1a48ef25dd",
+			// and
+			// https://skia.googlesource.com/skia.git/+/main/infra/bots/recipe_modules/xcode/api.py#38
+			Version: "git_revision:0cb1e51344de158f72524c384f324465aebbcef2",
 		},
 	}
 
@@ -757,7 +759,7 @@ func (b *jobBuilder) deriveCompileTaskName() string {
 		} else if b.os("ChromeOS") {
 			ec = append([]string{"Chromebook", "GLES"}, ec...)
 			task_os = COMPILE_TASK_NAME_OS_LINUX
-		} else if b.os("iOS") {
+		} else if b.matchOs("iOS") {
 			ec = append([]string{task_os}, ec...)
 			if b.parts["compiler"] == "Xcode11.4.1" {
 				task_os = "Mac10.15.7"
@@ -886,6 +888,7 @@ func (b *taskBuilder) defaultSwarmDimensions() {
 			"Win11":       "Windows-11-26100.1742",
 			"Win2019":     DEFAULT_OS_WIN_GCE,
 			"iOS":         "iOS-13.3.1",
+			"iOS18":       "iOS-18.2.1",
 		}[os]
 		if !ok {
 			log.Fatalf("Entry %q not found in OS mapping.", os)
@@ -939,17 +942,18 @@ func (b *taskBuilder) defaultSwarmDimensions() {
 			if b.extraConfig("HWASAN") {
 				d["android_hwasan_build"] = "1"
 			}
-		} else if b.os("iOS") {
+		} else if b.matchOs("iOS") {
 			device, ok := map[string]string{
-				"iPadMini4": "iPad5,1",
-				"iPhone7":   "iPhone9,1",
-				"iPhone8":   "iPhone10,1",
-				"iPadPro":   "iPad6,3",
+				"iPadMini4":   "iPad5,1",
+				"iPhone15Pro": "iPhone16,1",
+				"iPhone7":     "iPhone9,1",
+				"iPhone8":     "iPhone10,1",
+				"iPadPro":     "iPad6,3",
 			}[b.parts["model"]]
 			if !ok {
 				log.Fatalf("Entry %q not found in iOS mapping.", b.parts["model"])
 			}
-			d["device_type"] = device
+			d["device"] = device
 		} else if b.cpu() || b.extraConfig("CanvasKit", "Docker", "SwiftShader") {
 			modelMapping, ok := map[string]map[string]string{
 				"AppleM1": {
@@ -1259,10 +1263,14 @@ func (b *taskBuilder) maybeAddIosDevImage() {
 				asset = "ios-dev-image-13.5"
 			case "13.6":
 				asset = "ios-dev-image-13.6"
+			case "18.2.1":
+				// Newer iOS versions don't use a pre-packaged dev image.
 			default:
 				log.Fatalf("Unable to determine correct ios-dev-image asset for %s. If %s is a new iOS release, you must add a CIPD package containing the corresponding iOS dev image; see ios-dev-image-11.4 for an example.", b.Name, m[1])
 			}
-			b.asset(asset)
+			if asset != "" {
+				b.asset(asset)
+			}
 			break
 		} else if strings.Contains(dim, "iOS") {
 			log.Fatalf("Must specify iOS version for %s to obtain correct dev image; os dimension is missing version: %s", b.Name, dim)
@@ -1355,7 +1363,7 @@ func (b *jobBuilder) compile() string {
 				})
 				b.asset("ccache_mac")
 				b.usesCCache()
-				if b.extraConfig("iOS") {
+				if b.matchExtraConfig("iOS.*") {
 					b.asset("provisioning_profile_ios")
 				}
 				if b.shellsOutToBazel() {
@@ -1746,6 +1754,12 @@ func (b *jobBuilder) dm() {
 				b.directUpload(b.cfg.GsBucketGm, b.cfg.ServiceAccountUploadGM)
 				directUpload = true
 			}
+			if b.matchOs("iOS") {
+				b.Spec.Caches = append(b.Spec.Caches, &specs.Cache{
+					Name: "xcode",
+					Path: "cache/Xcode.app",
+				})
+			}
 		}
 		b.recipeProp("gold_hashes_url", b.cfg.GoldHashesURL)
 		b.recipeProps(EXTRA_PROPS)
@@ -1973,6 +1987,14 @@ func (b *jobBuilder) perf() {
 		} else if b.extraConfig("LottieWeb") {
 			recipe = "perf_skottiewasm_lottieweb"
 			cas = CAS_LOTTIE_WEB
+		} else if b.matchOs("iOS") {
+			// We need a service account in order to download the xcode CIPD
+			// packages.
+			b.serviceAccount(b.cfg.ServiceAccountUploadNano)
+			b.Spec.Caches = append(b.Spec.Caches, &specs.Cache{
+				Name: "xcode",
+				Path: "cache/Xcode.app",
+			})
 		}
 		b.recipeProps(EXTRA_PROPS)
 		if recipe == "perf" {
