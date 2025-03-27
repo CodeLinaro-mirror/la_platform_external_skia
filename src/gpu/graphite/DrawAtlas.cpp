@@ -12,8 +12,8 @@
 #include "include/core/SkColorSpace.h"
 #include "include/core/SkStream.h"
 #include "include/gpu/graphite/Recorder.h"
-#include "include/private/SkColorData.h"
 #include "include/private/base/SkTPin.h"
+#include "src/core/SkColorData.h"
 
 #include "src/base/SkMathPriv.h"
 #include "src/core/SkTraceEvent.h"
@@ -515,6 +515,29 @@ void DrawAtlas::markUsedPlotsAsFull() {
         while (Plot* plot = plotIter.get()) {
             plot->markFullIfUsed();
             plotIter.next();
+        }
+    }
+}
+
+void DrawAtlas::freeGpuResources(AtlasToken token) {
+    PlotList::Iter plotIter;
+    bool canDeactivatePages = true;
+    for (int pageIndex = (int)(fNumActivePages)-1; pageIndex >= 0; --pageIndex) {
+        const Page& currPage = fPages[pageIndex];
+        bool hasPendingUploads = false;
+        bool hasPendingDraws = false;
+        plotIter.init(currPage.fPlotList, PlotList::Iter::kHead_IterStart);
+        while (Plot* plot = plotIter.get()) {
+            // TODO: use hasPendingUploads to decide whether to remove plot backing data
+            hasPendingUploads = hasPendingUploads || plot->needsUpload();
+            hasPendingDraws = hasPendingDraws ||
+                              plot->lastUseToken().inInterval(fPrevFlushToken, token);
+            plotIter.next();
+        }
+        canDeactivatePages = canDeactivatePages &&
+                             !(hasPendingDraws || hasPendingUploads);
+        if (canDeactivatePages) {
+            this->deactivateLastPage();
         }
     }
 }
