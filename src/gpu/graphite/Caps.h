@@ -80,14 +80,6 @@ struct ResourceBindingRequirements {
     int fGradientBufferBinding       = kUnassigned;
 };
 
-enum class DstReadStrategy {
-    kNoneRequired,
-    kTextureCopy,
-    kTextureSample,
-    kReadFromInput,
-    kFramebufferFetch,
-};
-
 class Caps {
 public:
     virtual ~Caps();
@@ -295,6 +287,13 @@ public:
     // Returns whether multisampled render to single sampled is supported.
     bool msaaRenderToSingleSampledSupport() const { return fMSAARenderToSingleSampledSupport; }
 
+    // Returns whether a render pass can have MSAA/depth/stencil attachments and a resolve
+    // attachment with mismatched sizes. Note: the MSAA attachment and the depth/stencil attachment
+    // still need to match their sizes.
+    bool differentResolveAttachmentSizeSupport() const {
+        return fDifferentResolveAttachmentSizeSupport;
+    }
+
     // Returns whether compute shaders are supported.
     bool computeSupport() const { return fComputeSupport; }
 
@@ -421,6 +420,7 @@ protected:
     bool fDrawBufferCanBeMapped = true;
     bool fBufferMapsAreAsync = false;
     bool fMSAARenderToSingleSampledSupport = false;
+    bool fDifferentResolveAttachmentSizeSupport = false;
 
     bool fComputeSupport = false;
     bool fSupportsAHardwareBufferImages = false;
