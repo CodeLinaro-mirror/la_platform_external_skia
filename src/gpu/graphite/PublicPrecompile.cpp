@@ -60,7 +60,7 @@ void compile(const RendererProvider* rendererProvider,
             SkASSERT(!s->performsShading() || s->emitsPrimitiveColor() == withPrimitiveBlender);
 
             UniquePaintParamsID paintID = s->performsShading() ? uniqueID
-                                                               : UniquePaintParamsID::InvalidID();
+                                                               : UniquePaintParamsID::Invalid();
             GraphicsPipelineDesc pipelineDesc(s->renderStepID(), paintID);
 
             sk_sp<GraphicsPipeline> pipeline = resourceProvider->findOrCreateGraphicsPipeline(
@@ -127,7 +127,7 @@ void Precompile(PrecompileContext* precompileContext,
                                          writeSwizzle,
                                          caps->getDstReadStrategy(info));
 
-            SkColorInfo ci(rpp.fDstCT, kPremul_SkAlphaType, nullptr);
+            SkColorInfo ci(rpp.fDstCT, kPremul_SkAlphaType, rpp.fDstCS);
             KeyContext keyContext(caps, dict, rtEffectDict.get(), ci);
 
             for (Coverage coverage : { Coverage::kNone, Coverage::kSingleChannel }) {

@@ -9,11 +9,12 @@
 
 #include "include/core/SkColorSpace.h"
 #include "include/core/SkPixmap.h"
-#include "include/private/SkColorData.h"
+#include "src/core/SkColorData.h"
 
 #include "include/gpu/graphite/Context.h"
 #include "include/gpu/graphite/Recorder.h"
 #include "src/core/SkTraceEvent.h"
+#include "src/gpu/SkBackingFit.h"
 #include "src/gpu/graphite/AtlasProvider.h"
 #include "src/gpu/graphite/Buffer.h"
 #include "src/gpu/graphite/Caps.h"
@@ -262,9 +263,11 @@ void DrawContext::flush(Recorder* recorder) {
             // this is handled inside Image::Copy() except we would need it to expose the task in
             // order to link it correctly.
             SkASSERT(recorder->priv().caps()->isTexturable(fTarget->textureInfo()));
+            // Use approx size for better reuse.
+            SkISize dstCopyTextureSize = GetApproxSize(dstReadPixelBounds.size());
             dstCopy = TextureProxy::Make(recorder->priv().caps(),
                                          recorder->priv().resourceProvider(),
-                                         dstReadPixelBounds.size(),
+                                         dstCopyTextureSize,
                                          fTarget->textureInfo(),
                                          "DstCopyTexture",
                                          skgpu::Budgeted::kYes);

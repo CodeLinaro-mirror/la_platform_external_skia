@@ -43,7 +43,7 @@ DEF_TEST(FontMgr_Font, reporter) {
     REPORTER_ASSERT(reporter, 1 == font.getScaleX());
     REPORTER_ASSERT(reporter, 0 == font.getSkewX());
 
-    uint16_t glyphs[5];
+    SkGlyphID glyphs[5];
     sk_bzero(glyphs, sizeof(glyphs));
 
     // Check that no glyphs are copied with insufficient storage.
@@ -123,7 +123,8 @@ DEF_TEST(FontMgr_Iter, reporter) {
 
             sk_sp<SkTypeface> face1(set->createTypeface(j));
             if (!face1) {
-                REPORTER_ASSERT(reporter, face1.get());
+                REPORTER_ASSERT(reporter, face1.get(),
+                                "Could not create %s %s.", fname.c_str(), sname.c_str());
                 continue;
             }
             SkString name1;
