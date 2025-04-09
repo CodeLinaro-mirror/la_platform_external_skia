@@ -4,6 +4,11 @@
  * Use of this source code is governed by a BSD-style license that can be
  * found in the LICENSE file.
  */
+/*
+ * Changes from Qualcomm Innovation Center, Inc. are provided under the following license:
+ * Copyright (c) 2025 Qualcomm Innovation Center, Inc. All rights reserved.
+ * SPDX-License-Identifier: BSD-3-Clause-Clear
+ */
 
 #include "include/docs/SkPDFDocument.h"
 
@@ -49,6 +54,13 @@
 #if defined(SK_CODEC_ENCODES_JPEG) && defined(SK_CODEC_DECODES_JPEG) && !defined(SK_DISABLE_LEGACY_PDF_JPEG)
 #include "include/docs/SkPDFJpegHelpers.h"
 #endif
+
+/* QTI_BEGIN */
+#include <cutils/properties.h>
+extern const char* __progname;
+#define UI_PERFMODE "debug.ui.perfmode.enable"
+#define UI_PERFMODE_PROCESS "debug.ui.perfmode.process"
+/* QTI_END */
 
 // For use in SkCanvas::drawAnnotation
 const char* SkPDFGetElemIdKey() {
@@ -695,6 +707,20 @@ void SkPDF::SetNodeId(SkCanvas* canvas, int elemId) {
 
 sk_sp<SkDocument> SkPDF::MakeDocument(SkWStream* stream, const SkPDF::Metadata& metadata) {
     SkPDF::Metadata meta = metadata;
+    /* QTI_BEGIN */
+    if (meta.fCompressionLevel == SkPDF::Metadata::CompressionLevel::Default) {
+        char value[PROPERTY_VALUE_MAX];
+        memset(value, 0 , sizeof(char)*PROPERTY_VALUE_MAX);
+        property_get(UI_PERFMODE, value, "false");
+        if (strncmp(value, "true", 4) == 0) {
+            memset(value, 0 , sizeof(char)*PROPERTY_VALUE_MAX);
+            property_get(UI_PERFMODE_PROCESS, value, "");
+            if (strncmp(__progname, value, 10) == 0) {
+                meta.fCompressionLevel = SkPDF::Metadata::CompressionLevel::None;
+            }
+        }
+    }
+    /* QTI_END */
     if (meta.fRasterDPI <= 0) {
         meta.fRasterDPI = 72.0f;
     }
