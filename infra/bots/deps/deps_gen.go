@@ -24,7 +24,7 @@ var deps = deps_parser.DepsEntries{
 	},
 	"chromium.googlesource.com/angle/angle": {
 		Id:      "chromium.googlesource.com/angle/angle",
-		Version: "2657dba2814d6a0f57bc0fe61e4b28c4e89e7410",
+		Version: "7831e2ad53fd3860d918cfb4ea853bfa4a978b11",
 		Path:    "third_party/externals/angle2",
 	},
 	"chromium.googlesource.com/chromium/deps/icu": {
@@ -94,7 +94,7 @@ var deps = deps_parser.DepsEntries{
 	},
 	"chromium.googlesource.com/external/github.com/KhronosGroup/Vulkan-Utility-Libraries": {
 		Id:      "chromium.googlesource.com/external/github.com/KhronosGroup/Vulkan-Utility-Libraries",
-		Version: "ccae111ac678adbc9c74be10c8384cd1af835710",
+		Version: "0d5b49b80f17bca25e7f9321ad4e671a56f70887",
 		Path:    "third_party/externals/vulkan-utility-libraries",
 	},
 	"chromium.googlesource.com/external/github.com/google/highway": {
@@ -139,7 +139,7 @@ var deps = deps_parser.DepsEntries{
 	},
 	"chromium.googlesource.com/vulkan-deps": {
 		Id:      "chromium.googlesource.com/vulkan-deps",
-		Version: "acafa2b3b5e227175c3edc8d33da4806ef54e28a",
+		Version: "7079800bfae45537fa3778d882c133c71d2ba42b",
 		Path:    "third_party/externals/vulkan-deps",
 	},
 	"chromium.googlesource.com/webm/libwebp": {
@@ -149,7 +149,7 @@ var deps = deps_parser.DepsEntries{
 	},
 	"dawn.googlesource.com/dawn": {
 		Id:      "dawn.googlesource.com/dawn",
-		Version: "c6ac86ef3ddb8c945f00aebcdc6ef0c5a53161fd",
+		Version: "c5a1c32fe1664f79c1a6efb3accc15e72af918b7",
 		Path:    "third_party/externals/dawn",
 	},
 	"infra/3pp/tools/ninja": {
@@ -194,7 +194,7 @@ var deps = deps_parser.DepsEntries{
 	},
 	"skia.googlesource.com/external/github.com/KhronosGroup/SPIRV-Tools": {
 		Id:      "skia.googlesource.com/external/github.com/KhronosGroup/SPIRV-Tools",
-		Version: "ada1771a9f7a125573aa94fe551fdc44b45769bd",
+		Version: "a4adb9a8a31cf2b84009b103ffab4df415264ee9",
 		Path:    "third_party/externals/spirv-tools",
 	},
 	"skia.googlesource.com/external/github.com/abseil/abseil-cpp": {
@@ -249,7 +249,7 @@ var deps = deps_parser.DepsEntries{
 	},
 	"swiftshader.googlesource.com/SwiftShader": {
 		Id:      "swiftshader.googlesource.com/SwiftShader",
-		Version: "76ce2c6def3d3764303ab574feba3101ef7199c1",
+		Version: "e48c89759b6c4fa34e740c72dd01cf6d309e81c9",
 		Path:    "third_party/externals/swiftshader",
 	},
 }
