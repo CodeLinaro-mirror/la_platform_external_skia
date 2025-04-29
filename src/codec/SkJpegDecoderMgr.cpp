@@ -3,7 +3,11 @@
  *
  * Use of this source code is governed by a BSD-style license that can be
  * found in the LICENSE file.
+ * Changes from Qualcomm Technologies, Inc. are provided under the following license:
+ * Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+ * SPDX-License-Identifier: BSD-3-Clause-Clear
  */
+
 #include "src/codec/SkJpegDecoderMgr.h"
 
 #include "include/core/SkTypes.h"
@@ -94,10 +98,47 @@ SkJpegSourceMgr* JpegDecoderMgr::getSourceMgr() {
 
 JpegDecoderMgr::JpegDecoderMgr(SkStream* stream)
         : fSrcMgr(SkJpegSourceMgr::Make(stream)), fInit(false) {
+    /* QTI_BEGIN */
+#ifdef QC_JPEG_MT
+    memset(&fDInfo, 0, sizeof(jpeg_decompress_struct));
+#endif
+    /* QTI_END */
     // An error manager must be set before any calls to libjpeg, in order to handle failures.
     fDInfo.err = jpeg_std_error(&fErrorMgr);
     fErrorMgr.error_exit = skjpeg_err_exit;
 }
+
+/* QTI_BEGIN */
+#ifdef QC_JPEG_MT
+qcJpegDecoder_Interface QCJPEG_DECODER;
+void qcJpegDecoderInit() {
+    QCJPEG_DECODER.mQcJpegInterfaceHandler = dlopen("libjpegdecoder_ext.so", RTLD_NOW);
+    if (QCJPEG_DECODER.mQcJpegInterfaceHandler) {
+        QCJPEG_DECODER.mQcJpegInit =
+            (void* (*) (jpeg_decompress_struct*,
+                        size_t))dlsym(QCJPEG_DECODER.mQcJpegInterfaceHandler, "qcJpegDecoderInit");
+        QCJPEG_DECODER.mQcJpeg_read_scanlines =
+            (JDIMENSION (*) (void*, j_decompress_ptr,
+             JSAMPARRAY, JDIMENSION))dlsym(QCJPEG_DECODER.mQcJpegInterfaceHandler,
+                                           "qcJpeg_read_scanlines");
+        QCJPEG_DECODER.mQcJpegDestroy =
+            (void (*) (void*))dlsym(QCJPEG_DECODER.mQcJpegInterfaceHandler,
+                                    "qcJpegDecodeDestroy");
+        QCJPEG_DECODER.mQcIsJpegEnable =
+            (bool (*) ())dlsym(QCJPEG_DECODER.mQcJpegInterfaceHandler,
+                               "qcIsJpegDecoderEnabled");
+        QCJPEG_DECODER.mAllSymbolsFound =
+            QCJPEG_DECODER.mQcJpegInit && QCJPEG_DECODER.mQcJpeg_read_scanlines
+                                       && QCJPEG_DECODER.mQcJpegDestroy
+                                       && QCJPEG_DECODER.mQcIsJpegEnable;
+        if(!QCJPEG_DECODER.mAllSymbolsFound || !QCJPEG_DECODER.mQcIsJpegEnable()) {
+            dlclose(QCJPEG_DECODER.mQcJpegInterfaceHandler);
+            QCJPEG_DECODER.mAllSymbolsFound = false;
+        }
+    }
+}
+#endif
+/* QTI_END */
 
 void JpegDecoderMgr::init() {
     jpeg_create_decompress(&fDInfo);
@@ -106,11 +147,27 @@ void JpegDecoderMgr::init() {
     fDInfo.err->output_message = &output_message;
     fDInfo.progress = &fProgressMgr;
     fProgressMgr.progress_monitor = &progress_monitor;
+    /* QTI_BEGIN */
+#ifdef QC_JPEG_MT
+    pthread_once(&(QCJPEG_DECODER.mInitControl), qcJpegDecoderInit);
+    if (QCJPEG_DECODER.mAllSymbolsFound) {
+        mQcJpeghandler = QCJPEG_DECODER.mQcJpegInit(&fDInfo, sizeof(SourceMgr));
+    }
+#endif
+    /* QTI_END */
 }
 
 JpegDecoderMgr::~JpegDecoderMgr() {
     if (fInit) {
         jpeg_destroy_decompress(&fDInfo);
+        /* QTI_BEGIN */
+#ifdef QC_JPEG_MT
+        if (QCJPEG_DECODER.mAllSymbolsFound && mQcJpeghandler) {
+            QCJPEG_DECODER.mQcJpegDestroy(mQcJpeghandler);
+            mQcJpeghandler = nullptr;
+        }
+#endif
+        /* QTI_END */
     }
 }
 
