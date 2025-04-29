@@ -57,9 +57,9 @@
 
 /* QTI_BEGIN */
 #include <cutils/properties.h>
-extern const char* __progname;
+#include <sys/types.h>
+#include <unistd.h>
 #define UI_PERFMODE "debug.ui.perfmode.enable"
-#define UI_PERFMODE_PROCESS "debug.ui.perfmode.process"
 /* QTI_END */
 
 // For use in SkCanvas::drawAnnotation
@@ -709,15 +709,9 @@ sk_sp<SkDocument> SkPDF::MakeDocument(SkWStream* stream, const SkPDF::Metadata& 
     SkPDF::Metadata meta = metadata;
     /* QTI_BEGIN */
     if (meta.fCompressionLevel == SkPDF::Metadata::CompressionLevel::Default) {
-        char value[PROPERTY_VALUE_MAX];
-        memset(value, 0 , sizeof(char)*PROPERTY_VALUE_MAX);
-        property_get(UI_PERFMODE, value, "false");
-        if (strncmp(value, "true", 4) == 0) {
-            memset(value, 0 , sizeof(char)*PROPERTY_VALUE_MAX);
-            property_get(UI_PERFMODE_PROCESS, value, "");
-            if (strncmp(__progname, value, 10) == 0) {
-                meta.fCompressionLevel = SkPDF::Metadata::CompressionLevel::None;
-            }
+        int32_t ui_perfmode = property_get_int32(UI_PERFMODE, 0);
+        if (ui_perfmode > 0 && ui_perfmode == getpid()) {
+            meta.fCompressionLevel = SkPDF::Metadata::CompressionLevel::None;
         }
     }
     /* QTI_END */
