@@ -3,6 +3,9 @@
  *
  * Use of this source code is governed by a BSD-style license that can be
  * found in the LICENSE file.
+ * Changes from Qualcomm Technologies, Inc. are provided under the following license:
+ * Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+ * SPDX-License-Identifier: BSD-3-Clause-Clear
  */
 
 #ifndef SkJpegDecoderMgr_DEFINED
@@ -13,6 +16,25 @@
 #include "include/private/base/SkNoncopyable.h"
 #include "src/codec/SkJpegPriv.h"
 #include "src/codec/SkJpegSourceMgr.h"
+
+/* QTI_BEGIN */
+#ifdef QC_JPEG_MT
+#include <dlfcn.h>
+#include <pthread.h>
+struct qcJpegDecoder_Interface {
+    void *mQcJpegInterfaceHandler = nullptr;
+    void* (*mQcJpegInit)(jpeg_decompress_struct* cinfo, size_t src_size) = nullptr;
+    JDIMENSION (*mQcJpeg_read_scanlines)(void* handler, j_decompress_ptr cinfo,
+                                         JSAMPARRAY scanlines,
+                                         JDIMENSION max_lines) = nullptr;
+    void (*mQcJpegDestroy)(void* handler) = nullptr;
+    bool (*mQcIsJpegEnable)() = nullptr;
+    bool mAllSymbolsFound = false;
+    pthread_once_t mInitControl = PTHREAD_ONCE_INIT;
+};
+extern qcJpegDecoder_Interface QCJPEG_DECODER;
+#endif
+/* QTI_END */
 
 extern "C" {
     #include "jpeglib.h"  // NO_G3_REWRITE
@@ -70,6 +92,12 @@ public:
 
     // Get the source manager.
     SkJpegSourceMgr* getSourceMgr();
+
+    /* QTI_BEGIN */
+#ifdef QC_JPEG_MT
+    void* mQcJpeghandler = nullptr;
+#endif
+    /* QTI_END */
 
 private:
     // Wrapper that calls into the full SkJpegSourceMgr interface.

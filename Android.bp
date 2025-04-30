@@ -2075,6 +2075,12 @@ cc_library_static {
     defaults: ["skia_deps",
                "skia_defaults",
     ],
+
+    product_variables: {
+        debuggable: {
+            cppflags: ["-DQC_JPEG_MT"],
+        },
+    },
 }
 
 cc_defaults {
