@@ -3,6 +3,9 @@
  *
  * Use of this source code is governed by a BSD-style license that can be
  * found in the LICENSE file.
+ * Changes from Qualcomm Technologies, Inc. are provided under the following license:
+ * Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+ * SPDX-License-Identifier: BSD-3-Clause-Clear
  */
 
 #include "src/encode/SkJpegEncoderImpl.h"
@@ -47,6 +50,44 @@ extern "C" {
 #include "jpeglib.h"  // NO_G3_REWRITE
 }
 
+/* QTI_BEGIN */
+#ifdef QC_JPEG_MT
+#include <dlfcn.h>
+#include <pthread.h>
+struct qcJpegEncoder_Interface {
+    void *mQcJpegInterfaceHandler = nullptr;
+    void* (*mQcJpegInit)(jpeg_compress_struct* cinfo) = nullptr;
+    void (*mQcJpegDestroy)(void* handler) = nullptr;
+    bool (*mQcIsJpegEnable)() = nullptr;
+    bool mAllSymbolsFound = false;
+    pthread_once_t mInitControl = PTHREAD_ONCE_INIT;
+};
+static qcJpegEncoder_Interface QCJPEG_ENCODER;
+
+void qcJpegEncoderInit() {
+    QCJPEG_ENCODER.mQcJpegInterfaceHandler = dlopen("libjpegencoder_ext.so", RTLD_NOW);
+    if (QCJPEG_ENCODER.mQcJpegInterfaceHandler) {
+        QCJPEG_ENCODER.mQcJpegInit =
+            (void* (*) (jpeg_compress_struct*))dlsym(QCJPEG_ENCODER.mQcJpegInterfaceHandler,
+                                                    "qcJpegEncoderInit");
+        QCJPEG_ENCODER.mQcJpegDestroy =
+            (void (*) (void*))dlsym(QCJPEG_ENCODER.mQcJpegInterfaceHandler,
+                                   "qcJpegEncodeDestroy");
+        QCJPEG_ENCODER.mQcIsJpegEnable =
+            (bool (*) ())dlsym(QCJPEG_ENCODER.mQcJpegInterfaceHandler,
+                               "qcIsJpegEncoderEnabled");
+        QCJPEG_ENCODER.mAllSymbolsFound =
+            QCJPEG_ENCODER.mQcJpegInit && QCJPEG_ENCODER.mQcJpegDestroy
+                                       && QCJPEG_ENCODER.mQcIsJpegEnable;
+        if(!QCJPEG_ENCODER.mAllSymbolsFound || !QCJPEG_ENCODER.mQcIsJpegEnable()) {
+            dlclose(QCJPEG_ENCODER.mQcJpegInterfaceHandler);
+            QCJPEG_ENCODER.mAllSymbolsFound = false;
+        }
+    }
+}
+#endif
+/* QTI_END */
+
 class SkJpegEncoderMgr final : SkNoncopyable {
 public:
     /*
@@ -71,14 +112,37 @@ public:
     bool shouldUseColorXform() { return fUseColorXform; }
     bool colorTransformProc(void* dst, const void* src, int width);
 
-    ~SkJpegEncoderMgr() { jpeg_destroy_compress(&fCInfo); }
+    ~SkJpegEncoderMgr() {
+        jpeg_destroy_compress(&fCInfo);
+        /* QTI_BEGIN */
+#ifdef QC_JPEG_MT
+        if (QCJPEG_ENCODER.mAllSymbolsFound && mQcJpeghandler) {
+            QCJPEG_ENCODER.mQcJpegDestroy(mQcJpeghandler);
+            mQcJpeghandler = nullptr;
+        }
+#endif
+        /* QTI_END */
+    }
 
 private:
     SkJpegEncoderMgr(SkWStream* stream) : fDstMgr(stream) {
+        /* QTI_BEGIN */
+#ifdef QC_JPEG_MT
+        memset(&fCInfo, 0, sizeof(jpeg_compress_struct));
+#endif
+        /* QTI_END */
         fCInfo.err = jpeg_std_error(&fErrMgr);
         fErrMgr.error_exit = skjpeg_error_exit;
         jpeg_create_compress(&fCInfo);
         fCInfo.dest = &fDstMgr;
+        /* QTI_BEGIN */
+#ifdef QC_JPEG_MT
+        pthread_once(&(QCJPEG_ENCODER.mInitControl), qcJpegEncoderInit);
+        if (QCJPEG_ENCODER.mAllSymbolsFound) {
+            mQcJpeghandler = QCJPEG_ENCODER.mQcJpegInit(&fCInfo);
+        }
+#endif
+        /* QTI_END */
     }
     void initializeCommon(const SkJpegEncoder::Options&, const SkJpegMetadataEncoder::SegmentList&);
 
@@ -89,6 +153,11 @@ private:
     std::optional<SkImageInfo> fSrcInfo;
     std::optional<SkImageInfo> fDstInfo;
     bool fUseColorXform = false;
+    /* QTI_BEGIN */
+#ifdef QC_JPEG_MT
+    void* mQcJpeghandler = nullptr;
+#endif
+    /* QTI_END */
 };
 
 // This function should only be called if fUseColorXform is true and thus fSrcInfo
