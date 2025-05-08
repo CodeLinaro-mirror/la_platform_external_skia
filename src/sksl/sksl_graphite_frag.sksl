@@ -28,10 +28,6 @@ $pure half4 sk_passthrough(half4 color) {
     return color;
 }
 
-$pure half4 sk_solid_shader(float4 colorParam) {
-    return half4(colorParam);
-}
-
 $pure half4 sk_rgb_opaque(float4 colorParam) {
     return half4(colorParam.rgb, 1.0);
 }
@@ -433,10 +429,9 @@ $pure half4 sk_cubic_image_shader(float2 coords,
     return $cubic_filter_image(coords, invImgSize, subset, tileModeX, tileModeY, cubicCoeffs, s);
 }
 
-$pure half4 sk_hw_image_shader(float2 coords,
-                               float2 invImgSize,
-                               sampler2D s) {
-    return $sample_image(coords, invImgSize, s);
+$pure half4 sk_hw_image_shader(float2 coords, sampler2D s) {
+    // This assumes that `coords` have already been normalized.
+    return sample(s, coords);
 }
 
 $pure half4 $yuv_to_rgb_no_swizzle(half Y,

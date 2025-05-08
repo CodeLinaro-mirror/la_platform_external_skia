@@ -131,8 +131,9 @@ int lift_coord_expressions(SkSpan<ShaderNode*> nodes, int availableVaryings) {
             continue;
         }
 
-        // If the node has a generator, we can lift its modification of its local coords input.
-        if (node->entry()->fLiftableExpressionGenerator) {
+        // Lift expressions from nodes whose liftable expressions are on coordinate inputs.
+        if (node->entry()->fLiftableExpressionType ==
+            ShaderSnippet::LiftableExpressionType::kLocalCoords) {
 #if !defined(SK_USE_LEGACY_UNIFORM_LIFTING_GRAPHITE)
             // We can potentially lift the nested expressions under here as well.
             const int previouslyAvailableVaryings = availableVaryings - 1;
@@ -167,6 +168,30 @@ int lift_coord_expressions(SkSpan<ShaderNode*> nodes, int availableVaryings) {
     return availableVaryings;
 }
 
+// Traverse a list of ShaderNodes, attempting to lift any expressions that resolve to a color.
+// For now, this does not recurse into ShaderNodes' lists of children. In practice we only lift
+// solid color expressions, and we only care to lift such expressions if there is no other fragment
+// shader work (i.e., if the solid color expression is a root node in a shader's ShaderNode tree).
+// If there is other fragment shader work, we'll likely be accessing other fragment shader uniforms,
+// the color value will likely be cached, and lifting may not be worth the extra varying.
+int lift_color_expressions(SkSpan<ShaderNode*> nodes, int availableVaryings) {
+    for (ShaderNode* node : nodes) {
+        // If in the course of lifting expressions we've used up all of our available varyings,
+        // there's nothing more we can do.
+        if (availableVaryings == 0) {
+            return 0;
+        }
+
+        if (node->entry()->fLiftableExpressionType ==
+            ShaderSnippet::LiftableExpressionType::kPriorStageOutput) {
+            node->setLiftExpressionFlag();
+            --availableVaryings;
+        }
+    }
+
+    return availableVaryings;
+}
+
 SkSpan<const ShaderNode*> PaintParamsKey::getRootNodes(const ShaderCodeDictionary* dict,
                                                        SkArenaAlloc* arena,
                                                        int availableVaryings) const {
@@ -190,8 +215,9 @@ SkSpan<const ShaderNode*> PaintParamsKey::getRootNodes(const ShaderCodeDictionar
     // TODO(b/402402925) This doesn't attempt to combine lifted transformations, which we
     // eventually want to allow.
     const bool hasClipNode = roots.size() > 2;
-    const int liftableNodes = hasClipNode ? 2 : roots.size();
-    lift_coord_expressions(SkSpan(roots.data(), liftableNodes), availableVaryings);
+    SkSpan<ShaderNode*> liftableNodes(roots.data(), hasClipNode ? 2 : roots.size());
+    availableVaryings = lift_coord_expressions(liftableNodes, availableVaryings);
+    lift_color_expressions(liftableNodes, availableVaryings);
 
     // Copy the accumulated roots into a span stored in the arena
     const ShaderNode** rootSpan = arena->makeArray<const ShaderNode*>(roots.size());
@@ -226,29 +252,37 @@ static int key_to_string(SkString* str,
 
     if (entry->storesSamplerDescData()) {
         SkASSERT(currentIndex + 1 < SkTo<int>(keyData.size()));
-        const int dataLength = keyData[currentIndex++];
-        SkASSERT(currentIndex + dataLength < SkTo<int>(keyData.size()));
+
+        // If an entry stores data, then the next key value reports the quantity of key indices that
+        // are used to house the data for this snippet. This way, we know how many indices to
+        // iterate over in order to capture the snippet's data before we may encounter another
+        // snippet ID.
+        // For example:
+        // [snippetId using 2 indices worth of data] [2] [dataValue0] [dataValue1] [next snippet ID]
+        const int dataIndexCount = keyData[currentIndex++];
+        SkASSERT(currentIndex + dataIndexCount < SkTo<int>(keyData.size()));
 
         // Define a compact representation for the common case of shader snippets using just one
-        // dynamic sampler. Immutable samplers require a data length > 1 to be represented while a
-        // dynamic sampler is represented with just one, so we can simply consult the data length.
-        if (dataLength == 1) {
+        // dynamic sampler. Immutable samplers require > 1 index of data to be represented while a
+        // dynamic sampler is represented with just one, so we can simply consult dataIndexCount.
+        if (dataIndexCount == 1) {
             str->append("(0)");
         } else {
             str->append("(");
-            str->appendU32(dataLength);
+            str->appendU32(dataIndexCount);
             if (includeData) {
-                // Encode data in base64 to shorten it
                 str->append(": ");
-                SkAutoMalloc encodedData{SkBase64::EncodedSize(dataLength)};
+                // Encode data in base64 to shorten it
+                const size_t srcDataSize = dataIndexCount * sizeof(uint32_t); // size in bytes
+                SkAutoMalloc encodedData{SkBase64::EncodedSize(srcDataSize)};
                 char* dst = static_cast<char*>(encodedData.get());
-                size_t encodedLen = SkBase64::Encode(&keyData[currentIndex], dataLength, dst);
+                size_t encodedLen = SkBase64::Encode(&keyData[currentIndex], srcDataSize, dst);
                 str->append(dst, encodedLen);
             }
             str->append(")");
         }
-
-        currentIndex += dataLength;
+        // Increment current index past the indices which contain data
+        currentIndex += dataIndexCount;
     }
 
     if (entry->fNumChildren > 0) {
