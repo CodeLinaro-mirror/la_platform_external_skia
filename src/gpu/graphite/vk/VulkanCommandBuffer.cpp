@@ -123,8 +123,6 @@ void VulkanCommandBuffer::onResetCommandBuffer() {
     VULKAN_CALL_ERRCHECK(fSharedContext, ResetCommandPool(fSharedContext->device(), fPool, 0));
     fActiveGraphicsPipeline = nullptr;
     fBindUniformBuffers = true;
-    fBoundIndexBuffer = VK_NULL_HANDLE;
-    fBoundIndexBufferOffset = 0;
     fBoundIndirectBuffer = VK_NULL_HANDLE;
     fBoundIndirectBufferOffset = 0;
     fTargetTexture = nullptr;
@@ -133,12 +131,6 @@ void VulkanCommandBuffer::onResetCommandBuffer() {
     fUniformBuffersToBind.fill({});
     for (int i = 0; i < 4; ++i) {
         fCachedBlendConstant[i] = -1.0;
-    }
-    for (auto& boundInputBuffer : fBoundInputBuffers) {
-        boundInputBuffer = VK_NULL_HANDLE;
-    }
-    for (auto& boundInputOffset : fBoundInputBufferOffsets) {
-        boundInputOffset = 0;
     }
 }
 
@@ -892,10 +884,28 @@ void VulkanCommandBuffer::addDrawPass(const DrawPass* drawPass) {
                 this->recordBufferBindingInfo(bub->fInfo, bub->fSlot);
                 break;
             }
-            case DrawPassCommands::Type::kBindDrawBuffers: {
-                auto bdb = static_cast<DrawPassCommands::BindDrawBuffers*>(cmdPtr);
-                this->bindDrawBuffers(
-                        bdb->fVertices, bdb->fInstances, bdb->fIndices, bdb->fIndirect);
+            case DrawPassCommands::Type::kBindStaticDataBuffer: {
+                auto bdb = static_cast<DrawPassCommands::BindStaticDataBuffer*>(cmdPtr);
+                this->bindInputBuffer(bdb->fStaticData.fBuffer, bdb->fStaticData.fOffset,
+                                      VulkanGraphicsPipeline::kStaticDataBufferIndex);
+                break;
+            }
+            case DrawPassCommands::Type::kBindAppendDataBuffer: {
+                auto bdb = static_cast<DrawPassCommands::BindAppendDataBuffer*>(cmdPtr);
+                this->bindInputBuffer(bdb->fAppendData.fBuffer, bdb->fAppendData.fOffset,
+                                      VulkanGraphicsPipeline::kAppendDataBufferIndex);
+                break;
+            }
+            case DrawPassCommands::Type::kBindIndexBuffer: {
+                auto bdb = static_cast<DrawPassCommands::BindIndexBuffer*>(cmdPtr);
+                this->bindIndexBuffer(
+                        bdb->fIndices.fBuffer, bdb->fIndices.fOffset);
+                break;
+            }
+            case DrawPassCommands::Type::kBindIndirectBuffer: {
+                auto bdb = static_cast<DrawPassCommands::BindIndirectBuffer*>(cmdPtr);
+                this->bindIndirectBuffer(
+                        bdb->fIndirect.fBuffer, bdb->fIndirect.fOffset);
                 break;
             }
             case DrawPassCommands::Type::kBindTexturesAndSamplers: {
@@ -1125,45 +1135,17 @@ void VulkanCommandBuffer::bindUniformBuffers() {
     this->trackResource(std::move(descSet));
 }
 
-void VulkanCommandBuffer::bindDrawBuffers(const BindBufferInfo& vertices,
-                                          const BindBufferInfo& instances,
-                                          const BindBufferInfo& indices,
-                                          const BindBufferInfo& indirect) {
-    this->bindVertexBuffers(vertices.fBuffer,
-                            vertices.fOffset,
-                            instances.fBuffer,
-                            instances.fOffset);
-    this->bindIndexBuffer(indices.fBuffer, indices.fOffset);
-    this->bindIndirectBuffer(indirect.fBuffer, indirect.fOffset);
-}
-
-void VulkanCommandBuffer::bindVertexBuffers(const Buffer* vertexBuffer,
-                                            size_t vertexOffset,
-                                            const Buffer* instanceBuffer,
-                                            size_t instanceOffset) {
-    this->bindInputBuffer(vertexBuffer, vertexOffset,
-                          VulkanGraphicsPipeline::kVertexBufferIndex);
-    this->bindInputBuffer(instanceBuffer, instanceOffset,
-                          VulkanGraphicsPipeline::kInstanceBufferIndex);
-}
-
-void VulkanCommandBuffer::bindInputBuffer(const Buffer* buffer, VkDeviceSize offset,
+void VulkanCommandBuffer::bindInputBuffer(const Buffer* inputBuffer, VkDeviceSize offset,
                                           uint32_t binding) {
-    if (buffer) {
-        SkASSERT(buffer->isProtected() == Protected::kNo);
-        VkBuffer vkBuffer = static_cast<const VulkanBuffer*>(buffer)->vkBuffer();
+    if (inputBuffer) {
+        SkASSERT(inputBuffer->isProtected() == Protected::kNo);
+        VkBuffer vkBuffer = static_cast<const VulkanBuffer*>(inputBuffer)->vkBuffer();
         SkASSERT(vkBuffer != VK_NULL_HANDLE);
-        if (vkBuffer != fBoundInputBuffers[binding] ||
-            offset != fBoundInputBufferOffsets[binding]) {
-            VULKAN_CALL(fSharedContext->interface(),
-                        CmdBindVertexBuffers(fPrimaryCommandBuffer,
-                                             binding,
-                                             /*bindingCount=*/1,
-                                             &vkBuffer,
-                                             &offset));
-            fBoundInputBuffers[binding] = vkBuffer;
-            fBoundInputBufferOffsets[binding] = offset;
-        }
+        VULKAN_CALL(fSharedContext->interface(), CmdBindVertexBuffers(fPrimaryCommandBuffer,
+                                                                      binding,
+                                                                      /*bindingCount=*/1,
+                                                                      &vkBuffer,
+                                                                      &offset));
     }
 }
 
@@ -1172,17 +1154,10 @@ void VulkanCommandBuffer::bindIndexBuffer(const Buffer* indexBuffer, size_t offs
         SkASSERT(indexBuffer->isProtected() == Protected::kNo);
         VkBuffer vkBuffer = static_cast<const VulkanBuffer*>(indexBuffer)->vkBuffer();
         SkASSERT(vkBuffer != VK_NULL_HANDLE);
-        if (vkBuffer != fBoundIndexBuffer || offset != fBoundIndexBufferOffset) {
-            VULKAN_CALL(fSharedContext->interface(), CmdBindIndexBuffer(fPrimaryCommandBuffer,
-                                                                        vkBuffer,
-                                                                        offset,
-                                                                        VK_INDEX_TYPE_UINT16));
-            fBoundIndexBuffer = vkBuffer;
-            fBoundIndexBufferOffset = offset;
-        }
-    } else {
-        fBoundIndexBuffer = VK_NULL_HANDLE;
-        fBoundIndexBufferOffset = 0;
+        VULKAN_CALL(fSharedContext->interface(), CmdBindIndexBuffer(fPrimaryCommandBuffer,
+                                                                     vkBuffer,
+                                                                     offset,
+                                                                     VK_INDEX_TYPE_UINT16));
     }
 }
 
