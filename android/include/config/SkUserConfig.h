@@ -111,6 +111,10 @@
 #define SK_GL
 #endif
 
+#ifndef SK_HAS_HEIF_LIBRARY
+#define SK_HAS_HEIF_LIBRARY
+#endif
+
 #ifndef SK_HAS_WUFFS_LIBRARY
 #define SK_HAS_WUFFS_LIBRARY
 #endif
