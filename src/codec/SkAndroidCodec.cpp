@@ -220,6 +220,8 @@ std::unique_ptr<SkAndroidCodec> SkAndroidCodec::MakeFromCodec(std::unique_ptr<Sk
         case SkEncodedImageFormat::kJPEG:
         case SkEncodedImageFormat::kBMP:
         case SkEncodedImageFormat::kWBMP:
+        // Temporarily fallback HEIF to legacy path. Need to envaluate SkCrabbyAvifCodec performance
+        case SkEncodedImageFormat::kHEIF:
             return std::make_unique<SkSampledCodec>(codec.release());
         case SkEncodedImageFormat::kGIF:
         case SkEncodedImageFormat::kWEBP:
@@ -228,7 +230,6 @@ std::unique_ptr<SkAndroidCodec> SkAndroidCodec::MakeFromCodec(std::unique_ptr<Sk
         // SkCrabbyAvifCodec. It can handle scaling internally. So we can use
         // SkAndroidCodecAdapter for both these formats.
         case SkEncodedImageFormat::kAVIF:
-        case SkEncodedImageFormat::kHEIF:
             return std::make_unique<SkAndroidCodecAdapter>(codec.release());
         case SkEncodedImageFormat::kPKM:
         case SkEncodedImageFormat::kKTX:
