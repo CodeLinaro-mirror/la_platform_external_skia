@@ -109,6 +109,10 @@ static std::vector<Decoder>* get_decoders_for_editing() {
 #if defined(SK_CODEC_DECODES_WBMP)
             decoders->push_back(SkWbmpDecoder::Decoder());
 #endif
+#if defined(SK_HAS_HEIF_LIBRARY)
+            // Temporarily fallback to legacy libheif path if this lib exist
+            decoders->push_back(SkHeifDecoder::Decoder());
+#endif
 #if defined(SK_CODEC_DECODES_AVIF)
 #if defined(SK_BUILD_FOR_ANDROID_FRAMEWORK)
             decoders->push_back(SkAvifDecoder::CrabbyAvif::Decoder());
@@ -118,9 +122,6 @@ static std::vector<Decoder>* get_decoders_for_editing() {
 #endif
 #if defined(SK_CODEC_DECODES_JPEGXL)
             decoders->push_back(SkJpegxlDecoder::Decoder());
-#endif
-#if defined(SK_HAS_HEIF_LIBRARY)
-            decoders->push_back(SkHeifDecoder::Decoder());
 #endif
 #if defined(SK_CODEC_DECODES_RAW)
             decoders->push_back(SkRawDecoder::Decoder());
