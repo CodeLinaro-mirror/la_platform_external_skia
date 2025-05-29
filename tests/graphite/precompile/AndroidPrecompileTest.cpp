@@ -12,6 +12,7 @@
 #include "include/gpu/graphite/PrecompileContext.h"
 #include "src/gpu/graphite/PrecompileContextPriv.h"
 #include "src/gpu/graphite/TextureInfoPriv.h"
+#include "src/sksl/SkSLUtil.h"
 #include "tests/graphite/precompile/PrecompileTestUtils.h"
 
 #include <set>
@@ -21,8 +22,11 @@ using namespace PrecompileTestUtils;
 
 namespace {
 
-// These settings cover 41 of the 87 cases in 'kCases'.
+// For non-Vulkan configs, these settings cover 41 of the 87 cases in 'kCases'.
 // They create 53 Pipelines so only modestly over-generate (12 extra Pipelines - 23%).
+//
+// For Vulkan configs, the Vulkan-specific PrecompileSettings handle 5 more cases and
+// add 7 more Pipelines.
 //
 // These are sorted into groups based on (first) PaintOptions creation function and
 // then Render Pass Properties.
@@ -100,6 +104,17 @@ const PrecompileSettings kPrecompileCases[] = {
 /* 25 */ { ImagePremulHWOnlySrc(),             DrawTypeFlags::kPerEdgeAAQuad,   kRGBA_1_D },
 // 50% (1/2) handles 74 - due to the w/o msaa load variants not being used
 /* 26 */ { ImagePremulHWOnlySrc(),             DrawTypeFlags::kNonAAFillRect,   kRGBA_4_DS },
+
+#if defined(SK_VULKAN) && defined(SK_BUILD_FOR_ANDROID)
+// 100% (2/2) handles 26 50
+/* 27 */ { ImagePremulYCbCr238Srcover(),       kRRectAndNonAARect,              kRGBA_1_D },
+// 100% (1/1) handles 49
+/* 28 */ { ImagePremulYCbCr240Srcover(),       DrawTypeFlags::kNonAAFillRect,   kRGBA_1_D },
+// 50% (1/2) handles 76
+/* 29 */ { ImagePremulYCbCr240Srcover(),       DrawTypeFlags::kNonAAFillRect,   kRGBA_4_DS },
+// 50% (1/2) handles 70
+/* 30 */ { TransparentPaintImagePremulYCbCr240Srcover(), DrawTypeFlags::kNonAAFillRect,kRGBA_4_DS },
+#endif
 };
 
 //
@@ -190,7 +205,7 @@ static const PipelineLabel kCases[] = {
 /*  25 */ { -1, "RP((RGBA8+D16 x1).rgba) + "
                 "AnalyticRRectRenderStep + "
                 "LocalMatrix [ Compose [ CoordNormalize [ HardwareImage(0) ] ColorSpaceTransformSRGB ] ] SrcOver" },
-/*   X */ { -1, "RP((RGBA8+D16 x1).rgba) + "
+/*  26 */ { -1, "RP((RGBA8+D16 x1).rgba) + "
                 "AnalyticRRectRenderStep + "
                 "LocalMatrix [ Compose [ CoordNormalize [ HardwareImage(3: kHoAAO4AAAAAAAAA) ] ColorSpaceTransformPremul ] ] SrcOver" },
 /*   X */ { -1, "RP((RGBA8+D16 x1).rgba) + "
@@ -259,10 +274,10 @@ static const PipelineLabel kCases[] = {
 /*   X */ { -1, "RP((RGBA8+D16 x1).rgba) + "
                 "CoverBoundsRenderStep[NonAAFill] + "
                 "LocalMatrix [ Compose [ CoordNormalize [ HardwareImage(0) ] ColorSpaceTransformSRGB ] ] SrcOver AnalyticClip" },
-/*   X */ { -1, "RP((RGBA8+D16 x1).rgba) + "
+/*  49 */ { -1, "RP((RGBA8+D16 x1).rgba) + "
                 "CoverBoundsRenderStep[NonAAFill] + "
                 "LocalMatrix [ Compose [ CoordNormalize [ HardwareImage(3: kHIAAPAAAAAAAAAA) ] ColorSpaceTransformPremul ] ] SrcOver" },
-/*   X */ { -1, "RP((RGBA8+D16 x1).rgba) + "
+/*  50 */ { -1, "RP((RGBA8+D16 x1).rgba) + "
                 "CoverBoundsRenderStep[NonAAFill] + "
                 "LocalMatrix [ Compose [ CoordNormalize [ HardwareImage(3: kHoAAO4AAAAAAAAA) ] ColorSpaceTransformPremul ] ] SrcOver" },
 /*   X */ { -1, "RP((RGBA8+D16 x1).rgba) + "
@@ -322,7 +337,7 @@ static const PipelineLabel kCases[] = {
 /*  69 */ { -1, "RP((RGBA8+D24_S8 x4->1).rgba w/ msaa load) + "
                 "CoverBoundsRenderStep[NonAAFill] + "
                 "BlendCompose [ LocalMatrix [ Compose [ CoordNormalize [ HardwareImage(0) ] ColorSpaceTransformPremul ] ] AlphaOnlyPaintColor SrcIn ] SrcOver" },
-/*   X */ { -1, "RP((RGBA8+D24_S8 x4->1).rgba w/ msaa load) + "
+/*  70 */ { -1, "RP((RGBA8+D24_S8 x4->1).rgba w/ msaa load) + "
                 "CoverBoundsRenderStep[NonAAFill] + "
                 "BlendCompose [ LocalMatrix [ Compose [ CoordNormalize [ HardwareImage(3: kHIAAPAAAAAAAAAA) ] ColorSpaceTransformPremul ] ] AlphaOnlyPaintColor SrcIn ] SrcOver" },
 /*  71 */ { -1, "RP((RGBA8+D24_S8 x4->1).rgba w/ msaa load) + "
@@ -340,7 +355,7 @@ static const PipelineLabel kCases[] = {
 /*  75 */ { -1, "RP((RGBA8+D24_S8 x4->1).rgba w/ msaa load) + "
                 "CoverBoundsRenderStep[NonAAFill] + "
                 "LocalMatrix [ Compose [ CoordNormalize [ HardwareImage(0) ] ColorSpaceTransformPremul ] ] SrcOver" },
-/*   X */ { -1, "RP((RGBA8+D24_S8 x4->1).rgba w/ msaa load) + "
+/*  76 */ { -1, "RP((RGBA8+D24_S8 x4->1).rgba w/ msaa load) + "
                 "CoverBoundsRenderStep[NonAAFill] + "
                 "LocalMatrix [ Compose [ CoordNormalize [ HardwareImage(3: kHIAAPAAAAAAAAAA) ] ColorSpaceTransformPremul ] ] SrcOver" },
 /*  77 */ { -1, "RP((RGBA8+D24_S8 x4->1).rgba w/ msaa load) + "
@@ -379,9 +394,11 @@ bool skip(const char* str) {
     if (strstr(str, "AnalyticClip")) {  // we have to think about this a bit more
         return true;
     }
+#if !defined(SK_VULKAN)
     if (strstr(str, "HardwareImage(3:")) {
         return true;
     }
+#endif // SK_VULKAN
     if (strstr(str, "RE_BlurFilterMixEffect")) {
         return true;
     }
@@ -419,9 +436,10 @@ bool skip(const char* str) {
 }
 
 // The pipeline strings were created with Android Vulkan but we're going to run the test
-// on Dawn Metal
-bool is_dawn_metal_context_type(skgpu::ContextType type) {
-    return type == skgpu::ContextType::kDawn_Metal;
+// on Dawn Metal and all the Native Vulkan configs
+bool is_acceptable_context_type(skgpu::ContextType type) {
+    return type == skgpu::ContextType::kDawn_Metal ||
+           type == skgpu::ContextType::kVulkan;
 }
 
 } // anonymous namespace
@@ -435,9 +453,14 @@ bool is_dawn_metal_context_type(skgpu::ContextType type) {
 //    PRINT_COVERAGE: list the cases (in 'kCases') that are covered by each 'kPrecompileCases' case
 //    PRINT_GENERATED_LABELS: list the Pipeline labels for a specific 'kPrecompileCases' case
 // Also of note, the "skip" method documents the Pipelines we're intentionally skipping and why.
-DEF_GRAPHITE_TEST_FOR_CONTEXTS(AndroidPrecompileTest, is_dawn_metal_context_type,
+DEF_GRAPHITE_TEST_FOR_CONTEXTS(AndroidPrecompileTest, is_acceptable_context_type,
                                reporter, context, /* testContext */, CtsEnforcement::kNever) {
     using namespace skgpu::graphite;
+
+#if defined(SK_VULKAN)
+    // Use this call to map back from a HardwareImage sub-string to a VulkanYcbcrConversionInfo
+    //Base642YCbCr("kEwAAPcAAAAAAAAA");
+#endif
 
     std::unique_ptr<PrecompileContext> precompileContext = context->makePrecompileContext();
     const skgpu::graphite::Caps* caps = precompileContext->priv().caps();
@@ -464,7 +487,7 @@ DEF_GRAPHITE_TEST_FOR_CONTEXTS(AndroidPrecompileTest, is_dawn_metal_context_type
     }
 #endif
 
-    std::set<int> MSAALoadOnlyCases = { 2, 6, 9, 13, 15, 22, 26 };
+    std::set<int> MSAALoadOnlyCases = { 2, 6, 9, 13, 15, 22, 26, 29, 30 };
 
     PipelineLabelInfoCollector collector({ kCases }, skip);
 
@@ -478,6 +501,29 @@ DEF_GRAPHITE_TEST_FOR_CONTEXTS(AndroidPrecompileTest, is_dawn_metal_context_type
             MSAALoadOnlyCases.find(i) != MSAALoadOnlyCases.end()) {
             // If "w/ msaa load" strings aren't being generated, cases that only handle Pipeline
             // labels with that sub-string will never be matched.
+            continue;
+        }
+
+        if (kPrecompileCases[i].fRenderPassProps.fDSFlags == DepthStencilFlags::kDepth &&
+            caps->getDepthStencilFormat(DepthStencilFlags::kDepth) != TextureFormat::kD16) {
+            // The Pipeline labels in 'kCases' have "D16" for this case (i.e., "D32F" is a
+            // fine Depth buffer type but won't match the strings).
+            continue;
+        }
+
+        SkSpan<const SkBlendMode> blendModes = kPrecompileCases[i].fPaintOptions.getBlendModes();
+        bool skip = false;
+        for (SkBlendMode bm : blendModes) {
+            if (bm == SkBlendMode::kSrc && !caps->shaderCaps()->fDualSourceBlendingSupport) {
+                // The Pipeline labels were gathered on a device w/ dual source blending.
+                // kSrc blend mode w/o dual source blending can result in a dst read and, thus,
+                // break the string matching.
+                skip = true;
+                break;
+            }
+        }
+
+        if (skip) {
             continue;
         }
 

@@ -380,8 +380,10 @@ bool VulkanCommandBuffer::onAddRenderPass(const RenderPassDesc& rpDesc,
                                           const Texture* colorTexture,
                                           const Texture* resolveTexture,
                                           const Texture* depthStencilTexture,
+                                          SkIPoint resolveOffset,
                                           SkIRect viewport,
                                           const DrawPassList& drawPasses) {
+    SkASSERT(resolveOffset.isZero());
     for (const auto& drawPass : drawPasses) {
         // Our current implementation of setting texture image layouts does not allow layout changes
         // once we have already begun a render pass, so prior to any other commands, set the layout
@@ -791,16 +793,16 @@ bool VulkanCommandBuffer::beginRenderPass(const RenderPassDesc& rpDesc,
         frameBufferHeight = depthStencilTexture->dimensions().height();
     }
     sk_sp<VulkanFramebuffer> framebuffer =
-            fResourceProvider->createFramebuffer(fSharedContext,
-                                                 fTargetTexture,
-                                                 vulkanResolveTexture,
-                                                 vulkanDepthStencilTexture,
-                                                 rpDesc,
-                                                 *vulkanRenderPass,
-                                                 frameBufferWidth,
-                                                 frameBufferHeight);
+            fResourceProvider->findOrCreateFramebuffer(fSharedContext,
+                                                       fTargetTexture,
+                                                       vulkanResolveTexture,
+                                                       vulkanDepthStencilTexture,
+                                                       rpDesc,
+                                                       *vulkanRenderPass,
+                                                       frameBufferWidth,
+                                                       frameBufferHeight);
     if (!framebuffer) {
-        SKGPU_LOG_W("Could not create Vulkan Framebuffer");
+        SKGPU_LOG_W("Could not find or create Vulkan Framebuffer");
         return false;
     }
 
@@ -1484,16 +1486,22 @@ bool VulkanCommandBuffer::onCopyBufferToBuffer(const Buffer* srcBuffer,
     // we allow to be used as the dst of a transfer are vertex and index buffers. So we check the
     // buffers usages for either of those and then set the corresponding access flag.
     VkAccessFlags dstAccess = 0;
-    VkPipelineStageFlags dstStageMask = VK_PIPELINE_STAGE_VERTEX_INPUT_BIT;
+    VkPipelineStageFlags dstStageMask = 0;
     VkBufferUsageFlags bufferUsageFlags = vkDstBuffer->bufferUsageFlags();
     if (bufferUsageFlags & VK_BUFFER_USAGE_VERTEX_BUFFER_BIT) {
         dstAccess = VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT;
+        dstStageMask = VK_PIPELINE_STAGE_VERTEX_INPUT_BIT;
     } else if (bufferUsageFlags & VK_BUFFER_USAGE_INDEX_BUFFER_BIT) {
         dstAccess = VK_ACCESS_INDEX_READ_BIT;
+        dstStageMask = VK_PIPELINE_STAGE_VERTEX_INPUT_BIT;
+    } else if (vkDstBuffer->bufferUsedForCpuRead()) {
+        dstAccess = VK_ACCESS_HOST_READ_BIT;
+        dstStageMask = VK_PIPELINE_STAGE_HOST_BIT;
     } else {
-        SkDEBUGFAIL("Trying to copy to non vertex or index buffer\n");
+        SkDEBUGFAIL("Unhandled type of buffer to buffer copy\n");
         return false;
     }
+    SkASSERT(dstAccess);
     vkDstBuffer->setBufferAccess(this, dstAccess, dstStageMask);
 
     return true;
