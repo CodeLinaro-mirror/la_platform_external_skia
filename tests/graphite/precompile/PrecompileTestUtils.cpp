@@ -50,15 +50,6 @@ PaintOptions SolidSrcover() {
     return paintOptions;
 }
 
-PaintOptions SolidMatrixCFSrcover() {
-    PaintOptions paintOptions;
-
-    paintOptions.setColorFilters({ PrecompileColorFilters::Matrix() });
-    paintOptions.setBlendModes({ SkBlendMode::kSrcOver });
-
-    return paintOptions;
-}
-
 PaintOptions LinearGradSmSrcover() {
     PaintOptions paintOptions;
     paintOptions.setShaders({ PrecompileShaders::LinearGradient(GradientShaderFlags::kSmall) });
@@ -287,16 +278,6 @@ PaintOptions ImageSRGBNoCubicSrc() {
                                                        { &ci, 1 },
                                                        {}) });
     paintOptions.setBlendModes({ SkBlendMode::kSrc });
-    return paintOptions;
-}
-
-PaintOptions BlendPorterDuffCFSrcover() {
-    PaintOptions paintOptions;
-    // kSrcOver will trigger the PorterDuffBlender
-    paintOptions.setColorFilters(
-            { PrecompileColorFilters::Blend({ SkBlendMode::kSrcOver }) });
-    paintOptions.setBlendModes({ SkBlendMode::kSrcOver });
-
     return paintOptions;
 }
 
@@ -716,6 +697,19 @@ PaintOptions ImagePremulYCbCr240Srcover() {
                                                         VK_SAMPLER_YCBCR_RANGE_ITU_FULL,
                                                         VK_CHROMA_LOCATION_MIDPOINT) });
     paintOptions.setBlendModes({ SkBlendMode::kSrcOver });
+    return paintOptions;
+}
+
+PaintOptions TransparentPaintImagePremulYCbCr238Srcover() {
+    PaintOptions paintOptions;
+
+    // HardwareImage(3: kHoAAO4AAAAAAAAA)
+    paintOptions.setShaders({ vulkan_ycbcr_image_shader(238,
+                                                        VK_SAMPLER_YCBCR_MODEL_CONVERSION_YCBCR_709,
+                                                        VK_SAMPLER_YCBCR_RANGE_ITU_NARROW,
+                                                        VK_CHROMA_LOCATION_MIDPOINT) });
+    paintOptions.setBlendModes({ SkBlendMode::kSrcOver });
+    paintOptions.setPaintColorIsOpaque(false);
     return paintOptions;
 }
 
