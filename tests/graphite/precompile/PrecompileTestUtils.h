@@ -113,7 +113,6 @@ skgpu::graphite::PaintOptions YUVImageSRGBNoCubicSrcover();
 skgpu::graphite::PaintOptions YUVImageSRGBSrcover2();
 skgpu::graphite::PaintOptions ImagePremulNoCubicSrcSrcover();
 skgpu::graphite::PaintOptions ImageSRGBNoCubicSrc();
-skgpu::graphite::PaintOptions BlendPorterDuffCFSrcover();
 skgpu::graphite::PaintOptions ImageAlphaHWOnlySrcover();
 skgpu::graphite::PaintOptions ImageAlphaPremulHWOnlyMatrixCFSrcover();
 skgpu::graphite::PaintOptions ImageAlphaSRGBHWOnlyMatrixCFSrcover();
@@ -150,6 +149,7 @@ skgpu::graphite::PaintOptions LinearEffect(const char* parameterStr,
 
 #if defined(SK_VULKAN)
 skgpu::graphite::PaintOptions ImagePremulYCbCr238Srcover();
+skgpu::graphite::PaintOptions TransparentPaintImagePremulYCbCr238Srcover();
 skgpu::graphite::PaintOptions ImagePremulYCbCr240Srcover();
 skgpu::graphite::PaintOptions TransparentPaintImagePremulYCbCr240Srcover();
 skgpu::graphite::PaintOptions MouriMapCrosstalkAndChunk16x16YCbCr247();

@@ -137,9 +137,13 @@ DEF_GRAPHITE_TEST_FOR_ALL_CONTEXTS(ShaderInfoDetectsFixedFunctionBlend, reporter
                                                  : DstReadStrategy::kNoneRequired);
 
         SkBlendMode expectedBM = mode;
-        if (expectedBM == SkBlendMode::kPlus && !TextureFormatAutoClamps(format)) {
+        if (expectedBM == SkBlendMode::kPlus &&
+            (!TextureFormatAutoClamps(format) ||
+             caps->getDstReadStrategy() != DstReadStrategy::kTextureCopy)) {
             // The kPlus "coefficient" blend mode in non-clamping render targets triggers shader
-            // blending to add a clamping. Shader-based blending always uses kSrc HW blending.
+            // blending to add a clamping. HW kPlus blending is an approximation when there's
+            // coverage, so shader blending is used when no dst copy is required.
+            // Shader-based blending always uses kSrc HW blending.
             expectedBM = SkBlendMode::kSrc;
         }
         SkBlendModeCoeff expectedSrc, expectedDst;

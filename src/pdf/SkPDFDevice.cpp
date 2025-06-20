@@ -41,10 +41,10 @@
 #include "include/core/SkTypeface.h"
 #include "include/core/SkTypes.h"
 #include "include/docs/SkPDFDocument.h"
-#include "include/pathops/SkPathOps.h"
 #include "include/private/base/SkDebug.h"
 #include "include/private/base/SkTemplates.h"
 #include "include/private/base/SkTo.h"
+#include "modules/pathops/include/SkPathOps.h"
 #include "src/base/SkScopeExit.h"
 #include "src/base/SkTLazy.h"
 #include "src/base/SkUTF.h"
@@ -427,7 +427,7 @@ void SkPDFDevice::drawAnnotation(const SkRect& rect, const char key[], SkData* v
         }
         if (!strcmp(SkAnnotationKeys::Define_Named_Dest_Key(), key)) {
             SkPoint p = this->localToDevice().mapPoint({rect.x(), rect.y()});
-            pageXform.mapPoints(&p, 1);
+            p = pageXform.mapPoint(p);
             auto pg = fDocument->currentPage();
             fDocument->fNamedDestinations.push_back(SkPDFNamedDestination{sk_ref_sp(value), p, pg});
         }
