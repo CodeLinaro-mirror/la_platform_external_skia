@@ -179,7 +179,8 @@ std::unique_ptr<SkCodec> SkCodec::MakeFromStream(
     }
 
     if (selectionPolicy != SelectionPolicy::kPreferStillImage
-            && selectionPolicy != SelectionPolicy::kPreferAnimation) {
+            && selectionPolicy != SelectionPolicy::kPreferAnimation
+            && selectionPolicy != SelectionPolicy::kPreferCrabbyAvif) {
         *outResult = kInvalidParameters;
         return nullptr;
     }
@@ -219,6 +220,10 @@ std::unique_ptr<SkCodec> SkCodec::MakeFromStream(
             if (proc.id == "png") {
                 return proc.makeFromStream(std::move(stream), outResult, chunkReader);
             } else if (proc.id == "heif" || proc.id == "gif") {
+                if (selectionPolicy == SelectionPolicy::kPreferCrabbyAvif) {
+                    // Request to create SkCrabbyAvifCodec, skip SkHeifCodec
+                    continue;
+                }
                 return proc.makeFromStream(std::move(stream), outResult, &selectionPolicy);
             } else if (proc.id == "raw") {
                 rawFallback = proc.makeFromStream;
