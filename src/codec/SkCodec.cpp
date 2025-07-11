@@ -323,6 +323,15 @@ bool SkCodec::conversionSupported(const SkImageInfo& dst, bool srcIsOpaque, bool
     }
 }
 
+bool SkCodec::rewindStream() {
+    // Some codecs do not have a stream.  They may hold onto their own data or another codec.
+    // They must handle rewinding themselves.
+    if (fStream && !fStream->rewind()) {
+        return false;
+    }
+    return true;
+}
+
 bool SkCodec::rewindIfNeeded() {
     // Store the value of fNeedsRewind so we can update it. Next read will
     // require a rewind.
@@ -336,12 +345,6 @@ bool SkCodec::rewindIfNeeded() {
     fCurrScanline = -1;
     // startIncrementalDecode will need to be called before incrementalDecode.
     fStartedIncrementalDecode = false;
-
-    // Some codecs do not have a stream.  They may hold onto their own data or another codec.
-    // They must handle rewinding themselves.
-    if (fStream && !fStream->rewind()) {
-        return false;
-    }
 
     return this->onRewind();
 }
