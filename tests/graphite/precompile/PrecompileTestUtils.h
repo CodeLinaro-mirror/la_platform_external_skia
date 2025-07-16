@@ -125,7 +125,7 @@ skgpu::graphite::PaintOptions TransparentPaintImageSRGBHWOnlySrcover();
 skgpu::graphite::PaintOptions TransparentPaintSrcover();
 skgpu::graphite::PaintOptions SolidClearSrcSrcover();
 skgpu::graphite::PaintOptions SolidSrcSrcover();
-skgpu::graphite::PaintOptions ImagePremulNoCubicSrcover();
+skgpu::graphite::PaintOptions ImagePremulHWOnlyAndClampSrcover();
 skgpu::graphite::PaintOptions ImagePremulHWOnlySrc();
 skgpu::graphite::PaintOptions ImagePremulHWOnlySrcover();
 skgpu::graphite::PaintOptions ImagePremulClampNoCubicDstin();
@@ -319,6 +319,14 @@ const skgpu::graphite::RenderPassProperties kRGBA16F_1_D_SRGB {
         skgpu::graphite::DepthStencilFlags::kDepth,
         kRGBA_F16_SkColorType,
         SkColorSpace::MakeSRGB(),
+        /* fRequiresMSAA= */ false
+};
+
+// The same as kRGBA16F_1_D but w/ a linear SRGB colorSpace
+const skgpu::graphite::RenderPassProperties kRGBA16F_1_D_Linear {
+        skgpu::graphite::DepthStencilFlags::kDepth,
+        kRGBA_F16_SkColorType,
+        SkColorSpace::MakeSRGBLinear(),
         /* fRequiresMSAA= */ false
 };
 
