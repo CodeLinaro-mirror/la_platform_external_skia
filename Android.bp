@@ -2022,6 +2022,7 @@ cc_library_static {
         export_include_dirs: [
           "android",
         ],
+        cppflags: ["-DQC_JPEG_MT"],
       },
       host_linux: {
         srcs: [
@@ -2072,12 +2073,6 @@ cc_library_static {
     defaults: ["skia_deps",
                "skia_defaults",
     ],
-
-    product_variables: {
-        debuggable: {
-            cppflags: ["-DQC_JPEG_MT"],
-        },
-    },
 }
 
 cc_defaults {
