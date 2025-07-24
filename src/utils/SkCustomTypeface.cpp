@@ -44,6 +44,7 @@
 #include <cstdint>
 #include <cstring>
 #include <memory>
+#include <optional>
 #include <utility>
 #include <vector>
 
@@ -312,14 +313,12 @@ protected:
         canvas->drawDrawable(rec.fDrawable.get(), &fMatrix);
     }
 
-    bool generatePath(const SkGlyph& glyph, SkPath* path, bool* modified) override {
+    std::optional<SkScalerContext::GeneratedPath> generatePath(const SkGlyph& glyph) override {
         const auto& rec = this->userTF()->fGlyphRecs[glyph.getGlyphID()];
 
         SkASSERT(!rec.isDrawable());
 
-        rec.fPath.transform(fMatrix, path);
-
-        return true;
+        return {{rec.fPath.makeTransform(fMatrix), false}};
     }
 
     sk_sp<SkDrawable> generateDrawable(const SkGlyph& glyph) override {
@@ -499,25 +498,26 @@ sk_sp<SkTypeface> SkCustomTypefaceBuilder::Deserialize(SkStream* stream) {
         }
 
         switch (gtype) {
-        case GlyphType::kDrawable: {
-            SkDeserialProcs procs;
-            procs.fAllowSkSL = false;
-            auto drawable = SkDrawable::Deserialize(data->data(), data->size(), &procs);
-            if (!drawable) {
+            case GlyphType::kDrawable: {
+                SkDeserialProcs procs;
+                procs.fAllowSkSL = false;
+                auto drawable = SkDrawable::Deserialize(data->data(), data->size(), &procs);
+                if (!drawable) {
+                    return nullptr;
+                }
+                builder.setGlyph(i, advance, std::move(drawable), bounds);
+            } break;
+            case GlyphType::kPath: {
+                size_t bytesRead = 0;
+                auto path = SkPath::ReadFromMemory(data->data(), data->size(), &bytesRead);
+                if (path.has_value() && (bytesRead == data->size())) {
+                    builder.setGlyph(i, advance, *path);
+                } else {
+                    return nullptr;
+                }
+            } break;
+            default:
                 return nullptr;
-            }
-            builder.setGlyph(i, advance, std::move(drawable), bounds);
-        } break;
-        case GlyphType::kPath: {
-            SkPath path;
-            if (path.readFromMemory(data->data(), data->size()) != data->size()) {
-                return nullptr;
-            }
-
-            builder.setGlyph(i, advance, path);
-        } break;
-        default:
-            return nullptr;
         }
     }
 
