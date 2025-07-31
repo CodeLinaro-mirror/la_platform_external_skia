@@ -177,6 +177,7 @@ std::unique_ptr<SkCodec> SkHeifCodec::MakeFromStream(std::unique_ptr<SkStream> s
     }
 
     HeifFrameInfo heifInfo;
+    auto dupStream = stream->duplicate();
     if (!heifDecoder->init(new SkHeifStreamWrapper(stream.release()), &heifInfo)) {
         *result = SkCodec::kInvalidInput;
         return nullptr;
@@ -211,7 +212,7 @@ std::unique_ptr<SkCodec> SkHeifCodec::MakeFromStream(std::unique_ptr<SkStream> s
 
     *result = SkCodec::kSuccess;
     return std::unique_ptr<SkCodec>(new SkHeifCodec(
-            std::move(info), heifDecoder.release(), orientation, frameCount > 1, format));
+            std::move(info), heifDecoder.release(), orientation, frameCount > 1, format, std::move(dupStream)));
 }
 
 SkHeifCodec::SkHeifCodec(
@@ -219,8 +220,9 @@ SkHeifCodec::SkHeifCodec(
         HeifDecoder* heifDecoder,
         SkEncodedOrigin origin,
         bool useAnimation,
-        SkEncodedImageFormat format)
-    : INHERITED(std::move(info), skcms_PixelFormat_RGBA_8888, nullptr, origin)
+        SkEncodedImageFormat format,
+        std::unique_ptr<SkStream> stream)
+    : INHERITED(std::move(info), skcms_PixelFormat_RGBA_8888, std::move(stream), origin)
     , fHeifDecoder(heifDecoder)
     , fSwizzleSrcRow(nullptr)
     , fColorXformSrcRow(nullptr)
