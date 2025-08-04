@@ -22,10 +22,20 @@ struct SkPathRaw {
     SkSpan<const SkPathVerb> fVerbs;
     SkSpan<const float>      fConics;
     SkRect                   fBounds;
-    SkPathFillType           fFillType = SkPathFillType::kDefault;
-    bool                     fIsConvex = false;
+    SkPathFillType           fFillType;
+    bool                     fIsConvex;
+    uint8_t                  fSegmentMask;
+
+    SkSpan<const SkPoint> points() const { return fPoints; }
+    SkSpan<const SkPathVerb> verbs() const { return fVerbs; }
+    SkSpan<const float> conics() const { return fConics; }
+    SkRect bounds() const { return fBounds; }
+    SkPathFillType fillType() const { return fFillType; }
+    bool isConvex() const { return fIsConvex; }
+    unsigned segmentMasks() const { return fSegmentMask; }
 
     bool empty() const { return fVerbs.empty(); }
+    bool isInverseFillType() const { return SkPathFillType_IsInverse(fFillType); }
 
     struct IterRec {
         SkSpan<const SkPoint> pts;
