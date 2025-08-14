@@ -146,6 +146,10 @@ public:
          *  SkCodec should choose one of the image sequences for animation.
          */
         kPreferAnimation,
+        /**
+         * WA: create SkCrabbyAvif codec instead of SkHeifCodec
+         */
+        kPreferCrabbyAvif,
     };
 
     /**

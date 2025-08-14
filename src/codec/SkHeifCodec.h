@@ -68,7 +68,7 @@ private:
      * Called only by NewFromStream
      */
     SkHeifCodec(SkEncodedInfo&&, HeifDecoder*, SkEncodedOrigin, bool animation,
-            SkEncodedImageFormat);
+            SkEncodedImageFormat,  std::unique_ptr<SkStream>);
 
     void initializeSwizzler(const SkImageInfo& dstInfo, const Options& options);
     void allocateStorage(const SkImageInfo& dstInfo);

@@ -215,6 +215,7 @@ std::unique_ptr<SkAndroidCodec> SkAndroidCodec::MakeFromCodec(std::unique_ptr<Sk
     }
 
     const SkEncodedImageFormat format = codec->getEncodedFormat();
+#if !defined(SK_HAS_HEIF_LIBRARY)
     if (format == SkEncodedImageFormat::kAVIF) {
         if (SkCodecs::HasDecoder("avif")) {
             // If a dedicated AVIF decoder has been registered, SkAvifCodec can
@@ -224,6 +225,7 @@ std::unique_ptr<SkAndroidCodec> SkAndroidCodec::MakeFromCodec(std::unique_ptr<Sk
         // This will fallback to SkHeifCodec, which needs sampling.
         return std::make_unique<SkSampledCodec>(codec.release());
     }
+#endif
 
     switch (format) {
         case SkEncodedImageFormat::kPNG:
@@ -232,12 +234,12 @@ std::unique_ptr<SkAndroidCodec> SkAndroidCodec::MakeFromCodec(std::unique_ptr<Sk
         case SkEncodedImageFormat::kBMP:
         case SkEncodedImageFormat::kWBMP:
         case SkEncodedImageFormat::kHEIF:
+        case SkEncodedImageFormat::kAVIF:
             return std::make_unique<SkSampledCodec>(codec.release());
         case SkEncodedImageFormat::kGIF:
         case SkEncodedImageFormat::kWEBP:
         case SkEncodedImageFormat::kDNG:
             return std::make_unique<SkAndroidCodecAdapter>(codec.release());
-        case SkEncodedImageFormat::kAVIF: // Handled above
         case SkEncodedImageFormat::kPKM:
         case SkEncodedImageFormat::kKTX:
         case SkEncodedImageFormat::kASTC:
@@ -547,15 +549,26 @@ SkCodec::Result SkAndroidCodec::getAndroidPixels(const SkImageInfo& info, void* 
 
 bool SkAndroidCodec::getGainmapAndroidCodec(SkGainmapInfo* info,
                                             std::unique_ptr<SkAndroidCodec>* outCodec) {
+    SkCodec *tCodec = fCodec.get();
+    std::unique_ptr<SkCodec> skCodec = nullptr;
+    auto imageFormat = fCodec->getEncodedFormat();
+    if (imageFormat== SkEncodedImageFormat::kHEIF || imageFormat == SkEncodedImageFormat::kAVIF) {
+        skCodec = SkCodec::MakeFromStream(std::move(fCodec->getEncodedData()), nullptr, nullptr,
+                SkCodec::SelectionPolicy::kPreferCrabbyAvif);
+        if (skCodec != nullptr) {
+            tCodec = skCodec.get();
+        }
+    }
+
     if (outCodec) {
         std::unique_ptr<SkCodec> gainmapCodec;
-        if (!fCodec->onGetGainmapCodec(info, &gainmapCodec)) {
+        if (!tCodec->onGetGainmapCodec(info, &gainmapCodec)) {
             return false;
         }
         *outCodec = MakeFromCodec(std::move(gainmapCodec));
         return true;
     }
-    return fCodec->onGetGainmapCodec(info, nullptr);
+    return tCodec->onGetGainmapCodec(info, nullptr);
 }
 
 bool SkAndroidCodec::getAndroidGainmap(SkGainmapInfo* info,

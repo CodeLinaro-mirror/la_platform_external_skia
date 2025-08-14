@@ -336,6 +336,7 @@ cc_defaults {
     target: {
       android: {
         shared_libs: [
+            "libheif",
             "libmediandk", // Needed to link libcrabbyavif_ffi in some configurations.
             "libdng_sdk",
         ],
@@ -536,8 +537,6 @@ def generate_args(target_os, enable_gpu, renderengine = False):
     # files.
     'target_cpu':                           '"none"',
 
-    'skia_use_libheif':                     'false',
-
     # Use the custom FontMgr, as the framework will handle fonts.
     'skia_enable_fontmgr_custom_directory': 'false',
     'skia_enable_fontmgr_custom_embedded':  'false',
@@ -590,9 +589,11 @@ def generate_args(target_os, enable_gpu, renderengine = False):
     d['win_toolchain_version'] = '"placeholder_version"'
 
   if target_os == '"android"' and not renderengine:
+    d['skia_use_libheif'] = 'true'
     d['skia_use_crabbyavif'] = 'true'
     d['skia_use_jpeg_gainmaps'] = 'true'
   else:
+    d['skia_use_libheif'] = 'false'
     d['skia_use_crabbyavif'] = 'false'
 
   if renderengine:
