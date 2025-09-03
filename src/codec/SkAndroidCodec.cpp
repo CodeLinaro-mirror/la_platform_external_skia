@@ -222,14 +222,11 @@ std::unique_ptr<SkAndroidCodec> SkAndroidCodec::MakeFromCodec(std::unique_ptr<Sk
         case SkEncodedImageFormat::kWBMP:
         // Temporarily fallback HEIF to legacy path. Need to envaluate SkCrabbyAvifCodec performance
         case SkEncodedImageFormat::kHEIF:
+        case SkEncodedImageFormat::kAVIF:
             return std::make_unique<SkSampledCodec>(codec.release());
         case SkEncodedImageFormat::kGIF:
         case SkEncodedImageFormat::kWEBP:
         case SkEncodedImageFormat::kDNG:
-        // On the Android framework, both HEIF and AVIF are handled by
-        // SkCrabbyAvifCodec. It can handle scaling internally. So we can use
-        // SkAndroidCodecAdapter for both these formats.
-        case SkEncodedImageFormat::kAVIF:
             return std::make_unique<SkAndroidCodecAdapter>(codec.release());
         case SkEncodedImageFormat::kPKM:
         case SkEncodedImageFormat::kKTX:
@@ -540,15 +537,26 @@ SkCodec::Result SkAndroidCodec::getAndroidPixels(const SkImageInfo& info, void* 
 
 bool SkAndroidCodec::getGainmapAndroidCodec(SkGainmapInfo* info,
                                             std::unique_ptr<SkAndroidCodec>* outCodec) {
+    SkCodec *tCodec = fCodec.get();
+    std::unique_ptr<SkCodec> skCodec = nullptr;
+    auto imageFormat = fCodec->getEncodedFormat();
+    if (imageFormat== SkEncodedImageFormat::kHEIF || imageFormat == SkEncodedImageFormat::kAVIF) {
+        skCodec = SkCodec::MakeFromStream(std::move(fCodec->getEncodedData()), nullptr, nullptr,
+                SkCodec::SelectionPolicy::kPreferCrabbyAvif);
+        if (skCodec != nullptr) {
+            tCodec = skCodec.get();
+        }
+    }
+
     if (outCodec) {
         std::unique_ptr<SkCodec> gainmapCodec;
-        if (!fCodec->onGetGainmapCodec(info, &gainmapCodec)) {
+        if (!tCodec->onGetGainmapCodec(info, &gainmapCodec)) {
             return false;
         }
         *outCodec = MakeFromCodec(std::move(gainmapCodec));
         return true;
     }
-    return fCodec->onGetGainmapCodec(info, nullptr);
+    return tCodec->onGetGainmapCodec(info, nullptr);
 }
 
 bool SkAndroidCodec::getAndroidGainmap(SkGainmapInfo* info,
