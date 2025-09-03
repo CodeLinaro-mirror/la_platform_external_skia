@@ -537,15 +537,26 @@ SkCodec::Result SkAndroidCodec::getAndroidPixels(const SkImageInfo& info, void* 
 
 bool SkAndroidCodec::getGainmapAndroidCodec(SkGainmapInfo* info,
                                             std::unique_ptr<SkAndroidCodec>* outCodec) {
+    SkCodec *tCodec = fCodec.get();
+    std::unique_ptr<SkCodec> skCodec = nullptr;
+    auto imageFormat = fCodec->getEncodedFormat();
+    if (imageFormat== SkEncodedImageFormat::kHEIF || imageFormat == SkEncodedImageFormat::kAVIF) {
+        skCodec = SkCodec::MakeFromStream(std::move(fCodec->getEncodedData()), nullptr, nullptr,
+                SkCodec::SelectionPolicy::kPreferCrabbyAvif);
+        if (skCodec != nullptr) {
+            tCodec = skCodec.get();
+        }
+    }
+
     if (outCodec) {
         std::unique_ptr<SkCodec> gainmapCodec;
-        if (!fCodec->onGetGainmapCodec(info, &gainmapCodec)) {
+        if (!tCodec->onGetGainmapCodec(info, &gainmapCodec)) {
             return false;
         }
         *outCodec = MakeFromCodec(std::move(gainmapCodec));
         return true;
     }
-    return fCodec->onGetGainmapCodec(info, nullptr);
+    return tCodec->onGetGainmapCodec(info, nullptr);
 }
 
 bool SkAndroidCodec::getAndroidGainmap(SkGainmapInfo* info,
