@@ -215,7 +215,9 @@ std::unique_ptr<SkAndroidCodec> SkAndroidCodec::MakeFromCodec(std::unique_ptr<Sk
     }
 
     const SkEncodedImageFormat format = codec->getEncodedFormat();
+// QTI_BEGIN: 2025-08-13: Video: Skia: Temporarily fallback HEIF decoding path to legacy libheif
 #if !defined(SK_HAS_HEIF_LIBRARY)
+// QTI_END: 2025-08-13: Video: Skia: Temporarily fallback HEIF decoding path to legacy libheif
     if (format == SkEncodedImageFormat::kAVIF) {
         if (SkCodecs::HasDecoder("avif")) {
             // If a dedicated AVIF decoder has been registered, SkAvifCodec can
@@ -225,7 +227,9 @@ std::unique_ptr<SkAndroidCodec> SkAndroidCodec::MakeFromCodec(std::unique_ptr<Sk
         // This will fallback to SkHeifCodec, which needs sampling.
         return std::make_unique<SkSampledCodec>(codec.release());
     }
+// QTI_BEGIN: 2025-08-13: Video: Skia: Temporarily fallback HEIF decoding path to legacy libheif
 #endif
+// QTI_END: 2025-08-13: Video: Skia: Temporarily fallback HEIF decoding path to legacy libheif
 
     switch (format) {
         case SkEncodedImageFormat::kPNG:
@@ -234,7 +238,9 @@ std::unique_ptr<SkAndroidCodec> SkAndroidCodec::MakeFromCodec(std::unique_ptr<Sk
         case SkEncodedImageFormat::kBMP:
         case SkEncodedImageFormat::kWBMP:
         case SkEncodedImageFormat::kHEIF:
+// QTI_BEGIN: 2025-08-13: Video: Skia: Temporarily fallback HEIF decoding path to legacy libheif
         case SkEncodedImageFormat::kAVIF:
+// QTI_END: 2025-08-13: Video: Skia: Temporarily fallback HEIF decoding path to legacy libheif
             return std::make_unique<SkSampledCodec>(codec.release());
         case SkEncodedImageFormat::kGIF:
         case SkEncodedImageFormat::kWEBP:
@@ -549,6 +555,7 @@ SkCodec::Result SkAndroidCodec::getAndroidPixels(const SkImageInfo& info, void* 
 
 bool SkAndroidCodec::getGainmapAndroidCodec(SkGainmapInfo* info,
                                             std::unique_ptr<SkAndroidCodec>* outCodec) {
+// QTI_BEGIN: 2025-08-13: Video: Skia: Temporarily fallback HEIF decoding path to legacy libheif
     SkCodec *tCodec = fCodec.get();
     std::unique_ptr<SkCodec> skCodec = nullptr;
     auto imageFormat = fCodec->getEncodedFormat();
@@ -560,15 +567,20 @@ bool SkAndroidCodec::getGainmapAndroidCodec(SkGainmapInfo* info,
         }
     }
 
+// QTI_END: 2025-08-13: Video: Skia: Temporarily fallback HEIF decoding path to legacy libheif
     if (outCodec) {
         std::unique_ptr<SkCodec> gainmapCodec;
+// QTI_BEGIN: 2025-08-13: Video: Skia: Temporarily fallback HEIF decoding path to legacy libheif
         if (!tCodec->onGetGainmapCodec(info, &gainmapCodec)) {
+// QTI_END: 2025-08-13: Video: Skia: Temporarily fallback HEIF decoding path to legacy libheif
             return false;
         }
         *outCodec = MakeFromCodec(std::move(gainmapCodec));
         return true;
     }
+// QTI_BEGIN: 2025-08-13: Video: Skia: Temporarily fallback HEIF decoding path to legacy libheif
     return tCodec->onGetGainmapCodec(info, nullptr);
+// QTI_END: 2025-08-13: Video: Skia: Temporarily fallback HEIF decoding path to legacy libheif
 }
 
 bool SkAndroidCodec::getAndroidGainmap(SkGainmapInfo* info,
