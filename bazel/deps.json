@@ -3,7 +3,7 @@
   "direct": [
     {
       "build_file": "//bazel/external/dawn:BUILD.bazel",
-      "commit": "67b75214b0b54b73144ccedba885d114acbf0fe5",
+      "commit": "a1b9b261f48e2b34913df31710054ac1dd3a6f0b",
       "name": "dawn",
       "remote": "https://dawn.googlesource.com/dawn.git"
     },
@@ -149,7 +149,7 @@
       "remote": "https://skia.googlesource.com/external/github.com/KhronosGroup/SPIRV-Headers.git"
     },
     {
-      "commit": "d7ac0e0fd062953f946169304456b58e36c32778",
+      "commit": "19042c8921f35f7bec56b9e5c96c5f5691588ca8",
       "name": "spirv_tools",
       "remote": "https://skia.googlesource.com/external/github.com/KhronosGroup/SPIRV-Tools.git"
     },
@@ -161,19 +161,19 @@
     },
     {
       "build_file": "//bazel/external/vulkan_headers:BUILD.bazel",
-      "commit": "d1cd37e925510a167d4abef39340dbdea47d8989",
+      "commit": "a4f8ada9f4f97c45b8c89c57997be9cebaae65d2",
       "name": "vulkan_headers",
       "remote": "https://chromium.googlesource.com/external/github.com/KhronosGroup/Vulkan-Headers"
     },
     {
       "build_file": "//bazel/external/vulkan_tools:BUILD.bazel",
-      "commit": "95cfb8b1ba7fbcbe1383302ff286808c34e1fb9e",
+      "commit": "d643b80d6ba8c191bc289fdda52867c3bb3c190b",
       "name": "vulkan_tools",
       "remote": "https://chromium.googlesource.com/external/github.com/KhronosGroup/Vulkan-Tools"
     },
     {
       "build_file": "//bazel/external/vulkan_utility_libraries:BUILD.bazel",
-      "commit": "fa01ab38ca196264fe44fa923feaffc7dcc76d76",
+      "commit": "4322db5906e67b57ec9c327e6afe3d98ed893df7",
       "name": "vulkan_utility_libraries",
       "remote": "https://chromium.googlesource.com/external/github.com/KhronosGroup/Vulkan-Utility-Libraries"
     },
@@ -197,7 +197,7 @@
       "remote": "https://skia.googlesource.com/external/github.com/google/brotli.git"
     },
     {
-      "commit": "cae4b6a3990e1431caa09c7b2ed1c76d0dfeab17",
+      "commit": "9d692d669253232c024b20ae19d2ff0b581ee1cd",
       "name": "abseil_cpp",
       "remote": "https://chromium.googlesource.com/chromium/src/third_party/abseil-cpp"
     },
