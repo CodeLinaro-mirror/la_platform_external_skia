@@ -326,6 +326,8 @@ func (b *TaskBuilder) dmFlags(internalHardwareLabel string) {
 			skip(ALL, "test", ALL, "MultisampleRetainTest")
 			skip(ALL, "test", ALL, "MultisampleClearThenLoad")
 			skip(ALL, "test", ALL, "MutableImagesTest")
+			skip(ALL, "test", ALL, "NotifyInUseTestBlend")
+			skip(ALL, "test", ALL, "NotifyInUseTestSnapshot")
 			skip(ALL, "test", ALL, "OpsTaskFlushCount")
 			skip(ALL, "test", ALL, "OverdrawSurface_Gpu")
 			skip(ALL, "test", ALL, "PinnedImageTest")
@@ -344,7 +346,8 @@ func (b *TaskBuilder) dmFlags(internalHardwareLabel string) {
 			skip(ALL, "test", ALL, "SkipOpsTaskTest")
 			skip(ALL, "test", ALL, "SkColorSpaceXform_Ganesh")
 			skip(ALL, "test", ALL, "SkColorSpaceXform_Graphite")
-			skip(ALL, "test", ALL, "SkRuntimeBlender_GPU")
+			skip(ALL, "test", ALL, "SkRuntimeBlender_Ganesh")
+			skip(ALL, "test", ALL, "SkRuntimeBlender_Graphite")
 			skip(ALL, "test", ALL, "SkRuntimeEffect") // knocks out a bunch
 			skip(ALL, "test", ALL, "SkRuntimeShaderImageFilter_GPU")
 			skip(ALL, "test", ALL, "SkRuntimeShader_TransformedCoords_Ganesh")
