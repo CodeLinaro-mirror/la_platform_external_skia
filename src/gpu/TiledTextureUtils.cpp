@@ -66,7 +66,9 @@ SkIRect determine_clipped_src_rect(SkIRect clippedSrcIRect,
                                    const SkISize& imageDimensions,
                                    const SkRect* srcRectPtr) {
     SkMatrix inv = SkMatrix::Concat(viewMatrix, srcToDstRect);
-    if (!inv.invert(&inv)) {
+    if (auto inverse = inv.invert()) {
+        inv = *inverse;
+    } else {
         return SkIRect::MakeEmpty();
     }
     SkRect clippedSrcRect = SkRect::Make(clippedSrcIRect);
@@ -273,7 +275,7 @@ TiledTextureUtils::ImageDrawMode TiledTextureUtils::OptimizeSampleArea(const SkI
         return ImageDrawMode::kSkip;
     }
 
-    *outSrcToDst = SkMatrix::RectToRect(origSrcRect, origDstRect);
+    *outSrcToDst = SkMatrix::RectToRectOrIdentity(origSrcRect, origDstRect);
 
     SkRect src = origSrcRect;
     SkRect dst = origDstRect;
@@ -435,7 +437,9 @@ std::tuple<bool, size_t> TiledTextureUtils::DrawAsTiledImageRect(
             // instead.
             if (renderLazyPictureTilesOnGPU &&
                 as_IB(image)->type() == SkImage_Base::Type::kLazyPicture) {
-                auto imageProc = [&](SkIRect iTileR) { return image->makeSubset(nullptr, iTileR); };
+                auto imageProc = [&](SkIRect iTileR) {
+                    return image->makeSubset(nullptr, iTileR, {});
+                };
 
                 size_t tiles = draw_tiled_image(canvas,
                                                 imageProc,

@@ -26,11 +26,13 @@
 #include "src/gpu/graphite/dawn/DawnErrorChecker.h"
 #include "src/gpu/graphite/dawn/DawnGraphiteUtils.h"
 #include "src/gpu/graphite/dawn/DawnResourceProvider.h"
+#include "src/gpu/graphite/dawn/DawnSampler.h"
 #include "src/gpu/graphite/dawn/DawnSharedContext.h"
 #include "src/sksl/SkSLProgramSettings.h"
 #include "src/sksl/SkSLUtil.h"
 #include "src/sksl/ir/SkSLProgram.h"
 
+#include <atomic>
 #include <vector>
 
 namespace skgpu::graphite {
@@ -250,7 +252,7 @@ struct AsyncPipelineCreationBase {
     AsyncPipelineCreationBase(const UniqueKey& key) : fKey(key) {}
 
     wgpu::RenderPipeline fRenderPipeline;
-    bool fFinished = false;
+    std::atomic<bool> fFinished = false;
     UniqueKey fKey; // for logging the wait to resolve a Pipeline future in dawnRenderPipeline
 #if SK_HISTOGRAMS_ENABLED
     // We need these three for the Graphite.PipelineCreationTimes.* histograms (cf.
@@ -516,6 +518,7 @@ sk_sp<DawnGraphicsPipeline> DawnGraphicsPipeline::Make(
                 // within the BindGroupLayout. Assert that we have analyzed the appropriate number
                 // of samplers by equating samplerDescArr size to sampler quantity.
                 SkASSERT(samplerDescArrPtr && samplerDescArr.size() == numTexturesAndSamplers / 2);
+                immutableSamplers.reset(samplerDescArr.size());
 #endif
 
                 for (int i = 0; i < numTexturesAndSamplers;) {
@@ -544,7 +547,7 @@ sk_sp<DawnGraphicsPipeline> DawnGraphicsPipeline::Make(
                         // Static samplers sample from the subsequent texture in the BindGroupLayout
                         immutableSamplerBinding.sampledTextureBinding = i + 1;
 
-                        immutableSamplers.push_back(std::move(dawnImmutableSampler));
+                        immutableSamplers[i/2] = std::move(dawnImmutableSampler);
                         entries[i].nextInChain = &immutableSamplerBinding;
                     } else {
 #endif
@@ -582,6 +585,13 @@ sk_sp<DawnGraphicsPipeline> DawnGraphicsPipeline::Make(
         layoutDesc.bindGroupLayoutCount =
             hasFragmentSamplers ? groupLayouts.size() : groupLayouts.size() - 1;
         layoutDesc.bindGroupLayouts = groupLayouts.data();
+#if !defined(__EMSCRIPTEN__)
+        if (sharedContext->caps()
+                    ->resourceBindingRequirements()
+                    .fUsePushConstantsForIntrinsicConstants) {
+            layoutDesc.immediateSize = kIntrinsicUniformSize;
+        }
+#endif
         auto layout = device.CreatePipelineLayout(&layoutDesc);
         if (!layout) {
             return {};

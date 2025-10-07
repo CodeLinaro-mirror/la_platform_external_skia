@@ -296,6 +296,7 @@ func (b *taskBuilder) dmFlags(internalHardwareLabel string) {
 			skip(ALL, "test", ALL, "HalfFloatRGBATextureTest")
 			skip(ALL, "test", ALL, "ImageAsyncReadPixels")
 			skip(ALL, "test", ALL, "ImageAsyncReadPixelsGraphite")
+			skip(ALL, "test", ALL, "ImageBackendTextureTest")
 			skip(ALL, "test", ALL, "ImageEncode_Gpu")
 			skip(ALL, "test", ALL, "ImageFilterFailAffectsTransparentBlack_Gpu")
 			skip(ALL, "test", ALL, "ImageFilterNegativeBlurSigma_Gpu")
@@ -313,6 +314,7 @@ func (b *taskBuilder) dmFlags(internalHardwareLabel string) {
 			skip(ALL, "test", ALL, "MatrixColorFilter_TransparentBlack")
 			skip(ALL, "test", ALL, "MorphologyFilterRadiusWithMirrorCTM_Gpu")
 			skip(ALL, "test", ALL, "MultisampleRetainTest")
+			skip(ALL, "test", ALL, "MultisampleClearThenLoad")
 			skip(ALL, "test", ALL, "MutableImagesTest")
 			skip(ALL, "test", ALL, "OpsTaskFlushCount")
 			skip(ALL, "test", ALL, "OverdrawSurface_Gpu")
@@ -342,6 +344,7 @@ func (b *taskBuilder) dmFlags(internalHardwareLabel string) {
 			skip(ALL, "test", ALL, "SpecialImage_Gpu")
 			skip(ALL, "test", ALL, "SRGBReadWritePixels")
 			skip(ALL, "test", ALL, "SurfaceAsyncReadPixels")
+			skip(ALL, "test", ALL, "SurfaceBackendTextureTest")
 			skip(ALL, "test", ALL, "SurfaceClear_Gpu")
 			skip(ALL, "test", ALL, "SurfaceContextReadPixels")
 			skip(ALL, "test", ALL, "SurfaceContextWritePixelsMipped")
@@ -433,10 +436,6 @@ func (b *taskBuilder) dmFlags(internalHardwareLabel string) {
 					args = append(args, "--useWGPUTextureView")
 				}
 
-				if b.extraConfig("TintIR") {
-					args = append(args, "--useTintIR")
-				}
-
 				// Shader doesn't compile
 				// https://skbug.com/40045181
 				skip(ALL, "gm", ALL, "runtime_intrinsics_matrix")
@@ -526,7 +525,6 @@ func (b *taskBuilder) dmFlags(internalHardwareLabel string) {
 					// Could not instantiate texture proxy for UploadTask!
 					skip(ALL, "test", ALL, "BigImageTest_Graphite")
 					// Test failures
-					skip(ALL, "test", ALL, "MultisampleRetainTest")
 					skip(ALL, "test", ALL, "PaintParamsKeyTest")
 					if b.matchOs("Android") {
 						// Currently broken on Android Vulkan (skbug.com/310180104)
@@ -1099,6 +1097,11 @@ func (b *taskBuilder) dmFlags(internalHardwareLabel string) {
 		// These images are very large
 		skip(ALL, "image", "gen_platf", "rgb24largepal.bmp")
 		skip(ALL, "image", "gen_platf", "pal8oversizepal.bmp")
+
+		if b.extraConfig("ANGLE") && b.matchGpu("IntelUHDGraphics630") {
+			// b/405918638
+			skip(ALL, "tests", ALL, "TransferPixelsToTextureTest")
+		}
 	}
 
 	// These PNGs have CRC errors. The platform generators seem to draw
@@ -1329,15 +1332,35 @@ func (b *taskBuilder) dmFlags(internalHardwareLabel string) {
 		skip(ALL, "tests", ALL, "ImageFilterCropRect_Gpu") // b/294080402
 	}
 
-	if b.extraConfig("ANGLE") && b.matchOs("Mac15") && b.matchGpu("IntelUHDGraphics630") {
-		// b/405918638
-		skip(ALL, "tests", ALL, "TransferPixelsFromTextureTest")
-		skip(ALL, "tests", ALL, "ImageAsyncReadPixels_Renderable_BottomLeft")
-		skip(ALL, "tests", ALL, "ImageAsyncReadPixels_Renderable_TopLeft")
-		skip(ALL, "tests", ALL, "ImageAsyncReadPixels_NonRenderable_BottomLeft")
-		skip(ALL, "tests", ALL, "ImageAsyncReadPixels_NonRenderable_TopLeft")
-		skip(ALL, "tests", ALL, "SurfaceAsyncReadPixels")
-		skip(ALL, "tests", ALL, "TransferPixelsToTextureTest")
+	if !b.extraConfig("Graphite") && b.matchOs("Mac15") && b.matchGpu("IntelUHDGraphics630") {
+		if b.extraConfig("ANGLE") {
+			// b/405918638
+			skip(ALL, "tests", ALL, "TransferPixelsFromTextureTest")
+			skip(ALL, "tests", ALL, "ImageAsyncReadPixels_Renderable_BottomLeft")
+			skip(ALL, "tests", ALL, "ImageAsyncReadPixels_Renderable_TopLeft")
+			skip(ALL, "tests", ALL, "ImageAsyncReadPixels_NonRenderable_BottomLeft")
+			skip(ALL, "tests", ALL, "ImageAsyncReadPixels_NonRenderable_TopLeft")
+			skip(ALL, "tests", ALL, "SurfaceAsyncReadPixels")
+			skip(ALL, "tests", ALL, "TransferPixelsToTextureTest")
+		} else if b.extraConfig("Metal") {
+			// b/438450848
+			skip(ALL, "tests", ALL, "DMSAA_aa_dst_read_after_dmsaa")
+			skip(ALL, "tests", ALL, "DMSAA_dst_read")
+			skip(ALL, "tests", ALL, "SurfacePartialDraw_Gpu")
+			skip(ALL, "tests", ALL, "FilterResult_ganesh_RescaleWithColorFilter")
+			skip(ALL, "tests", ALL, "FilterResult_ganesh_RescaleWithTransform")
+			skip(ALL, "tests", ALL, "FilterResult_ganesh_RescaleWithTileMode")
+			skip(ALL, "tests", ALL, "FilterResult_ganesh_ColorFilterBetweenCrops")
+			skip(ALL, "tests", ALL, "FilterResult_ganesh_TransformAndTile")
+			skip(ALL, "tests", ALL, "FilterResult_ganesh_PeriodicTileCrops")
+			skip(ALL, "tests", ALL, "FilterResult_ganesh_IntersectingCrops")
+			skip(ALL, "tests", ALL, "FilterResult_ganesh_CropDisjointFromSourceAndOutput")
+			skip(ALL, "tests", ALL, "FilterResult_ganesh_Crop")
+		} else {
+			// These two are also broken for OpenGL configs b/405918638
+			skip(ALL, "tests", ALL, "TransferPixelsFromTextureTest")
+			skip(ALL, "tests", ALL, "TransferPixelsToTextureTest")
+		}
 	}
 
 	if b.gpu("RTX3060") && b.extraConfig("Vulkan") && b.matchOs("Win") {
@@ -1349,12 +1372,27 @@ func (b *taskBuilder) dmFlags(internalHardwareLabel string) {
 		skip("vkmsaa4", "gm", ALL, "shadow_utils")
 	}
 
-	if b.gpu("RadeonR9M470X") && b.extraConfig("ANGLE") {
-		// skbug.com/40045379 - ANGLE D3D9 ES2 has flaky texture sampling that leads to fuzzy diff errors
-		skip(ALL, "tests", ALL, "FilterResult")
-		// skbug.com/40044914 - Flaky failures on ANGLE D3D9 ES2
-		skip(ALL, "tests", ALL, "SkRuntimeEffectSimple_Ganesh")
-		skip(ALL, "tests", ALL, "TestSweepGradientZeroXGanesh")
+	if b.gpu("RadeonR9M470X") && !b.extraConfig("Graphite") {
+		// Currently, RadeonR9M470X implies Win11/AlphaR2
+		if b.extraConfig("ANGLE") {
+			// skbug.com/40045379 - ANGLE D3D9 ES2 has flaky texture sampling that leads to fuzzy diff errors
+			skip(ALL, "tests", ALL, "FilterResult")
+			// skbug.com/40044914 - Flaky failures on ANGLE D3D9 ES2
+			skip(ALL, "tests", ALL, "SkRuntimeEffectSimple_Ganesh")
+			skip(ALL, "tests", ALL, "TestSweepGradientZeroXGanesh")
+
+			// b/438680092
+			skip(ALL, "tests", ALL, "SkSLPrefixExpressionsES2_Ganesh")
+			skip(ALL, "tests", ALL, "SkSLForLoopMultipleInitES3_Ganesh")
+			skip(ALL, "tests", ALL, "SkSLLoopFloat_Ganesh")
+		} else if b.extraConfig("Vulkan") {
+			// No suppressions for Vulkan yet
+		} else {
+			// b/438680092
+			skip(ALL, "tests", ALL, "SkSLPrefixExpressionsES2_Ganesh")
+			skip(ALL, "tests", ALL, "SkSLForLoopMultipleInitES3_Ganesh")
+			skip(ALL, "tests", ALL, "SkSLLoopFloat_Ganesh")
+		}
 	}
 
 	if b.extraConfig("Vulkan") && b.gpu("RadeonVega6") {

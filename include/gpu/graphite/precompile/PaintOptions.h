@@ -32,7 +32,6 @@ enum class TextureFormat : uint8_t;
 class KeyContext;
 class PaintOptionsPriv;
 class PaintParamsKeyBuilder;
-class PipelineDataGatherer;
 struct RenderPassDesc;
 class UniquePaintParamsID;
 
@@ -119,6 +118,9 @@ public:
     SkSpan<const SkBlendMode> getBlendModes() const {
         return SkSpan<const SkBlendMode>(fBlendModeOptions.data(), fBlendModeOptions.size());
     }
+    void addBlendMode(SkBlendMode bm) {
+        fBlendModeOptions.push_back(bm);
+    }
 
     /** Sets the blender options used when generating precompilation combinations.
 
@@ -155,9 +157,6 @@ private:
     friend class PrecompileMaskFilter;  // for ProcessCombination access
 
     void addColorFilter(sk_sp<PrecompileColorFilter> cf);
-    void addBlendMode(SkBlendMode bm) {
-        fBlendModeOptions.push_back(bm);
-    }
 
     void setClipShaders(SkSpan<const sk_sp<PrecompileShader>> clipShaders);
 
@@ -174,8 +173,6 @@ private:
     // 'desiredCombination' must be less than the result of the numCombinations call
     void createKey(const KeyContext&,
                    TextureFormat,
-                   PaintParamsKeyBuilder*,
-                   PipelineDataGatherer*,
                    int desiredCombination,
                    bool addPrimitiveBlender,
                    bool addAnalyticClip,
@@ -188,7 +185,6 @@ private:
                                const RenderPassDesc&)> ProcessCombination;
 
     void buildCombinations(const KeyContext&,
-                           PipelineDataGatherer*,
                            DrawTypeFlags,
                            bool addPrimitiveBlender,
                            Coverage,

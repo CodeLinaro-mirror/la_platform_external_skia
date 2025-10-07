@@ -2512,3 +2512,44 @@ DEF_TEST(Codec_RoundTripColorXform, r) {
         }
     }
 }
+
+DEF_TEST(Codec_webp_animated_image_rewind, r) {
+    // stoplight.webp is an animated image.
+    constexpr char path[] = "images/stoplight.webp";
+    sk_sp<SkData> data(GetResourceAsData(path));
+    if (!data) {
+        ERRORF(r, "Could not create data for: %s", path);
+    }
+    auto codec = SkCodec::MakeFromStream(std::make_unique<NonseekableStream>(std::move(data)),
+                                         nullptr, nullptr,
+                                         SkCodec::SelectionPolicy::kPreferStillImage);
+    SkCodec::Options options;
+    options.fFrameIndex = 0;
+    SkBitmap bm;
+    bm.allocPixels(codec->getInfo());
+    SkCodec::Result res = codec->getPixels(codec->getInfo(), bm.getAddr(0,0), bm.rowBytes(),
+                                           &options);
+    REPORTER_ASSERT(r, res == SkCodec::Result::kSuccess);
+
+    // For a non-rewindable stream, reading the next frame from an animated image should
+    // still succeed.
+    options.fPriorFrame = 0;
+    options.fFrameIndex = 1;
+    res = codec->getPixels(codec->getInfo(), bm.getAddr(0,0), bm.rowBytes(), &options);
+    REPORTER_ASSERT(r, res == SkCodec::Result::kSuccess);
+}
+
+DEF_TEST(LibpngCodec_f16_trc_tables, r) {
+    SkCodec::Result res;
+    auto codec = SkCodec::MakeFromStream(GetResourceAsStream("images/f16-trc-tables.png"), &res);
+    const SkImageInfo info = codec->getInfo();
+    REPORTER_ASSERT(r, res == SkCodec::Result::kSuccess);
+    REPORTER_ASSERT(r, info.colorSpace());
+
+    // Decoding to F16 without color space conversion.
+    const SkImageInfo dstInfo = info.makeColorType(kRGBA_F16_SkColorType)
+                                    .makeColorSpace(nullptr);
+    // This should not crash.
+    auto [image, result] = codec->getImage(dstInfo);
+    REPORTER_ASSERT(r, result == SkCodec::Result::kSuccess);
+}

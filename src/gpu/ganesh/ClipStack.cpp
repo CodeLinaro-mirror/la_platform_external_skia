@@ -493,7 +493,9 @@ ClipStack::RawElement::RawElement(const SkMatrix& localToDevice, const GrShape& 
         , fInnerBounds(SkIRect::MakeEmpty())
         , fOuterBounds(SkIRect::MakeEmpty())
         , fInvalidatedByIndex(-1) {
-    if (!localToDevice.invert(&fDeviceToLocal)) {
+    if (auto inv = localToDevice.invert()) {
+        fDeviceToLocal = *inv;
+    } else {
         // If the transform can't be inverted, it means that two dimensions are collapsed to 0 or
         // 1 dimension, making the device-space geometry effectively empty.
         fShape.reset();
@@ -621,9 +623,8 @@ void ClipStack::RawElement::simplify(const SkIRect& deviceBounds, bool forceAA) 
         } else if (fShape.isRRect()) {
             // Can't transform in place and must still check transform result since some very
             // ill-formed scale+translate matrices can cause invalid rrect radii.
-            SkRRect src;
-            if (fShape.rrect().transform(fLocalToDevice, &src)) {
-                fShape.rrect() = src;
+            if (auto rr = fShape.rrect().transform(fLocalToDevice)) {
+                fShape.rrect() = *rr;
                 fLocalToDevice.setIdentity();
                 fDeviceToLocal.setIdentity();
 

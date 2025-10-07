@@ -95,7 +95,7 @@ static bool test_bounds_by_rasterizing(const SkPath& path, const SkRect& bounds)
     sk_sp<SkSurface> surface = SkSurfaces::Raster(info);
     surface->getCanvas()->clear(0x0);
     SkRect clip = SkRect::MakeXYWH(kRes/4, kRes/4, kRes/2, kRes/2);
-    SkMatrix matrix = SkMatrix::RectToRect(bounds, clip);
+    SkMatrix matrix = SkMatrix::RectToRectOrIdentity(bounds, clip);
     clip.outset(SkIntToScalar(kTol), SkIntToScalar(kTol));
     surface->getCanvas()->clipRect(clip, SkClipOp::kDifference);
     surface->getCanvas()->concat(matrix);
@@ -478,11 +478,8 @@ public:
             // The fill is ignored (zero area) and the stroke is converted to a rrect.
             return true;
         }
-        SkRect rect;
-        unsigned start;
-        SkPathDirection dir;
-        if (SkPathPriv::IsSimpleRect(fPath, false, &rect, &dir, &start)) {
-            return RectGeo(rect).strokeAndFillIsConvertedToFill(paint);
+        if (auto info = SkPathPriv::IsSimpleRect(fPath, false)) {
+            return RectGeo(info->fRect).strokeAndFillIsConvertedToFill(paint);
         }
         return false;
     }
@@ -1183,7 +1180,7 @@ void test_path_effect_makes_rrect(skiatest::Reporter* reporter, const Geo& geo) 
         const char* getTypeName() const override { return nullptr; }
 
     protected:
-        bool onFilterPath(SkPath* dst, const SkPath& src, SkStrokeRec*,
+        bool onFilterPath(SkPathBuilder* dst, const SkPath& src, SkStrokeRec*,
                           const SkRect* cullR, const SkMatrix&) const override {
             dst->reset();
             dst->addRRect(RRect());
@@ -1264,7 +1261,7 @@ void test_unknown_path_effect(skiatest::Reporter* reporter, const Geo& geo) {
         const char* getTypeName() const override { return nullptr; }
 
     protected:
-        bool onFilterPath(SkPath* dst, const SkPath& src, SkStrokeRec*,
+        bool onFilterPath(SkPathBuilder* dst, const SkPath& src, SkStrokeRec*,
                           const SkRect* cullR, const SkMatrix&) const override {
             *dst = src;
             // To avoid triggering data-based keying of paths with few verbs we add many segments.
@@ -1312,7 +1309,7 @@ void test_make_hairline_path_effect(skiatest::Reporter* reporter, const Geo& geo
         const char* getTypeName() const override { return nullptr; }
 
     protected:
-        bool onFilterPath(SkPath* dst, const SkPath& src, SkStrokeRec* strokeRec,
+        bool onFilterPath(SkPathBuilder* dst, const SkPath& src, SkStrokeRec* strokeRec,
                           const SkRect* cullR, const SkMatrix&) const override {
             *dst = src;
             strokeRec->setHairlineStyle();
@@ -1396,7 +1393,7 @@ void test_path_effect_makes_empty_shape(skiatest::Reporter* reporter, const Geo&
         Factory getFactory() const override { return nullptr; }
         const char* getTypeName() const override { return nullptr; }
     protected:
-        bool onFilterPath(SkPath* dst, const SkPath& src, SkStrokeRec*,
+        bool onFilterPath(SkPathBuilder* dst, const SkPath& src, SkStrokeRec*,
                           const SkRect* cullR, const SkMatrix&) const override {
             dst->reset();
             if (fInvert) {
@@ -1485,7 +1482,7 @@ void test_path_effect_fails(skiatest::Reporter* reporter, const Geo& geo) {
         Factory getFactory() const override { return nullptr; }
         const char* getTypeName() const override { return nullptr; }
     protected:
-        bool onFilterPath(SkPath* dst, const SkPath& src, SkStrokeRec*,
+        bool onFilterPath(SkPathBuilder* dst, const SkPath& src, SkStrokeRec*,
                           const SkRect* cullR, const SkMatrix&) const override {
             return false;
         }

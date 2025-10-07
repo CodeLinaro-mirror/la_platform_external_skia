@@ -299,21 +299,28 @@ void SkFont::getPaths(SkSpan<const SkGlyphID> glyphIDs,
     }
 }
 
-bool SkFont::getPath(SkGlyphID glyphID, SkPath* path) const {
-    struct Pair {
-        SkPath* fPath;
-        bool    fWasSet;
-    } pair = { path, false };
+std::optional<SkPath> SkFont::getPath(SkGlyphID glyphID) const {
+    std::optional<SkPath> result;
 
-    this->getPaths({&glyphID, 1}, [](const SkPath* orig, const SkMatrix& mx, void* ctx) {
-        Pair* pair = static_cast<Pair*>(ctx);
-        if (orig) {
-            orig->transform(mx, pair->fPath);
-            pair->fWasSet = true;
+    this->getPaths({&glyphID, 1}, [](const SkPath* path, const SkMatrix& mx, void* ctx) {
+        if (path) {
+            auto* result = static_cast<std::optional<SkPath>*>(ctx);
+            *result = path->makeTransform(mx);
         }
-    }, &pair);
-    return pair.fWasSet;
+    }, &result);
+
+    return result;
 }
+
+#ifndef SK_HIDE_PATH_EDIT_METHODS
+bool SkFont::getPath(SkGlyphID glyphID, SkPath* path) const {
+    if (auto maybepath = this->getPath(glyphID)) {
+        *path = *maybepath;
+        return true;
+    }
+    return false;
+}
+#endif
 
 SkScalar SkFont::getMetrics(SkFontMetrics* metrics) const {
 
@@ -404,7 +411,7 @@ void SkFontPriv::GlyphsToUnichars(const SkFont& font, const SkGlyphID glyphs[], 
     auto typeface = font.getTypeface();
     const unsigned numGlyphsInTypeface = typeface->countGlyphs();
     AutoTArray<SkUnichar> unichars(static_cast<size_t>(numGlyphsInTypeface));
-    typeface->getGlyphToUnicodeMap(unichars.get());
+    typeface->getGlyphToUnicodeMap(unichars);
 
     for (int i = 0; i < count; ++i) {
         unsigned id = glyphs[i];

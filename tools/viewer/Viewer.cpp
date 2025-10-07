@@ -111,6 +111,7 @@
 
 #if defined(SK_GRAPHITE)
 #include "include/gpu/graphite/Context.h"
+#include "include/gpu/graphite/Recorder.h"
 #include "src/gpu/graphite/ContextPriv.h"
 #include "src/gpu/graphite/GlobalCache.h"
 #include "src/gpu/graphite/GraphicsPipeline.h"
@@ -1459,8 +1460,8 @@ void Viewer::setupCurrentSlide() {
         // Start with a matrix that scales the slide to the available screen space
         if (fWindow->scaleContentToFit()) {
             if (windowRect.width() > 0 && windowRect.height() > 0) {
-                fDefaultMatrix = SkMatrix::RectToRect(slideBounds, windowRect,
-                                                      SkMatrix::kStart_ScaleToFit);
+                fDefaultMatrix = SkMatrix::RectToRectOrIdentity(slideBounds, windowRect,
+                                                                SkMatrix::kStart_ScaleToFit);
             }
         }
 
@@ -1501,9 +1502,7 @@ SkMatrix Viewer::computePerspectiveMatrix() {
         { fPerspectivePoints[2].fX * w, fPerspectivePoints[2].fY * h },
         { fPerspectivePoints[3].fX * w, fPerspectivePoints[3].fY * h }
     };
-    SkMatrix m;
-    m.setPolyToPoly(orthoPts, perspPts, 4);
-    return m;
+    return SkMatrix::PolyToPoly(orthoPts, perspPts).value_or(SkMatrix::I());
 }
 
 SkMatrix Viewer::computePreTouchMatrix() {
@@ -3146,9 +3145,9 @@ void Viewer::drawImGui() {
                 bitmap.allocPixels(info);
                 SkPixmap pixels;
                 SkAssertResult(bitmap.peekPixels(&pixels));
-                didGraphiteRead = as_IB(fLastImage)
-                                          ->readPixelsGraphite(
-                                                  fWindow->graphiteRecorder(), pixels, xInt, yInt);
+                didGraphiteRead =
+                        as_IB(fLastImage)
+                                ->readPixelsGraphite(fWindow->baseRecorder(), pixels, xInt, yInt);
                 pixel = *pixels.addr32();
                 ImGui::SameLine();
                 ImGui::Text("(X, Y): %d, %d RGBA: %X %X %X %X",

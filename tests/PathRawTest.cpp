@@ -16,13 +16,15 @@
 
 #include "tests/Test.h"
 
+namespace {
+
 class SkSPathRawBuilder {
 public:
     SkSPathRawBuilder(SkSpan<SkPoint> ptStore, SkSpan<SkPathVerb> vbStore, SkSpan<float> cnStore)
-        : fPtStorage(ptStore)
-        , fVbStorage(vbStore)
-        , fCnStorage(cnStore)
-        , fPts(0), fCns(0), fVbs(0)
+    : fPtStorage(ptStore)
+    , fVbStorage(vbStore)
+    , fCnStorage(cnStore)
+    , fPts(0), fCns(0), fVbs(0)
     {}
 
     void moveTo(SkPoint);
@@ -50,6 +52,8 @@ private:
         SkASSERT(fCns + n <= fCnStorage.size());
     }
 };
+
+} // namespace
 
 void SkSPathRawBuilder::moveTo(SkPoint p) {
     check_extend_pts(1);
@@ -106,52 +110,54 @@ SkPathRaw SkSPathRawBuilder::raw(SkPathFillType ft, bool isConvex) const {
         SkRect::BoundsOrEmpty(ptSpan),
         ft,
         isConvex,
+        SkPathPriv::ComputeSegmentMask(fVbStorage),
     };
 }
 
-static void check_iter(skiatest::Reporter* reporter, SkPathRaw::Iter iter,
+static void check_iter(skiatest::Reporter* reporter, const SkPathRaw& raw,
                        SkSpan<SkPoint> pts, SkSpan<const SkPathVerb> vbs, SkSpan<const float> cns) {
     size_t pIndex = 0, vIndex = 0, cIndex = 0;
     size_t moveToIndex = 0; // track the start of each contour
 
+    auto iter = raw.iter();
     while (auto r = iter.next()) {
         REPORTER_ASSERT(reporter, vIndex < vbs.size());
-        REPORTER_ASSERT(reporter, vbs[vIndex++] == r->vrb);
-        switch (r->vrb) {
+        REPORTER_ASSERT(reporter, vbs[vIndex++] == r->fVerb);
+        switch (r->fVerb) {
             case SkPathVerb::kMove:
                 moveToIndex = pIndex;
                 REPORTER_ASSERT(reporter, pIndex < pts.size());
-                REPORTER_ASSERT(reporter, pts[pIndex++] == r->pts[0]);
+                REPORTER_ASSERT(reporter, pts[pIndex++] == r->fPoints[0]);
                 break;
             case SkPathVerb::kLine:
                 REPORTER_ASSERT(reporter, pIndex < pts.size());
-                REPORTER_ASSERT(reporter, pts[pIndex-1] == r->pts[0]);
-                REPORTER_ASSERT(reporter, pts[pIndex++] == r->pts[1]);
+                REPORTER_ASSERT(reporter, pts[pIndex-1] == r->fPoints[0]);
+                REPORTER_ASSERT(reporter, pts[pIndex++] == r->fPoints[1]);
                 break;
             case SkPathVerb::kQuad:
                 REPORTER_ASSERT(reporter, pIndex+1 < pts.size());
-                REPORTER_ASSERT(reporter, pts[pIndex-1] == r->pts[0]);
-                REPORTER_ASSERT(reporter, pts[pIndex++] == r->pts[1]);
-                REPORTER_ASSERT(reporter, pts[pIndex++] == r->pts[2]);
+                REPORTER_ASSERT(reporter, pts[pIndex-1] == r->fPoints[0]);
+                REPORTER_ASSERT(reporter, pts[pIndex++] == r->fPoints[1]);
+                REPORTER_ASSERT(reporter, pts[pIndex++] == r->fPoints[2]);
                 break;
             case SkPathVerb::kConic:
                 REPORTER_ASSERT(reporter, pIndex+1 < pts.size());
-                REPORTER_ASSERT(reporter, pts[pIndex-1] == r->pts[0]);
-                REPORTER_ASSERT(reporter, pts[pIndex++] == r->pts[1]);
-                REPORTER_ASSERT(reporter, pts[pIndex++] == r->pts[2]);
+                REPORTER_ASSERT(reporter, pts[pIndex-1] == r->fPoints[0]);
+                REPORTER_ASSERT(reporter, pts[pIndex++] == r->fPoints[1]);
+                REPORTER_ASSERT(reporter, pts[pIndex++] == r->fPoints[2]);
                 REPORTER_ASSERT(reporter, cIndex < cns.size());
-                REPORTER_ASSERT(reporter, cns[cIndex++] == r->w);
+                REPORTER_ASSERT(reporter, cns[cIndex++] == r->fConicWeight);
                 break;
             case SkPathVerb::kCubic:
                 REPORTER_ASSERT(reporter, pIndex+2 < pts.size());
-                REPORTER_ASSERT(reporter, pts[pIndex-1] == r->pts[0]);
-                REPORTER_ASSERT(reporter, pts[pIndex++] == r->pts[1]);
-                REPORTER_ASSERT(reporter, pts[pIndex++] == r->pts[2]);
-                REPORTER_ASSERT(reporter, pts[pIndex++] == r->pts[3]);
+                REPORTER_ASSERT(reporter, pts[pIndex-1] == r->fPoints[0]);
+                REPORTER_ASSERT(reporter, pts[pIndex++] == r->fPoints[1]);
+                REPORTER_ASSERT(reporter, pts[pIndex++] == r->fPoints[2]);
+                REPORTER_ASSERT(reporter, pts[pIndex++] == r->fPoints[3]);
                 break;
             case SkPathVerb::kClose:
-                REPORTER_ASSERT(reporter, pts[pIndex-1]    == r->pts[0]);   // last  pt in contour
-                REPORTER_ASSERT(reporter, pts[moveToIndex] == r->pts[1]);   // first pt in contour
+                REPORTER_ASSERT(reporter, pts[pIndex-1]    == r->fPoints[0]);   // last  pt
+                REPORTER_ASSERT(reporter, pts[moveToIndex] == r->fPoints[1]);   // first pt
                 break;
         }
     }

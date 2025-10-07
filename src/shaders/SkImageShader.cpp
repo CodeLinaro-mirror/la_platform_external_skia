@@ -266,8 +266,8 @@ SkShaderBase::Context* SkImageShader::onMakeContext(const ContextRec& rec,
         return nullptr;
     }
 
-    SkMatrix inv;
-    if (!rec.fMatrixRec.totalInverse(&inv) || !legacy_shader_can_handle(inv)) {
+    auto inv = rec.fMatrixRec.totalInverse();
+    if (!inv || !legacy_shader_can_handle(*inv)) {
         return nullptr;
     }
 
@@ -388,7 +388,7 @@ SkRect SkModifyPaintAndDstForDrawImageRect(const SkImage* image,
     SkRect imgBounds = SkRect::Make(image->bounds());
 
     SkASSERT(src.isFinite() && dst.isFinite() && dst.isSorted());
-    SkMatrix localMatrix = SkMatrix::RectToRect(src, dst);
+    SkMatrix localMatrix = SkMatrix::RectToRectOrIdentity(src, dst);
     if (!imgBounds.contains(src)) {
         if (!src.intersect(imgBounds)) {
             return SkRect::MakeEmpty(); // Nothing to draw for this entry
@@ -521,9 +521,11 @@ bool SkImageShader::appendStages(const SkStageRec& rec, const SkShaders::MatrixR
     SkMatrix baseInv;
     // If the total matrix isn't valid then we will always access the base MIP level.
     if (mRec.totalMatrixIsValid()) {
-        if (!mRec.totalInverse(&baseInv)) {
+        auto inv = mRec.totalInverse();
+        if (!inv) {
             return false;
         }
+        baseInv = *inv;
         baseInv.normalizePerspective();
     }
 

@@ -983,15 +983,15 @@ void SkSVGDevice::drawPath(const SkPath& path, const SkPaint& paint, bool pathIs
     }
 
     SkPath pathStorage;
-    SkPath* pathPtr = const_cast<SkPath*>(&path);
+    const SkPath* pathPtr = const_cast<SkPath*>(&path);
     SkTCopyOnFirstWrite<SkPaint> path_paint(paint);
 
     // Apply path effect from paint to path.
     if (path_paint->getPathEffect()) {
-      if (!pathIsMutable) {
-        pathPtr = &pathStorage;
-      }
-      bool fill = skpathutils::FillPathWithPaint(path, *path_paint, pathPtr);
+      SkPathBuilder builder;
+      bool fill = skpathutils::FillPathWithPaint(path, *path_paint, &builder);
+      pathStorage = builder.detach();
+      pathPtr = &pathStorage;
       if (fill) {
         // Path should be filled.
         path_paint.writable()->setStyle(SkPaint::kFill_Style);
@@ -1067,7 +1067,8 @@ void SkSVGDevice::drawImageRect(const SkImage* image, const SkRect* src, const S
     }
 
     SkMatrix adjustedMatrix = this->localToDevice()
-                            * SkMatrix::RectToRect(src ? *src : SkRect::Make(bm.bounds()), dst);
+                            * SkMatrix::RectToRectOrIdentity(src ? *src : SkRect::Make(bm.bounds()),
+                                                             dst);
 
     drawBitmapCommon(MxCp(&adjustedMatrix, cs), bm, paint);
 }
