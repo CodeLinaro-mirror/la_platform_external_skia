@@ -107,12 +107,6 @@
 #define SK_GL
 #endif
 
-// QTI_BEGIN: 2025-08-13: Video: Skia: Temporarily fallback HEIF decoding path to legacy libheif
-#ifndef SK_HAS_HEIF_LIBRARY
-#define SK_HAS_HEIF_LIBRARY
-#endif
-
-// QTI_END: 2025-08-13: Video: Skia: Temporarily fallback HEIF decoding path to legacy libheif
 #ifndef SK_HAS_WUFFS_LIBRARY
 #define SK_HAS_WUFFS_LIBRARY
 #endif
