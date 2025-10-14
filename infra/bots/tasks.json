@@ -3228,6 +3228,16 @@
         "Test-Win11-Clang-GCE-CPU-AVX2-x86_64-Debug-All-ASAN_BonusConfigs"
       ]
     },
+    "Test-Win11-Clang-GCE-CPU-AVX2-x86_64-Debug-All-NativeFonts": {
+      "tasks": [
+        "Upload-Test-Win11-Clang-GCE-CPU-AVX2-x86_64-Debug-All-NativeFonts"
+      ]
+    },
+    "Test-Win11-Clang-GCE-CPU-AVX2-x86_64-Debug-All-NativeFonts_DWriteCore": {
+      "tasks": [
+        "Upload-Test-Win11-Clang-GCE-CPU-AVX2-x86_64-Debug-All-NativeFonts_DWriteCore"
+      ]
+    },
     "Test-Win11-Clang-GCE-CPU-AVX2-x86_64-Release-All": {
       "tasks": [
         "Upload-Test-Win11-Clang-GCE-CPU-AVX2-x86_64-Release-All"
@@ -3261,16 +3271,6 @@
     "Test-Win11-Clang-NUC11TZi5-GPU-IntelIrisXe-x86_64-Release-All-Vulkan": {
       "tasks": [
         "Upload-Test-Win11-Clang-NUC11TZi5-GPU-IntelIrisXe-x86_64-Release-All-Vulkan"
-      ]
-    },
-    "Test-Win11-Clang-NUC5i7RYH-CPU-AVX2-x86_64-Debug-All-NativeFonts": {
-      "tasks": [
-        "Upload-Test-Win11-Clang-NUC5i7RYH-CPU-AVX2-x86_64-Debug-All-NativeFonts"
-      ]
-    },
-    "Test-Win11-Clang-NUC5i7RYH-CPU-AVX2-x86_64-Debug-All-NativeFonts_DWriteCore": {
-      "tasks": [
-        "Upload-Test-Win11-Clang-NUC5i7RYH-CPU-AVX2-x86_64-Debug-All-NativeFonts_DWriteCore"
       ]
     },
     "Test-Win11-Clang-NUC5i7RYH-GPU-IntelIris6100-x86_64-Debug-All": {
@@ -6858,6 +6858,11 @@
           "name": "skia/bots/ccache_mac",
           "path": "ccache_mac",
           "version": "version:1"
+        },
+        {
+          "name": "skia/bots/cmake_mac",
+          "path": "cmake_mac",
+          "version": "version:3"
         }
       ],
       "command": [
@@ -6887,7 +6892,8 @@
           "cipd_bin_packages",
           "cipd_bin_packages/bin",
           "cipd_bin_packages/cpython3",
-          "cipd_bin_packages/cpython3/bin"
+          "cipd_bin_packages/cpython3/bin",
+          "cmake_mac/bin"
         ],
         "VPYTHON_DEFAULT_SPEC": [
           "skia/.vpython3"
@@ -7156,6 +7162,11 @@
           "name": "skia/bots/ccache_mac",
           "path": "ccache_mac",
           "version": "version:1"
+        },
+        {
+          "name": "skia/bots/cmake_mac",
+          "path": "cmake_mac",
+          "version": "version:3"
         }
       ],
       "command": [
@@ -7185,7 +7196,8 @@
           "cipd_bin_packages",
           "cipd_bin_packages/bin",
           "cipd_bin_packages/cpython3",
-          "cipd_bin_packages/cpython3/bin"
+          "cipd_bin_packages/cpython3/bin",
+          "cmake_mac/bin"
         ],
         "VPYTHON_DEFAULT_SPEC": [
           "skia/.vpython3"
@@ -7275,6 +7287,11 @@
           "name": "skia/bots/ccache_mac",
           "path": "ccache_mac",
           "version": "version:1"
+        },
+        {
+          "name": "skia/bots/cmake_mac",
+          "path": "cmake_mac",
+          "version": "version:3"
         }
       ],
       "command": [
@@ -7304,7 +7321,8 @@
           "cipd_bin_packages",
           "cipd_bin_packages/bin",
           "cipd_bin_packages/cpython3",
-          "cipd_bin_packages/cpython3/bin"
+          "cipd_bin_packages/cpython3/bin",
+          "cmake_mac/bin"
         ],
         "VPYTHON_DEFAULT_SPEC": [
           "skia/.vpython3"
@@ -7394,6 +7412,11 @@
           "name": "skia/bots/ccache_mac",
           "path": "ccache_mac",
           "version": "version:1"
+        },
+        {
+          "name": "skia/bots/cmake_mac",
+          "path": "cmake_mac",
+          "version": "version:3"
         }
       ],
       "command": [
@@ -7423,7 +7446,8 @@
           "cipd_bin_packages",
           "cipd_bin_packages/bin",
           "cipd_bin_packages/cpython3",
-          "cipd_bin_packages/cpython3/bin"
+          "cipd_bin_packages/cpython3/bin",
+          "cmake_mac/bin"
         ],
         "VPYTHON_DEFAULT_SPEC": [
           "skia/.vpython3"
@@ -7522,6 +7546,11 @@
           "name": "skia/bots/ccache_mac",
           "path": "ccache_mac",
           "version": "version:1"
+        },
+        {
+          "name": "skia/bots/cmake_mac",
+          "path": "cmake_mac",
+          "version": "version:3"
         }
       ],
       "command": [
@@ -7553,6 +7582,7 @@
           "cipd_bin_packages/bin",
           "cipd_bin_packages/cpython3",
           "cipd_bin_packages/cpython3/bin",
+          "cmake_mac/bin",
           "bazelisk_mac_amd64"
         ],
         "VPYTHON_DEFAULT_SPEC": [
@@ -8948,6 +8978,11 @@
           "name": "skia/bots/ccache_mac",
           "path": "ccache_mac",
           "version": "version:1"
+        },
+        {
+          "name": "skia/bots/cmake_mac",
+          "path": "cmake_mac",
+          "version": "version:3"
         }
       ],
       "command": [
@@ -8977,7 +9012,8 @@
           "cipd_bin_packages",
           "cipd_bin_packages/bin",
           "cipd_bin_packages/cpython3",
-          "cipd_bin_packages/cpython3/bin"
+          "cipd_bin_packages/cpython3/bin",
+          "cmake_mac/bin"
         ],
         "VPYTHON_DEFAULT_SPEC": [
           "skia/.vpython3"
@@ -9259,6 +9295,11 @@
           "name": "skia/bots/ccache_mac",
           "path": "ccache_mac",
           "version": "version:1"
+        },
+        {
+          "name": "skia/bots/cmake_mac",
+          "path": "cmake_mac",
+          "version": "version:3"
         }
       ],
       "command": [
@@ -9288,7 +9329,8 @@
           "cipd_bin_packages",
           "cipd_bin_packages/bin",
           "cipd_bin_packages/cpython3",
-          "cipd_bin_packages/cpython3/bin"
+          "cipd_bin_packages/cpython3/bin",
+          "cmake_mac/bin"
         ],
         "VPYTHON_DEFAULT_SPEC": [
           "skia/.vpython3"
@@ -10368,6 +10410,11 @@
           "name": "skia/bots/ccache_mac",
           "path": "ccache_mac",
           "version": "version:1"
+        },
+        {
+          "name": "skia/bots/cmake_mac",
+          "path": "cmake_mac",
+          "version": "version:3"
         }
       ],
       "command": [
@@ -10397,7 +10444,8 @@
           "cipd_bin_packages",
           "cipd_bin_packages/bin",
           "cipd_bin_packages/cpython3",
-          "cipd_bin_packages/cpython3/bin"
+          "cipd_bin_packages/cpython3/bin",
+          "cmake_mac/bin"
         ],
         "VPYTHON_DEFAULT_SPEC": [
           "skia/.vpython3"
@@ -10712,6 +10760,11 @@
           "name": "skia/bots/ccache_mac",
           "path": "ccache_mac",
           "version": "version:1"
+        },
+        {
+          "name": "skia/bots/cmake_mac",
+          "path": "cmake_mac",
+          "version": "version:3"
         }
       ],
       "command": [
@@ -10741,7 +10794,8 @@
           "cipd_bin_packages",
           "cipd_bin_packages/bin",
           "cipd_bin_packages/cpython3",
-          "cipd_bin_packages/cpython3/bin"
+          "cipd_bin_packages/cpython3/bin",
+          "cmake_mac/bin"
         ],
         "VPYTHON_DEFAULT_SPEC": [
           "skia/.vpython3"
@@ -10840,6 +10894,11 @@
           "name": "skia/bots/ccache_mac",
           "path": "ccache_mac",
           "version": "version:1"
+        },
+        {
+          "name": "skia/bots/cmake_mac",
+          "path": "cmake_mac",
+          "version": "version:3"
         }
       ],
       "command": [
@@ -10871,6 +10930,7 @@
           "cipd_bin_packages/bin",
           "cipd_bin_packages/cpython3",
           "cipd_bin_packages/cpython3/bin",
+          "cmake_mac/bin",
           "bazelisk_mac_amd64"
         ],
         "VPYTHON_DEFAULT_SPEC": [
@@ -11473,6 +11533,11 @@
           "name": "skia/bots/ccache_mac",
           "path": "ccache_mac",
           "version": "version:1"
+        },
+        {
+          "name": "skia/bots/cmake_mac",
+          "path": "cmake_mac",
+          "version": "version:3"
         }
       ],
       "command": [
@@ -11502,7 +11567,8 @@
           "cipd_bin_packages",
           "cipd_bin_packages/bin",
           "cipd_bin_packages/cpython3",
-          "cipd_bin_packages/cpython3/bin"
+          "cipd_bin_packages/cpython3/bin",
+          "cmake_mac/bin"
         ],
         "VPYTHON_DEFAULT_SPEC": [
           "skia/.vpython3"
@@ -11601,6 +11667,11 @@
           "name": "skia/bots/ccache_mac",
           "path": "ccache_mac",
           "version": "version:1"
+        },
+        {
+          "name": "skia/bots/cmake_mac",
+          "path": "cmake_mac",
+          "version": "version:3"
         }
       ],
       "command": [
@@ -11632,6 +11703,7 @@
           "cipd_bin_packages/bin",
           "cipd_bin_packages/cpython3",
           "cipd_bin_packages/cpython3/bin",
+          "cmake_mac/bin",
           "bazelisk_mac_amd64"
         ],
         "VPYTHON_DEFAULT_SPEC": [
@@ -13811,6 +13883,11 @@
           "name": "skia/bots/android_ndk_linux",
           "path": "android_ndk_linux",
           "version": "version:18"
+        },
+        {
+          "name": "skia/bots/cmake_linux",
+          "path": "cmake_linux",
+          "version": "version:5"
         }
       ],
       "command": [
@@ -13841,7 +13918,8 @@
           "cipd_bin_packages",
           "cipd_bin_packages/bin",
           "cipd_bin_packages/cpython3",
-          "cipd_bin_packages/cpython3/bin"
+          "cipd_bin_packages/cpython3/bin",
+          "cmake_linux/bin"
         ],
         "VPYTHON_DEFAULT_SPEC": [
           "skia/.vpython3"
@@ -13918,6 +13996,11 @@
           "name": "skia/bots/android_ndk_linux",
           "path": "android_ndk_linux",
           "version": "version:18"
+        },
+        {
+          "name": "skia/bots/cmake_linux",
+          "path": "cmake_linux",
+          "version": "version:5"
         }
       ],
       "command": [
@@ -13948,7 +14031,8 @@
           "cipd_bin_packages",
           "cipd_bin_packages/bin",
           "cipd_bin_packages/cpython3",
-          "cipd_bin_packages/cpython3/bin"
+          "cipd_bin_packages/cpython3/bin",
+          "cmake_linux/bin"
         ],
         "VPYTHON_DEFAULT_SPEC": [
           "skia/.vpython3"
@@ -14445,6 +14529,11 @@
           "name": "skia/bots/android_ndk_linux",
           "path": "android_ndk_linux",
           "version": "version:18"
+        },
+        {
+          "name": "skia/bots/cmake_linux",
+          "path": "cmake_linux",
+          "version": "version:5"
         }
       ],
       "command": [
@@ -14475,7 +14564,8 @@
           "cipd_bin_packages",
           "cipd_bin_packages/bin",
           "cipd_bin_packages/cpython3",
-          "cipd_bin_packages/cpython3/bin"
+          "cipd_bin_packages/cpython3/bin",
+          "cmake_linux/bin"
         ],
         "VPYTHON_DEFAULT_SPEC": [
           "skia/.vpython3"
@@ -14552,6 +14642,11 @@
           "name": "skia/bots/android_ndk_linux",
           "path": "android_ndk_linux",
           "version": "version:18"
+        },
+        {
+          "name": "skia/bots/cmake_linux",
+          "path": "cmake_linux",
+          "version": "version:5"
         }
       ],
       "command": [
@@ -14582,7 +14677,8 @@
           "cipd_bin_packages",
           "cipd_bin_packages/bin",
           "cipd_bin_packages/cpython3",
-          "cipd_bin_packages/cpython3/bin"
+          "cipd_bin_packages/cpython3/bin",
+          "cmake_linux/bin"
         ],
         "VPYTHON_DEFAULT_SPEC": [
           "skia/.vpython3"
@@ -15256,6 +15352,11 @@
           "name": "skia/bots/android_ndk_linux",
           "path": "android_ndk_linux",
           "version": "version:18"
+        },
+        {
+          "name": "skia/bots/cmake_linux",
+          "path": "cmake_linux",
+          "version": "version:5"
         }
       ],
       "command": [
@@ -15286,7 +15387,8 @@
           "cipd_bin_packages",
           "cipd_bin_packages/bin",
           "cipd_bin_packages/cpython3",
-          "cipd_bin_packages/cpython3/bin"
+          "cipd_bin_packages/cpython3/bin",
+          "cmake_linux/bin"
         ],
         "VPYTHON_DEFAULT_SPEC": [
           "skia/.vpython3"
@@ -15363,6 +15465,11 @@
           "name": "skia/bots/android_ndk_linux",
           "path": "android_ndk_linux",
           "version": "version:18"
+        },
+        {
+          "name": "skia/bots/cmake_linux",
+          "path": "cmake_linux",
+          "version": "version:5"
         }
       ],
       "command": [
@@ -15393,7 +15500,8 @@
           "cipd_bin_packages",
           "cipd_bin_packages/bin",
           "cipd_bin_packages/cpython3",
-          "cipd_bin_packages/cpython3/bin"
+          "cipd_bin_packages/cpython3/bin",
+          "cmake_linux/bin"
         ],
         "VPYTHON_DEFAULT_SPEC": [
           "skia/.vpython3"
@@ -16001,6 +16109,11 @@
           "name": "skia/bots/clang_linux",
           "path": "clang_linux",
           "version": "version:32"
+        },
+        {
+          "name": "skia/bots/cmake_linux",
+          "path": "cmake_linux",
+          "version": "version:5"
         }
       ],
       "command": [
@@ -16031,7 +16144,8 @@
           "cipd_bin_packages",
           "cipd_bin_packages/bin",
           "cipd_bin_packages/cpython3",
-          "cipd_bin_packages/cpython3/bin"
+          "cipd_bin_packages/cpython3/bin",
+          "cmake_linux/bin"
         ],
         "VPYTHON_DEFAULT_SPEC": [
           "skia/.vpython3"
@@ -16615,6 +16729,11 @@
           "name": "skia/bots/clang_linux",
           "path": "clang_linux",
           "version": "version:32"
+        },
+        {
+          "name": "skia/bots/cmake_linux",
+          "path": "cmake_linux",
+          "version": "version:5"
         }
       ],
       "command": [
@@ -16645,7 +16764,8 @@
           "cipd_bin_packages",
           "cipd_bin_packages/bin",
           "cipd_bin_packages/cpython3",
-          "cipd_bin_packages/cpython3/bin"
+          "cipd_bin_packages/cpython3/bin",
+          "cmake_linux/bin"
         ],
         "VPYTHON_DEFAULT_SPEC": [
           "skia/.vpython3"
@@ -16740,6 +16860,11 @@
           "name": "skia/bots/clang_linux",
           "path": "clang_linux",
           "version": "version:32"
+        },
+        {
+          "name": "skia/bots/cmake_linux",
+          "path": "cmake_linux",
+          "version": "version:5"
         }
       ],
       "command": [
@@ -16772,6 +16897,7 @@
           "cipd_bin_packages/bin",
           "cipd_bin_packages/cpython3",
           "cipd_bin_packages/cpython3/bin",
+          "cmake_linux/bin",
           "bazelisk_linux_amd64"
         ],
         "VPYTHON_DEFAULT_SPEC": [
@@ -18515,6 +18641,11 @@
           "name": "skia/bots/clang_linux",
           "path": "clang_linux",
           "version": "version:32"
+        },
+        {
+          "name": "skia/bots/cmake_linux",
+          "path": "cmake_linux",
+          "version": "version:5"
         }
       ],
       "command": [
@@ -18545,7 +18676,8 @@
           "cipd_bin_packages",
           "cipd_bin_packages/bin",
           "cipd_bin_packages/cpython3",
-          "cipd_bin_packages/cpython3/bin"
+          "cipd_bin_packages/cpython3/bin",
+          "cmake_linux/bin"
         ],
         "VPYTHON_DEFAULT_SPEC": [
           "skia/.vpython3"
@@ -19129,6 +19261,11 @@
           "name": "skia/bots/clang_linux",
           "path": "clang_linux",
           "version": "version:32"
+        },
+        {
+          "name": "skia/bots/cmake_linux",
+          "path": "cmake_linux",
+          "version": "version:5"
         }
       ],
       "command": [
@@ -19159,7 +19296,8 @@
           "cipd_bin_packages",
           "cipd_bin_packages/bin",
           "cipd_bin_packages/cpython3",
-          "cipd_bin_packages/cpython3/bin"
+          "cipd_bin_packages/cpython3/bin",
+          "cmake_linux/bin"
         ],
         "VPYTHON_DEFAULT_SPEC": [
           "skia/.vpython3"
@@ -19254,6 +19392,11 @@
           "name": "skia/bots/clang_linux",
           "path": "clang_linux",
           "version": "version:32"
+        },
+        {
+          "name": "skia/bots/cmake_linux",
+          "path": "cmake_linux",
+          "version": "version:5"
         }
       ],
       "command": [
@@ -19286,6 +19429,7 @@
           "cipd_bin_packages/bin",
           "cipd_bin_packages/cpython3",
           "cipd_bin_packages/cpython3/bin",
+          "cmake_linux/bin",
           "bazelisk_linux_amd64"
         ],
         "VPYTHON_DEFAULT_SPEC": [
@@ -20521,6 +20665,11 @@
           "name": "skia/bots/clang_linux",
           "path": "clang_linux",
           "version": "version:32"
+        },
+        {
+          "name": "skia/bots/cmake_linux",
+          "path": "cmake_linux",
+          "version": "version:5"
         }
       ],
       "command": [
@@ -20551,7 +20700,8 @@
           "cipd_bin_packages",
           "cipd_bin_packages/bin",
           "cipd_bin_packages/cpython3",
-          "cipd_bin_packages/cpython3/bin"
+          "cipd_bin_packages/cpython3/bin",
+          "cmake_linux/bin"
         ],
         "VPYTHON_DEFAULT_SPEC": [
           "skia/.vpython3"
@@ -22961,6 +23111,11 @@
           "name": "skia/bots/clang_win",
           "path": "clang_win",
           "version": "version:18"
+        },
+        {
+          "name": "skia/bots/cmake_win",
+          "path": "cmake_win",
+          "version": "version:1"
         }
       ],
       "command": [
@@ -22993,7 +23148,8 @@
           "cipd_bin_packages",
           "cipd_bin_packages/bin",
           "cipd_bin_packages/cpython3",
-          "cipd_bin_packages/cpython3/bin"
+          "cipd_bin_packages/cpython3/bin",
+          "cmake_win/bin"
         ],
         "VPYTHON_DEFAULT_SPEC": [
           "skia/.vpython3"
@@ -23070,6 +23226,11 @@
           "name": "skia/bots/clang_win",
           "path": "clang_win",
           "version": "version:18"
+        },
+        {
+          "name": "skia/bots/cmake_win",
+          "path": "cmake_win",
+          "version": "version:1"
         }
       ],
       "command": [
@@ -23102,7 +23263,8 @@
           "cipd_bin_packages",
           "cipd_bin_packages/bin",
           "cipd_bin_packages/cpython3",
-          "cipd_bin_packages/cpython3/bin"
+          "cipd_bin_packages/cpython3/bin",
+          "cmake_win/bin"
         ],
         "VPYTHON_DEFAULT_SPEC": [
           "skia/.vpython3"
@@ -23695,6 +23857,11 @@
           "name": "skia/bots/clang_win",
           "path": "clang_win",
           "version": "version:18"
+        },
+        {
+          "name": "skia/bots/cmake_win",
+          "path": "cmake_win",
+          "version": "version:1"
         }
       ],
       "command": [
@@ -23727,7 +23894,8 @@
           "cipd_bin_packages",
           "cipd_bin_packages/bin",
           "cipd_bin_packages/cpython3",
-          "cipd_bin_packages/cpython3/bin"
+          "cipd_bin_packages/cpython3/bin",
+          "cmake_win/bin"
         ],
         "VPYTHON_DEFAULT_SPEC": [
           "skia/.vpython3"
@@ -23804,6 +23972,11 @@
           "name": "skia/bots/clang_win",
           "path": "clang_win",
           "version": "version:18"
+        },
+        {
+          "name": "skia/bots/cmake_win",
+          "path": "cmake_win",
+          "version": "version:1"
         }
       ],
       "command": [
@@ -23836,7 +24009,8 @@
           "cipd_bin_packages",
           "cipd_bin_packages/bin",
           "cipd_bin_packages/cpython3",
-          "cipd_bin_packages/cpython3/bin"
+          "cipd_bin_packages/cpython3/bin",
+          "cmake_win/bin"
         ],
         "VPYTHON_DEFAULT_SPEC": [
           "skia/.vpython3"
@@ -23913,6 +24087,11 @@
           "name": "skia/bots/clang_win",
           "path": "clang_win",
           "version": "version:18"
+        },
+        {
+          "name": "skia/bots/cmake_win",
+          "path": "cmake_win",
+          "version": "version:1"
         }
       ],
       "command": [
@@ -23945,7 +24124,8 @@
           "cipd_bin_packages",
           "cipd_bin_packages/bin",
           "cipd_bin_packages/cpython3",
-          "cipd_bin_packages/cpython3/bin"
+          "cipd_bin_packages/cpython3/bin",
+          "cmake_win/bin"
         ],
         "VPYTHON_DEFAULT_SPEC": [
           "skia/.vpython3"
@@ -24923,6 +25103,11 @@
           "name": "infra/tools/luci/vpython3/${platform}",
           "path": "cipd_bin_packages",
           "version": "git_revision:aaf80ec8202c91ad9c7aa20ee3841d00d4a7d51c"
+        },
+        {
+          "name": "skia/bots/cmake_win",
+          "path": "cmake_win",
+          "version": "version:1"
         }
       ],
       "command": [
@@ -24955,7 +25140,8 @@
           "cipd_bin_packages",
           "cipd_bin_packages/bin",
           "cipd_bin_packages/cpython3",
-          "cipd_bin_packages/cpython3/bin"
+          "cipd_bin_packages/cpython3/bin",
+          "cmake_win/bin"
         ],
         "VPYTHON_DEFAULT_SPEC": [
           "skia/.vpython3"
@@ -25027,6 +25213,11 @@
           "name": "infra/tools/luci/vpython3/${platform}",
           "path": "cipd_bin_packages",
           "version": "git_revision:aaf80ec8202c91ad9c7aa20ee3841d00d4a7d51c"
+        },
+        {
+          "name": "skia/bots/cmake_win",
+          "path": "cmake_win",
+          "version": "version:1"
         }
       ],
       "command": [
@@ -25059,7 +25250,8 @@
           "cipd_bin_packages",
           "cipd_bin_packages/bin",
           "cipd_bin_packages/cpython3",
-          "cipd_bin_packages/cpython3/bin"
+          "cipd_bin_packages/cpython3/bin",
+          "cmake_win/bin"
         ],
         "VPYTHON_DEFAULT_SPEC": [
           "skia/.vpython3"
@@ -25131,6 +25323,11 @@
           "name": "infra/tools/luci/vpython3/${platform}",
           "path": "cipd_bin_packages",
           "version": "git_revision:aaf80ec8202c91ad9c7aa20ee3841d00d4a7d51c"
+        },
+        {
+          "name": "skia/bots/cmake_win",
+          "path": "cmake_win",
+          "version": "version:1"
         }
       ],
       "command": [
@@ -25163,7 +25360,8 @@
           "cipd_bin_packages",
           "cipd_bin_packages/bin",
           "cipd_bin_packages/cpython3",
-          "cipd_bin_packages/cpython3/bin"
+          "cipd_bin_packages/cpython3/bin",
+          "cmake_win/bin"
         ],
         "VPYTHON_DEFAULT_SPEC": [
           "skia/.vpython3"
@@ -25478,6 +25676,11 @@
           "name": "infra/tools/luci/vpython3/${platform}",
           "path": "cipd_bin_packages",
           "version": "git_revision:aaf80ec8202c91ad9c7aa20ee3841d00d4a7d51c"
+        },
+        {
+          "name": "skia/bots/cmake_win",
+          "path": "cmake_win",
+          "version": "version:1"
         }
       ],
       "command": [
@@ -25510,7 +25713,8 @@
           "cipd_bin_packages",
           "cipd_bin_packages/bin",
           "cipd_bin_packages/cpython3",
-          "cipd_bin_packages/cpython3/bin"
+          "cipd_bin_packages/cpython3/bin",
+          "cmake_win/bin"
         ],
         "VPYTHON_DEFAULT_SPEC": [
           "skia/.vpython3"
@@ -25825,6 +26029,11 @@
           "name": "infra/tools/luci/vpython3/${platform}",
           "path": "cipd_bin_packages",
           "version": "git_revision:aaf80ec8202c91ad9c7aa20ee3841d00d4a7d51c"
+        },
+        {
+          "name": "skia/bots/cmake_win",
+          "path": "cmake_win",
+          "version": "version:1"
         }
       ],
       "command": [
@@ -25857,7 +26066,8 @@
           "cipd_bin_packages",
           "cipd_bin_packages/bin",
           "cipd_bin_packages/cpython3",
-          "cipd_bin_packages/cpython3/bin"
+          "cipd_bin_packages/cpython3/bin",
+          "cmake_win/bin"
         ],
         "VPYTHON_DEFAULT_SPEC": [
           "skia/.vpython3"
@@ -25929,6 +26139,11 @@
           "name": "infra/tools/luci/vpython3/${platform}",
           "path": "cipd_bin_packages",
           "version": "git_revision:aaf80ec8202c91ad9c7aa20ee3841d00d4a7d51c"
+        },
+        {
+          "name": "skia/bots/cmake_win",
+          "path": "cmake_win",
+          "version": "version:1"
         }
       ],
       "command": [
@@ -25961,7 +26176,8 @@
           "cipd_bin_packages",
           "cipd_bin_packages/bin",
           "cipd_bin_packages/cpython3",
-          "cipd_bin_packages/cpython3/bin"
+          "cipd_bin_packages/cpython3/bin",
+          "cmake_win/bin"
         ],
         "VPYTHON_DEFAULT_SPEC": [
           "skia/.vpython3"
@@ -26033,6 +26249,11 @@
           "name": "infra/tools/luci/vpython3/${platform}",
           "path": "cipd_bin_packages",
           "version": "git_revision:aaf80ec8202c91ad9c7aa20ee3841d00d4a7d51c"
+        },
+        {
+          "name": "skia/bots/cmake_win",
+          "path": "cmake_win",
+          "version": "version:1"
         }
       ],
       "command": [
@@ -26065,7 +26286,8 @@
           "cipd_bin_packages",
           "cipd_bin_packages/bin",
           "cipd_bin_packages/cpython3",
-          "cipd_bin_packages/cpython3/bin"
+          "cipd_bin_packages/cpython3/bin",
+          "cmake_win/bin"
         ],
         "VPYTHON_DEFAULT_SPEC": [
           "skia/.vpython3"
@@ -62757,6 +62979,209 @@
         "test"
       ]
     },
+    "Test-Win11-Clang-GCE-CPU-AVX2-x86_64-Debug-All-NativeFonts": {
+      "caches": [
+        {
+          "name": "vpython3",
+          "path": "cache/vpython3"
+        }
+      ],
+      "casSpec": "test",
+      "cipd_packages": [
+        {
+          "name": "infra/3pp/tools/cpython3/${platform}",
+          "path": "cipd_bin_packages/cpython3",
+          "version": "version:3@3.11.9.chromium.36"
+        },
+        {
+          "name": "infra/tools/luci-auth/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "git_revision:aaf80ec8202c91ad9c7aa20ee3841d00d4a7d51c"
+        },
+        {
+          "name": "infra/tools/luci/kitchen/${platform}",
+          "path": ".",
+          "version": "git_revision:aaf80ec8202c91ad9c7aa20ee3841d00d4a7d51c"
+        },
+        {
+          "name": "infra/tools/luci/vpython3/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "git_revision:aaf80ec8202c91ad9c7aa20ee3841d00d4a7d51c"
+        },
+        {
+          "name": "skia/bots/skimage",
+          "path": "skimage",
+          "version": "version:47"
+        },
+        {
+          "name": "skia/bots/skp",
+          "path": "skp",
+          "version": "version:534"
+        },
+        {
+          "name": "skia/bots/skparagraph",
+          "path": "skia/resources/extra_fonts",
+          "version": "version:4"
+        },
+        {
+          "name": "skia/bots/svg",
+          "path": "svg",
+          "version": "version:14"
+        }
+      ],
+      "command": [
+        "cipd_bin_packages/vpython3${EXECUTABLE_SUFFIX}",
+        "-u",
+        "skia/infra/bots/run_recipe.py",
+        "${ISOLATED_OUTDIR}",
+        "test",
+        "{\"$kitchen\":{\"devshell\":true,\"git_auth\":true},\"buildbucket_build_id\":\"<(BUILDBUCKET_BUILD_ID)\",\"buildername\":\"Test-Win11-Clang-GCE-CPU-AVX2-x86_64-Debug-All-NativeFonts\",\"dm_flags\":\"[\\\"dm\\\",\\\"--nameByHash\\\",\\\"--key\\\",\\\"arch\\\",\\\"x86_64\\\",\\\"compiler\\\",\\\"Clang\\\",\\\"configuration\\\",\\\"Debug\\\",\\\"cpu_or_gpu\\\",\\\"CPU\\\",\\\"cpu_or_gpu_value\\\",\\\"AVX2\\\",\\\"extra_config\\\",\\\"NativeFonts\\\",\\\"model\\\",\\\"GCE\\\",\\\"os\\\",\\\"Win11\\\",\\\"style\\\",\\\"default\\\",\\\"--randomProcessorTest\\\",\\\"--nogpu\\\",\\\"--config\\\",\\\"8888\\\",\\\"--src\\\",\\\"tests\\\",\\\"gm\\\",\\\"--skip\\\",\\\"_\\\",\\\"image\\\",\\\"gen_platf\\\",\\\"pal8os2v2.bmp\\\",\\\"_\\\",\\\"image\\\",\\\"gen_platf\\\",\\\"pal8os2v2-16.bmp\\\",\\\"_\\\",\\\"image\\\",\\\"gen_platf\\\",\\\"rgba32abf.bmp\\\",\\\"_\\\",\\\"image\\\",\\\"gen_platf\\\",\\\"rgb24prof.bmp\\\",\\\"_\\\",\\\"image\\\",\\\"gen_platf\\\",\\\"rgb24lprof.bmp\\\",\\\"_\\\",\\\"image\\\",\\\"gen_platf\\\",\\\"8bpp-pixeldata-cropped.bmp\\\",\\\"_\\\",\\\"image\\\",\\\"gen_platf\\\",\\\"4bpp-pixeldata-cropped.bmp\\\",\\\"_\\\",\\\"image\\\",\\\"gen_platf\\\",\\\"32bpp-pixeldata-cropped.bmp\\\",\\\"_\\\",\\\"image\\\",\\\"gen_platf\\\",\\\"24bpp-pixeldata-cropped.bmp\\\",\\\"_\\\",\\\"gm\\\",\\\"_\\\",\\\"composeshader_bitmap\\\",\\\"_\\\",\\\"image\\\",\\\"gen_platf\\\",\\\"testimgari.jpg\\\",\\\"_\\\",\\\"image\\\",\\\"gen_platf\\\",\\\"rle8-height-negative.bmp\\\",\\\"_\\\",\\\"image\\\",\\\"gen_platf\\\",\\\"rle4-height-negative.bmp\\\",\\\"_\\\",\\\"image\\\",\\\"gen_platf\\\",\\\"error\\\",\\\"--nativeFonts\\\",\\\"--paragraph_fonts\\\",\\\"extra_fonts\\\",\\\"--norun_paragraph_tests_needing_system_fonts\\\",\\\"--verbose\\\"]\",\"dm_properties\":\"{\\\"buildbucket_build_id\\\":\\\"<(BUILDBUCKET_BUILD_ID)\\\",\\\"builder\\\":\\\"Test-Win11-Clang-GCE-CPU-AVX2-x86_64-Debug-All-NativeFonts\\\",\\\"gitHash\\\":\\\"<(REVISION)\\\",\\\"issue\\\":\\\"<(ISSUE)\\\",\\\"patch_storage\\\":\\\"<(PATCH_STORAGE)\\\",\\\"patchset\\\":\\\"<(PATCHSET)\\\",\\\"swarming_bot_id\\\":\\\"${SWARMING_BOT_ID}\\\",\\\"swarming_task_id\\\":\\\"${SWARMING_TASK_ID}\\\",\\\"task_id\\\":\\\"<(TASK_ID)\\\"}\",\"do_upload\":\"true\",\"gold_hashes_url\":\"https://gold.skia.org/json/v1/hashes\",\"images\":\"true\",\"patch_issue\":\"<(ISSUE_INT)\",\"patch_ref\":\"<(PATCH_REF)\",\"patch_repo\":\"<(PATCH_REPO)\",\"patch_set\":\"<(PATCHSET_INT)\",\"patch_storage\":\"<(PATCH_STORAGE)\",\"repository\":\"<(REPO)\",\"resources\":\"true\",\"revision\":\"<(REVISION)\",\"skps\":\"true\",\"svgs\":\"true\",\"swarm_out_dir\":\"test\",\"task_id\":\"<(TASK_ID)\"}",
+        "skia"
+      ],
+      "dependencies": [
+        "Build-Win-Clang-x86_64-Debug",
+        "Housekeeper-PerCommit-BundleRecipes"
+      ],
+      "dimensions": [
+        "cpu:x86-64-Haswell_GCE",
+        "gce:1",
+        "machine_type:n1-standard-16",
+        "os:Windows-11-22631",
+        "pool:Skia"
+      ],
+      "environment": {
+        "RECIPES_USE_PY3": "true",
+        "VPYTHON_LOG_TRACE": "1"
+      },
+      "env_prefixes": {
+        "PATH": [
+          "cipd_bin_packages",
+          "cipd_bin_packages/bin",
+          "cipd_bin_packages/cpython3",
+          "cipd_bin_packages/cpython3/bin"
+        ],
+        "VPYTHON_DEFAULT_SPEC": [
+          "skia/.vpython3"
+        ],
+        "VPYTHON_VIRTUALENV_ROOT": [
+          "cache/vpython3"
+        ]
+      },
+      "execution_timeout_ns": 14400000000000,
+      "expiration_ns": 72000000000000,
+      "extra_tags": {
+        "log_location": "logdog://logs.chromium.org/skia/${SWARMING_TASK_ID}/+/annotations"
+      },
+      "io_timeout_ns": 14400000000000,
+      "max_attempts": 2,
+      "outputs": [
+        "test"
+      ]
+    },
+    "Test-Win11-Clang-GCE-CPU-AVX2-x86_64-Debug-All-NativeFonts_DWriteCore": {
+      "caches": [
+        {
+          "name": "vpython3",
+          "path": "cache/vpython3"
+        }
+      ],
+      "casSpec": "test",
+      "cipd_packages": [
+        {
+          "name": "infra/3pp/tools/cpython3/${platform}",
+          "path": "cipd_bin_packages/cpython3",
+          "version": "version:3@3.11.9.chromium.36"
+        },
+        {
+          "name": "infra/tools/luci-auth/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "git_revision:aaf80ec8202c91ad9c7aa20ee3841d00d4a7d51c"
+        },
+        {
+          "name": "infra/tools/luci/kitchen/${platform}",
+          "path": ".",
+          "version": "git_revision:aaf80ec8202c91ad9c7aa20ee3841d00d4a7d51c"
+        },
+        {
+          "name": "infra/tools/luci/vpython3/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "git_revision:aaf80ec8202c91ad9c7aa20ee3841d00d4a7d51c"
+        },
+        {
+          "name": "skia/bots/dwritecore",
+          "path": "dwritecore",
+          "version": "version:3"
+        },
+        {
+          "name": "skia/bots/skimage",
+          "path": "skimage",
+          "version": "version:47"
+        },
+        {
+          "name": "skia/bots/skp",
+          "path": "skp",
+          "version": "version:534"
+        },
+        {
+          "name": "skia/bots/skparagraph",
+          "path": "skia/resources/extra_fonts",
+          "version": "version:4"
+        },
+        {
+          "name": "skia/bots/svg",
+          "path": "svg",
+          "version": "version:14"
+        }
+      ],
+      "command": [
+        "cipd_bin_packages/vpython3${EXECUTABLE_SUFFIX}",
+        "-u",
+        "skia/infra/bots/run_recipe.py",
+        "${ISOLATED_OUTDIR}",
+        "test",
+        "{\"$kitchen\":{\"devshell\":true,\"git_auth\":true},\"buildbucket_build_id\":\"<(BUILDBUCKET_BUILD_ID)\",\"buildername\":\"Test-Win11-Clang-GCE-CPU-AVX2-x86_64-Debug-All-NativeFonts_DWriteCore\",\"dm_flags\":\"[\\\"dm\\\",\\\"--nameByHash\\\",\\\"--key\\\",\\\"arch\\\",\\\"x86_64\\\",\\\"compiler\\\",\\\"Clang\\\",\\\"configuration\\\",\\\"Debug\\\",\\\"cpu_or_gpu\\\",\\\"CPU\\\",\\\"cpu_or_gpu_value\\\",\\\"AVX2\\\",\\\"extra_config\\\",\\\"NativeFonts_DWriteCore\\\",\\\"model\\\",\\\"GCE\\\",\\\"os\\\",\\\"Win11\\\",\\\"style\\\",\\\"default\\\",\\\"--randomProcessorTest\\\",\\\"--nogpu\\\",\\\"--config\\\",\\\"8888\\\",\\\"--src\\\",\\\"tests\\\",\\\"gm\\\",\\\"--skip\\\",\\\"_\\\",\\\"image\\\",\\\"gen_platf\\\",\\\"pal8os2v2.bmp\\\",\\\"_\\\",\\\"image\\\",\\\"gen_platf\\\",\\\"pal8os2v2-16.bmp\\\",\\\"_\\\",\\\"image\\\",\\\"gen_platf\\\",\\\"rgba32abf.bmp\\\",\\\"_\\\",\\\"image\\\",\\\"gen_platf\\\",\\\"rgb24prof.bmp\\\",\\\"_\\\",\\\"image\\\",\\\"gen_platf\\\",\\\"rgb24lprof.bmp\\\",\\\"_\\\",\\\"image\\\",\\\"gen_platf\\\",\\\"8bpp-pixeldata-cropped.bmp\\\",\\\"_\\\",\\\"image\\\",\\\"gen_platf\\\",\\\"4bpp-pixeldata-cropped.bmp\\\",\\\"_\\\",\\\"image\\\",\\\"gen_platf\\\",\\\"32bpp-pixeldata-cropped.bmp\\\",\\\"_\\\",\\\"image\\\",\\\"gen_platf\\\",\\\"24bpp-pixeldata-cropped.bmp\\\",\\\"_\\\",\\\"gm\\\",\\\"_\\\",\\\"composeshader_bitmap\\\",\\\"_\\\",\\\"image\\\",\\\"gen_platf\\\",\\\"testimgari.jpg\\\",\\\"_\\\",\\\"image\\\",\\\"gen_platf\\\",\\\"rle8-height-negative.bmp\\\",\\\"_\\\",\\\"image\\\",\\\"gen_platf\\\",\\\"rle4-height-negative.bmp\\\",\\\"_\\\",\\\"image\\\",\\\"gen_platf\\\",\\\"error\\\",\\\"--nativeFonts\\\",\\\"--paragraph_fonts\\\",\\\"extra_fonts\\\",\\\"--norun_paragraph_tests_needing_system_fonts\\\",\\\"--verbose\\\"]\",\"dm_properties\":\"{\\\"buildbucket_build_id\\\":\\\"<(BUILDBUCKET_BUILD_ID)\\\",\\\"builder\\\":\\\"Test-Win11-Clang-GCE-CPU-AVX2-x86_64-Debug-All-NativeFonts_DWriteCore\\\",\\\"gitHash\\\":\\\"<(REVISION)\\\",\\\"issue\\\":\\\"<(ISSUE)\\\",\\\"patch_storage\\\":\\\"<(PATCH_STORAGE)\\\",\\\"patchset\\\":\\\"<(PATCHSET)\\\",\\\"swarming_bot_id\\\":\\\"${SWARMING_BOT_ID}\\\",\\\"swarming_task_id\\\":\\\"${SWARMING_TASK_ID}\\\",\\\"task_id\\\":\\\"<(TASK_ID)\\\"}\",\"do_upload\":\"true\",\"gold_hashes_url\":\"https://gold.skia.org/json/v1/hashes\",\"images\":\"true\",\"patch_issue\":\"<(ISSUE_INT)\",\"patch_ref\":\"<(PATCH_REF)\",\"patch_repo\":\"<(PATCH_REPO)\",\"patch_set\":\"<(PATCHSET_INT)\",\"patch_storage\":\"<(PATCH_STORAGE)\",\"repository\":\"<(REPO)\",\"resources\":\"true\",\"revision\":\"<(REVISION)\",\"skps\":\"true\",\"svgs\":\"true\",\"swarm_out_dir\":\"test\",\"task_id\":\"<(TASK_ID)\"}",
+        "skia"
+      ],
+      "dependencies": [
+        "Build-Win-Clang-x86_64-Debug-DWriteCore",
+        "Housekeeper-PerCommit-BundleRecipes"
+      ],
+      "dimensions": [
+        "cpu:x86-64-Haswell_GCE",
+        "gce:1",
+        "machine_type:n1-standard-16",
+        "os:Windows-11-22631",
+        "pool:Skia"
+      ],
+      "environment": {
+        "RECIPES_USE_PY3": "true",
+        "VPYTHON_LOG_TRACE": "1"
+      },
+      "env_prefixes": {
+        "PATH": [
+          "cipd_bin_packages",
+          "cipd_bin_packages/bin",
+          "cipd_bin_packages/cpython3",
+          "cipd_bin_packages/cpython3/bin"
+        ],
+        "VPYTHON_DEFAULT_SPEC": [
+          "skia/.vpython3"
+        ],
+        "VPYTHON_VIRTUALENV_ROOT": [
+          "cache/vpython3"
+        ]
+      },
+      "execution_timeout_ns": 14400000000000,
+      "expiration_ns": 72000000000000,
+      "extra_tags": {
+        "log_location": "logdog://logs.chromium.org/skia/${SWARMING_TASK_ID}/+/annotations"
+      },
+      "io_timeout_ns": 14400000000000,
+      "max_attempts": 2,
+      "outputs": [
+        "test"
+      ]
+    },
     "Test-Win11-Clang-GCE-CPU-AVX2-x86_64-Release-All": {
       "caches": [
         {
@@ -63371,205 +63796,6 @@
       ],
       "dimensions": [
         "gpu:8086:9a49-31.0.101.5333",
-        "os:Windows-11-26100.1742",
-        "pool:Skia"
-      ],
-      "environment": {
-        "RECIPES_USE_PY3": "true",
-        "VPYTHON_LOG_TRACE": "1"
-      },
-      "env_prefixes": {
-        "PATH": [
-          "cipd_bin_packages",
-          "cipd_bin_packages/bin",
-          "cipd_bin_packages/cpython3",
-          "cipd_bin_packages/cpython3/bin"
-        ],
-        "VPYTHON_DEFAULT_SPEC": [
-          "skia/.vpython3"
-        ],
-        "VPYTHON_VIRTUALENV_ROOT": [
-          "cache/vpython3"
-        ]
-      },
-      "execution_timeout_ns": 14400000000000,
-      "expiration_ns": 72000000000000,
-      "extra_tags": {
-        "log_location": "logdog://logs.chromium.org/skia/${SWARMING_TASK_ID}/+/annotations"
-      },
-      "io_timeout_ns": 14400000000000,
-      "max_attempts": 2,
-      "outputs": [
-        "test"
-      ]
-    },
-    "Test-Win11-Clang-NUC5i7RYH-CPU-AVX2-x86_64-Debug-All-NativeFonts": {
-      "caches": [
-        {
-          "name": "vpython3",
-          "path": "cache/vpython3"
-        }
-      ],
-      "casSpec": "test",
-      "cipd_packages": [
-        {
-          "name": "infra/3pp/tools/cpython3/${platform}",
-          "path": "cipd_bin_packages/cpython3",
-          "version": "version:3@3.11.9.chromium.36"
-        },
-        {
-          "name": "infra/tools/luci-auth/${platform}",
-          "path": "cipd_bin_packages",
-          "version": "git_revision:aaf80ec8202c91ad9c7aa20ee3841d00d4a7d51c"
-        },
-        {
-          "name": "infra/tools/luci/kitchen/${platform}",
-          "path": ".",
-          "version": "git_revision:aaf80ec8202c91ad9c7aa20ee3841d00d4a7d51c"
-        },
-        {
-          "name": "infra/tools/luci/vpython3/${platform}",
-          "path": "cipd_bin_packages",
-          "version": "git_revision:aaf80ec8202c91ad9c7aa20ee3841d00d4a7d51c"
-        },
-        {
-          "name": "skia/bots/skimage",
-          "path": "skimage",
-          "version": "version:47"
-        },
-        {
-          "name": "skia/bots/skp",
-          "path": "skp",
-          "version": "version:534"
-        },
-        {
-          "name": "skia/bots/skparagraph",
-          "path": "skia/resources/extra_fonts",
-          "version": "version:4"
-        },
-        {
-          "name": "skia/bots/svg",
-          "path": "svg",
-          "version": "version:14"
-        }
-      ],
-      "command": [
-        "cipd_bin_packages/vpython3${EXECUTABLE_SUFFIX}",
-        "-u",
-        "skia/infra/bots/run_recipe.py",
-        "${ISOLATED_OUTDIR}",
-        "test",
-        "{\"$kitchen\":{\"devshell\":true,\"git_auth\":true},\"buildbucket_build_id\":\"<(BUILDBUCKET_BUILD_ID)\",\"buildername\":\"Test-Win11-Clang-NUC5i7RYH-CPU-AVX2-x86_64-Debug-All-NativeFonts\",\"dm_flags\":\"[\\\"dm\\\",\\\"--nameByHash\\\",\\\"--key\\\",\\\"arch\\\",\\\"x86_64\\\",\\\"compiler\\\",\\\"Clang\\\",\\\"configuration\\\",\\\"Debug\\\",\\\"cpu_or_gpu\\\",\\\"CPU\\\",\\\"cpu_or_gpu_value\\\",\\\"AVX2\\\",\\\"extra_config\\\",\\\"NativeFonts\\\",\\\"model\\\",\\\"NUC5i7RYH\\\",\\\"os\\\",\\\"Win11\\\",\\\"style\\\",\\\"default\\\",\\\"--randomProcessorTest\\\",\\\"--nogpu\\\",\\\"--config\\\",\\\"8888\\\",\\\"--src\\\",\\\"tests\\\",\\\"gm\\\",\\\"--skip\\\",\\\"_\\\",\\\"image\\\",\\\"gen_platf\\\",\\\"pal8os2v2.bmp\\\",\\\"_\\\",\\\"image\\\",\\\"gen_platf\\\",\\\"pal8os2v2-16.bmp\\\",\\\"_\\\",\\\"image\\\",\\\"gen_platf\\\",\\\"rgba32abf.bmp\\\",\\\"_\\\",\\\"image\\\",\\\"gen_platf\\\",\\\"rgb24prof.bmp\\\",\\\"_\\\",\\\"image\\\",\\\"gen_platf\\\",\\\"rgb24lprof.bmp\\\",\\\"_\\\",\\\"image\\\",\\\"gen_platf\\\",\\\"8bpp-pixeldata-cropped.bmp\\\",\\\"_\\\",\\\"image\\\",\\\"gen_platf\\\",\\\"4bpp-pixeldata-cropped.bmp\\\",\\\"_\\\",\\\"image\\\",\\\"gen_platf\\\",\\\"32bpp-pixeldata-cropped.bmp\\\",\\\"_\\\",\\\"image\\\",\\\"gen_platf\\\",\\\"24bpp-pixeldata-cropped.bmp\\\",\\\"_\\\",\\\"gm\\\",\\\"_\\\",\\\"composeshader_bitmap\\\",\\\"_\\\",\\\"image\\\",\\\"gen_platf\\\",\\\"testimgari.jpg\\\",\\\"_\\\",\\\"image\\\",\\\"gen_platf\\\",\\\"rle8-height-negative.bmp\\\",\\\"_\\\",\\\"image\\\",\\\"gen_platf\\\",\\\"rle4-height-negative.bmp\\\",\\\"_\\\",\\\"image\\\",\\\"gen_platf\\\",\\\"error\\\",\\\"--nativeFonts\\\",\\\"--paragraph_fonts\\\",\\\"extra_fonts\\\",\\\"--norun_paragraph_tests_needing_system_fonts\\\",\\\"--verbose\\\"]\",\"dm_properties\":\"{\\\"buildbucket_build_id\\\":\\\"<(BUILDBUCKET_BUILD_ID)\\\",\\\"builder\\\":\\\"Test-Win11-Clang-NUC5i7RYH-CPU-AVX2-x86_64-Debug-All-NativeFonts\\\",\\\"gitHash\\\":\\\"<(REVISION)\\\",\\\"issue\\\":\\\"<(ISSUE)\\\",\\\"patch_storage\\\":\\\"<(PATCH_STORAGE)\\\",\\\"patchset\\\":\\\"<(PATCHSET)\\\",\\\"swarming_bot_id\\\":\\\"${SWARMING_BOT_ID}\\\",\\\"swarming_task_id\\\":\\\"${SWARMING_TASK_ID}\\\",\\\"task_id\\\":\\\"<(TASK_ID)\\\"}\",\"do_upload\":\"true\",\"gold_hashes_url\":\"https://gold.skia.org/json/v1/hashes\",\"images\":\"true\",\"patch_issue\":\"<(ISSUE_INT)\",\"patch_ref\":\"<(PATCH_REF)\",\"patch_repo\":\"<(PATCH_REPO)\",\"patch_set\":\"<(PATCHSET_INT)\",\"patch_storage\":\"<(PATCH_STORAGE)\",\"repository\":\"<(REPO)\",\"resources\":\"true\",\"revision\":\"<(REVISION)\",\"skps\":\"true\",\"svgs\":\"true\",\"swarm_out_dir\":\"test\",\"task_id\":\"<(TASK_ID)\"}",
-        "skia"
-      ],
-      "dependencies": [
-        "Build-Win-Clang-x86_64-Debug",
-        "Housekeeper-PerCommit-BundleRecipes"
-      ],
-      "dimensions": [
-        "cpu:x86-64-i7-5557U",
-        "os:Windows-11-26100.1742",
-        "pool:Skia"
-      ],
-      "environment": {
-        "RECIPES_USE_PY3": "true",
-        "VPYTHON_LOG_TRACE": "1"
-      },
-      "env_prefixes": {
-        "PATH": [
-          "cipd_bin_packages",
-          "cipd_bin_packages/bin",
-          "cipd_bin_packages/cpython3",
-          "cipd_bin_packages/cpython3/bin"
-        ],
-        "VPYTHON_DEFAULT_SPEC": [
-          "skia/.vpython3"
-        ],
-        "VPYTHON_VIRTUALENV_ROOT": [
-          "cache/vpython3"
-        ]
-      },
-      "execution_timeout_ns": 14400000000000,
-      "expiration_ns": 72000000000000,
-      "extra_tags": {
-        "log_location": "logdog://logs.chromium.org/skia/${SWARMING_TASK_ID}/+/annotations"
-      },
-      "io_timeout_ns": 14400000000000,
-      "max_attempts": 2,
-      "outputs": [
-        "test"
-      ]
-    },
-    "Test-Win11-Clang-NUC5i7RYH-CPU-AVX2-x86_64-Debug-All-NativeFonts_DWriteCore": {
-      "caches": [
-        {
-          "name": "vpython3",
-          "path": "cache/vpython3"
-        }
-      ],
-      "casSpec": "test",
-      "cipd_packages": [
-        {
-          "name": "infra/3pp/tools/cpython3/${platform}",
-          "path": "cipd_bin_packages/cpython3",
-          "version": "version:3@3.11.9.chromium.36"
-        },
-        {
-          "name": "infra/tools/luci-auth/${platform}",
-          "path": "cipd_bin_packages",
-          "version": "git_revision:aaf80ec8202c91ad9c7aa20ee3841d00d4a7d51c"
-        },
-        {
-          "name": "infra/tools/luci/kitchen/${platform}",
-          "path": ".",
-          "version": "git_revision:aaf80ec8202c91ad9c7aa20ee3841d00d4a7d51c"
-        },
-        {
-          "name": "infra/tools/luci/vpython3/${platform}",
-          "path": "cipd_bin_packages",
-          "version": "git_revision:aaf80ec8202c91ad9c7aa20ee3841d00d4a7d51c"
-        },
-        {
-          "name": "skia/bots/dwritecore",
-          "path": "dwritecore",
-          "version": "version:3"
-        },
-        {
-          "name": "skia/bots/skimage",
-          "path": "skimage",
-          "version": "version:47"
-        },
-        {
-          "name": "skia/bots/skp",
-          "path": "skp",
-          "version": "version:534"
-        },
-        {
-          "name": "skia/bots/skparagraph",
-          "path": "skia/resources/extra_fonts",
-          "version": "version:4"
-        },
-        {
-          "name": "skia/bots/svg",
-          "path": "svg",
-          "version": "version:14"
-        }
-      ],
-      "command": [
-        "cipd_bin_packages/vpython3${EXECUTABLE_SUFFIX}",
-        "-u",
-        "skia/infra/bots/run_recipe.py",
-        "${ISOLATED_OUTDIR}",
-        "test",
-        "{\"$kitchen\":{\"devshell\":true,\"git_auth\":true},\"buildbucket_build_id\":\"<(BUILDBUCKET_BUILD_ID)\",\"buildername\":\"Test-Win11-Clang-NUC5i7RYH-CPU-AVX2-x86_64-Debug-All-NativeFonts_DWriteCore\",\"dm_flags\":\"[\\\"dm\\\",\\\"--nameByHash\\\",\\\"--key\\\",\\\"arch\\\",\\\"x86_64\\\",\\\"compiler\\\",\\\"Clang\\\",\\\"configuration\\\",\\\"Debug\\\",\\\"cpu_or_gpu\\\",\\\"CPU\\\",\\\"cpu_or_gpu_value\\\",\\\"AVX2\\\",\\\"extra_config\\\",\\\"NativeFonts_DWriteCore\\\",\\\"model\\\",\\\"NUC5i7RYH\\\",\\\"os\\\",\\\"Win11\\\",\\\"style\\\",\\\"default\\\",\\\"--randomProcessorTest\\\",\\\"--nogpu\\\",\\\"--config\\\",\\\"8888\\\",\\\"--src\\\",\\\"tests\\\",\\\"gm\\\",\\\"--skip\\\",\\\"_\\\",\\\"image\\\",\\\"gen_platf\\\",\\\"pal8os2v2.bmp\\\",\\\"_\\\",\\\"image\\\",\\\"gen_platf\\\",\\\"pal8os2v2-16.bmp\\\",\\\"_\\\",\\\"image\\\",\\\"gen_platf\\\",\\\"rgba32abf.bmp\\\",\\\"_\\\",\\\"image\\\",\\\"gen_platf\\\",\\\"rgb24prof.bmp\\\",\\\"_\\\",\\\"image\\\",\\\"gen_platf\\\",\\\"rgb24lprof.bmp\\\",\\\"_\\\",\\\"image\\\",\\\"gen_platf\\\",\\\"8bpp-pixeldata-cropped.bmp\\\",\\\"_\\\",\\\"image\\\",\\\"gen_platf\\\",\\\"4bpp-pixeldata-cropped.bmp\\\",\\\"_\\\",\\\"image\\\",\\\"gen_platf\\\",\\\"32bpp-pixeldata-cropped.bmp\\\",\\\"_\\\",\\\"image\\\",\\\"gen_platf\\\",\\\"24bpp-pixeldata-cropped.bmp\\\",\\\"_\\\",\\\"gm\\\",\\\"_\\\",\\\"composeshader_bitmap\\\",\\\"_\\\",\\\"image\\\",\\\"gen_platf\\\",\\\"testimgari.jpg\\\",\\\"_\\\",\\\"image\\\",\\\"gen_platf\\\",\\\"rle8-height-negative.bmp\\\",\\\"_\\\",\\\"image\\\",\\\"gen_platf\\\",\\\"rle4-height-negative.bmp\\\",\\\"_\\\",\\\"image\\\",\\\"gen_platf\\\",\\\"error\\\",\\\"--nativeFonts\\\",\\\"--paragraph_fonts\\\",\\\"extra_fonts\\\",\\\"--norun_paragraph_tests_needing_system_fonts\\\",\\\"--verbose\\\"]\",\"dm_properties\":\"{\\\"buildbucket_build_id\\\":\\\"<(BUILDBUCKET_BUILD_ID)\\\",\\\"builder\\\":\\\"Test-Win11-Clang-NUC5i7RYH-CPU-AVX2-x86_64-Debug-All-NativeFonts_DWriteCore\\\",\\\"gitHash\\\":\\\"<(REVISION)\\\",\\\"issue\\\":\\\"<(ISSUE)\\\",\\\"patch_storage\\\":\\\"<(PATCH_STORAGE)\\\",\\\"patchset\\\":\\\"<(PATCHSET)\\\",\\\"swarming_bot_id\\\":\\\"${SWARMING_BOT_ID}\\\",\\\"swarming_task_id\\\":\\\"${SWARMING_TASK_ID}\\\",\\\"task_id\\\":\\\"<(TASK_ID)\\\"}\",\"do_upload\":\"true\",\"gold_hashes_url\":\"https://gold.skia.org/json/v1/hashes\",\"images\":\"true\",\"patch_issue\":\"<(ISSUE_INT)\",\"patch_ref\":\"<(PATCH_REF)\",\"patch_repo\":\"<(PATCH_REPO)\",\"patch_set\":\"<(PATCHSET_INT)\",\"patch_storage\":\"<(PATCH_STORAGE)\",\"repository\":\"<(REPO)\",\"resources\":\"true\",\"revision\":\"<(REVISION)\",\"skps\":\"true\",\"svgs\":\"true\",\"swarm_out_dir\":\"test\",\"task_id\":\"<(TASK_ID)\"}",
-        "skia"
-      ],
-      "dependencies": [
-        "Build-Win-Clang-x86_64-Debug-DWriteCore",
-        "Housekeeper-PerCommit-BundleRecipes"
-      ],
-      "dimensions": [
-        "cpu:x86-64-i7-5557U",
         "os:Windows-11-26100.1742",
         "pool:Skia"
       ],
@@ -80499,6 +80725,170 @@
       "max_attempts": 2,
       "service_account": "skia-external-gm-uploader@skia-swarming-bots.iam.gserviceaccount.com"
     },
+    "Upload-Test-Win11-Clang-GCE-CPU-AVX2-x86_64-Debug-All-NativeFonts": {
+      "caches": [
+        {
+          "name": "vpython3",
+          "path": "cache/vpython3"
+        }
+      ],
+      "casSpec": "run-recipe",
+      "cipd_packages": [
+        {
+          "name": "infra/3pp/tools/cpython3/${platform}",
+          "path": "cipd_bin_packages/cpython3",
+          "version": "version:3@3.11.9.chromium.36"
+        },
+        {
+          "name": "infra/tools/luci-auth/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "git_revision:aaf80ec8202c91ad9c7aa20ee3841d00d4a7d51c"
+        },
+        {
+          "name": "infra/tools/luci/kitchen/${platform}",
+          "path": ".",
+          "version": "git_revision:aaf80ec8202c91ad9c7aa20ee3841d00d4a7d51c"
+        },
+        {
+          "name": "infra/tools/luci/vpython3/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "git_revision:aaf80ec8202c91ad9c7aa20ee3841d00d4a7d51c"
+        },
+        {
+          "name": "skia/bots/gsutil",
+          "path": "gsutil",
+          "version": "version:0"
+        }
+      ],
+      "command": [
+        "cipd_bin_packages/vpython3${EXECUTABLE_SUFFIX}",
+        "-u",
+        "skia/infra/bots/run_recipe.py",
+        "${ISOLATED_OUTDIR}",
+        "upload_dm_results",
+        "{\"$kitchen\":{\"devshell\":true,\"git_auth\":true},\"buildbucket_build_id\":\"<(BUILDBUCKET_BUILD_ID)\",\"buildername\":\"Test-Win11-Clang-GCE-CPU-AVX2-x86_64-Debug-All-NativeFonts\",\"gs_bucket\":\"skia-infra-gm\",\"patch_issue\":\"<(ISSUE_INT)\",\"patch_ref\":\"<(PATCH_REF)\",\"patch_repo\":\"<(PATCH_REPO)\",\"patch_set\":\"<(PATCHSET_INT)\",\"patch_storage\":\"<(PATCH_STORAGE)\",\"repository\":\"<(REPO)\",\"revision\":\"<(REVISION)\",\"swarm_out_dir\":\"output_ignored\",\"task_id\":\"<(TASK_ID)\"}",
+        "skia"
+      ],
+      "dependencies": [
+        "Housekeeper-PerCommit-BundleRecipes",
+        "Test-Win11-Clang-GCE-CPU-AVX2-x86_64-Debug-All-NativeFonts"
+      ],
+      "dimensions": [
+        "cpu:x86-64-Haswell_GCE",
+        "gpu:none",
+        "machine_type:n1-highmem-2",
+        "os:Ubuntu-24.04",
+        "pool:Skia"
+      ],
+      "environment": {
+        "RECIPES_USE_PY3": "true",
+        "VPYTHON_LOG_TRACE": "1"
+      },
+      "env_prefixes": {
+        "PATH": [
+          "cipd_bin_packages",
+          "cipd_bin_packages/bin",
+          "cipd_bin_packages/cpython3",
+          "cipd_bin_packages/cpython3/bin",
+          "gsutil/gsutil"
+        ],
+        "VPYTHON_DEFAULT_SPEC": [
+          "skia/.vpython3"
+        ],
+        "VPYTHON_VIRTUALENV_ROOT": [
+          "cache/vpython3"
+        ]
+      },
+      "execution_timeout_ns": 3600000000000,
+      "extra_tags": {
+        "log_location": "logdog://logs.chromium.org/skia/${SWARMING_TASK_ID}/+/annotations"
+      },
+      "io_timeout_ns": 3600000000000,
+      "max_attempts": 2,
+      "service_account": "skia-external-gm-uploader@skia-swarming-bots.iam.gserviceaccount.com"
+    },
+    "Upload-Test-Win11-Clang-GCE-CPU-AVX2-x86_64-Debug-All-NativeFonts_DWriteCore": {
+      "caches": [
+        {
+          "name": "vpython3",
+          "path": "cache/vpython3"
+        }
+      ],
+      "casSpec": "run-recipe",
+      "cipd_packages": [
+        {
+          "name": "infra/3pp/tools/cpython3/${platform}",
+          "path": "cipd_bin_packages/cpython3",
+          "version": "version:3@3.11.9.chromium.36"
+        },
+        {
+          "name": "infra/tools/luci-auth/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "git_revision:aaf80ec8202c91ad9c7aa20ee3841d00d4a7d51c"
+        },
+        {
+          "name": "infra/tools/luci/kitchen/${platform}",
+          "path": ".",
+          "version": "git_revision:aaf80ec8202c91ad9c7aa20ee3841d00d4a7d51c"
+        },
+        {
+          "name": "infra/tools/luci/vpython3/${platform}",
+          "path": "cipd_bin_packages",
+          "version": "git_revision:aaf80ec8202c91ad9c7aa20ee3841d00d4a7d51c"
+        },
+        {
+          "name": "skia/bots/gsutil",
+          "path": "gsutil",
+          "version": "version:0"
+        }
+      ],
+      "command": [
+        "cipd_bin_packages/vpython3${EXECUTABLE_SUFFIX}",
+        "-u",
+        "skia/infra/bots/run_recipe.py",
+        "${ISOLATED_OUTDIR}",
+        "upload_dm_results",
+        "{\"$kitchen\":{\"devshell\":true,\"git_auth\":true},\"buildbucket_build_id\":\"<(BUILDBUCKET_BUILD_ID)\",\"buildername\":\"Test-Win11-Clang-GCE-CPU-AVX2-x86_64-Debug-All-NativeFonts_DWriteCore\",\"gs_bucket\":\"skia-infra-gm\",\"patch_issue\":\"<(ISSUE_INT)\",\"patch_ref\":\"<(PATCH_REF)\",\"patch_repo\":\"<(PATCH_REPO)\",\"patch_set\":\"<(PATCHSET_INT)\",\"patch_storage\":\"<(PATCH_STORAGE)\",\"repository\":\"<(REPO)\",\"revision\":\"<(REVISION)\",\"swarm_out_dir\":\"output_ignored\",\"task_id\":\"<(TASK_ID)\"}",
+        "skia"
+      ],
+      "dependencies": [
+        "Housekeeper-PerCommit-BundleRecipes",
+        "Test-Win11-Clang-GCE-CPU-AVX2-x86_64-Debug-All-NativeFonts_DWriteCore"
+      ],
+      "dimensions": [
+        "cpu:x86-64-Haswell_GCE",
+        "gpu:none",
+        "machine_type:n1-highmem-2",
+        "os:Ubuntu-24.04",
+        "pool:Skia"
+      ],
+      "environment": {
+        "RECIPES_USE_PY3": "true",
+        "VPYTHON_LOG_TRACE": "1"
+      },
+      "env_prefixes": {
+        "PATH": [
+          "cipd_bin_packages",
+          "cipd_bin_packages/bin",
+          "cipd_bin_packages/cpython3",
+          "cipd_bin_packages/cpython3/bin",
+          "gsutil/gsutil"
+        ],
+        "VPYTHON_DEFAULT_SPEC": [
+          "skia/.vpython3"
+        ],
+        "VPYTHON_VIRTUALENV_ROOT": [
+          "cache/vpython3"
+        ]
+      },
+      "execution_timeout_ns": 3600000000000,
+      "extra_tags": {
+        "log_location": "logdog://logs.chromium.org/skia/${SWARMING_TASK_ID}/+/annotations"
+      },
+      "io_timeout_ns": 3600000000000,
+      "max_attempts": 2,
+      "service_account": "skia-external-gm-uploader@skia-swarming-bots.iam.gserviceaccount.com"
+    },
     "Upload-Test-Win11-Clang-GCE-CPU-AVX2-x86_64-Release-All": {
       "caches": [
         {
@@ -81038,170 +81428,6 @@
       "dependencies": [
         "Housekeeper-PerCommit-BundleRecipes",
         "Test-Win11-Clang-NUC11TZi5-GPU-IntelIrisXe-x86_64-Release-All-Vulkan"
-      ],
-      "dimensions": [
-        "cpu:x86-64-Haswell_GCE",
-        "gpu:none",
-        "machine_type:n1-highmem-2",
-        "os:Ubuntu-24.04",
-        "pool:Skia"
-      ],
-      "environment": {
-        "RECIPES_USE_PY3": "true",
-        "VPYTHON_LOG_TRACE": "1"
-      },
-      "env_prefixes": {
-        "PATH": [
-          "cipd_bin_packages",
-          "cipd_bin_packages/bin",
-          "cipd_bin_packages/cpython3",
-          "cipd_bin_packages/cpython3/bin",
-          "gsutil/gsutil"
-        ],
-        "VPYTHON_DEFAULT_SPEC": [
-          "skia/.vpython3"
-        ],
-        "VPYTHON_VIRTUALENV_ROOT": [
-          "cache/vpython3"
-        ]
-      },
-      "execution_timeout_ns": 3600000000000,
-      "extra_tags": {
-        "log_location": "logdog://logs.chromium.org/skia/${SWARMING_TASK_ID}/+/annotations"
-      },
-      "io_timeout_ns": 3600000000000,
-      "max_attempts": 2,
-      "service_account": "skia-external-gm-uploader@skia-swarming-bots.iam.gserviceaccount.com"
-    },
-    "Upload-Test-Win11-Clang-NUC5i7RYH-CPU-AVX2-x86_64-Debug-All-NativeFonts": {
-      "caches": [
-        {
-          "name": "vpython3",
-          "path": "cache/vpython3"
-        }
-      ],
-      "casSpec": "run-recipe",
-      "cipd_packages": [
-        {
-          "name": "infra/3pp/tools/cpython3/${platform}",
-          "path": "cipd_bin_packages/cpython3",
-          "version": "version:3@3.11.9.chromium.36"
-        },
-        {
-          "name": "infra/tools/luci-auth/${platform}",
-          "path": "cipd_bin_packages",
-          "version": "git_revision:aaf80ec8202c91ad9c7aa20ee3841d00d4a7d51c"
-        },
-        {
-          "name": "infra/tools/luci/kitchen/${platform}",
-          "path": ".",
-          "version": "git_revision:aaf80ec8202c91ad9c7aa20ee3841d00d4a7d51c"
-        },
-        {
-          "name": "infra/tools/luci/vpython3/${platform}",
-          "path": "cipd_bin_packages",
-          "version": "git_revision:aaf80ec8202c91ad9c7aa20ee3841d00d4a7d51c"
-        },
-        {
-          "name": "skia/bots/gsutil",
-          "path": "gsutil",
-          "version": "version:0"
-        }
-      ],
-      "command": [
-        "cipd_bin_packages/vpython3${EXECUTABLE_SUFFIX}",
-        "-u",
-        "skia/infra/bots/run_recipe.py",
-        "${ISOLATED_OUTDIR}",
-        "upload_dm_results",
-        "{\"$kitchen\":{\"devshell\":true,\"git_auth\":true},\"buildbucket_build_id\":\"<(BUILDBUCKET_BUILD_ID)\",\"buildername\":\"Test-Win11-Clang-NUC5i7RYH-CPU-AVX2-x86_64-Debug-All-NativeFonts\",\"gs_bucket\":\"skia-infra-gm\",\"patch_issue\":\"<(ISSUE_INT)\",\"patch_ref\":\"<(PATCH_REF)\",\"patch_repo\":\"<(PATCH_REPO)\",\"patch_set\":\"<(PATCHSET_INT)\",\"patch_storage\":\"<(PATCH_STORAGE)\",\"repository\":\"<(REPO)\",\"revision\":\"<(REVISION)\",\"swarm_out_dir\":\"output_ignored\",\"task_id\":\"<(TASK_ID)\"}",
-        "skia"
-      ],
-      "dependencies": [
-        "Housekeeper-PerCommit-BundleRecipes",
-        "Test-Win11-Clang-NUC5i7RYH-CPU-AVX2-x86_64-Debug-All-NativeFonts"
-      ],
-      "dimensions": [
-        "cpu:x86-64-Haswell_GCE",
-        "gpu:none",
-        "machine_type:n1-highmem-2",
-        "os:Ubuntu-24.04",
-        "pool:Skia"
-      ],
-      "environment": {
-        "RECIPES_USE_PY3": "true",
-        "VPYTHON_LOG_TRACE": "1"
-      },
-      "env_prefixes": {
-        "PATH": [
-          "cipd_bin_packages",
-          "cipd_bin_packages/bin",
-          "cipd_bin_packages/cpython3",
-          "cipd_bin_packages/cpython3/bin",
-          "gsutil/gsutil"
-        ],
-        "VPYTHON_DEFAULT_SPEC": [
-          "skia/.vpython3"
-        ],
-        "VPYTHON_VIRTUALENV_ROOT": [
-          "cache/vpython3"
-        ]
-      },
-      "execution_timeout_ns": 3600000000000,
-      "extra_tags": {
-        "log_location": "logdog://logs.chromium.org/skia/${SWARMING_TASK_ID}/+/annotations"
-      },
-      "io_timeout_ns": 3600000000000,
-      "max_attempts": 2,
-      "service_account": "skia-external-gm-uploader@skia-swarming-bots.iam.gserviceaccount.com"
-    },
-    "Upload-Test-Win11-Clang-NUC5i7RYH-CPU-AVX2-x86_64-Debug-All-NativeFonts_DWriteCore": {
-      "caches": [
-        {
-          "name": "vpython3",
-          "path": "cache/vpython3"
-        }
-      ],
-      "casSpec": "run-recipe",
-      "cipd_packages": [
-        {
-          "name": "infra/3pp/tools/cpython3/${platform}",
-          "path": "cipd_bin_packages/cpython3",
-          "version": "version:3@3.11.9.chromium.36"
-        },
-        {
-          "name": "infra/tools/luci-auth/${platform}",
-          "path": "cipd_bin_packages",
-          "version": "git_revision:aaf80ec8202c91ad9c7aa20ee3841d00d4a7d51c"
-        },
-        {
-          "name": "infra/tools/luci/kitchen/${platform}",
-          "path": ".",
-          "version": "git_revision:aaf80ec8202c91ad9c7aa20ee3841d00d4a7d51c"
-        },
-        {
-          "name": "infra/tools/luci/vpython3/${platform}",
-          "path": "cipd_bin_packages",
-          "version": "git_revision:aaf80ec8202c91ad9c7aa20ee3841d00d4a7d51c"
-        },
-        {
-          "name": "skia/bots/gsutil",
-          "path": "gsutil",
-          "version": "version:0"
-        }
-      ],
-      "command": [
-        "cipd_bin_packages/vpython3${EXECUTABLE_SUFFIX}",
-        "-u",
-        "skia/infra/bots/run_recipe.py",
-        "${ISOLATED_OUTDIR}",
-        "upload_dm_results",
-        "{\"$kitchen\":{\"devshell\":true,\"git_auth\":true},\"buildbucket_build_id\":\"<(BUILDBUCKET_BUILD_ID)\",\"buildername\":\"Test-Win11-Clang-NUC5i7RYH-CPU-AVX2-x86_64-Debug-All-NativeFonts_DWriteCore\",\"gs_bucket\":\"skia-infra-gm\",\"patch_issue\":\"<(ISSUE_INT)\",\"patch_ref\":\"<(PATCH_REF)\",\"patch_repo\":\"<(PATCH_REPO)\",\"patch_set\":\"<(PATCHSET_INT)\",\"patch_storage\":\"<(PATCH_STORAGE)\",\"repository\":\"<(REPO)\",\"revision\":\"<(REVISION)\",\"swarm_out_dir\":\"output_ignored\",\"task_id\":\"<(TASK_ID)\"}",
-        "skia"
-      ],
-      "dependencies": [
-        "Housekeeper-PerCommit-BundleRecipes",
-        "Test-Win11-Clang-NUC5i7RYH-CPU-AVX2-x86_64-Debug-All-NativeFonts_DWriteCore"
       ],
       "dimensions": [
         "cpu:x86-64-Haswell_GCE",
