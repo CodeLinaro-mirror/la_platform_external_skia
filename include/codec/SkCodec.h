@@ -147,12 +147,6 @@ public:
          *  SkCodec should choose one of the image sequences for animation.
          */
         kPreferAnimation,
-// QTI_BEGIN: 2025-08-13: Video: Skia: Temporarily fallback HEIF decoding path to legacy libheif
-        /**
-         * WA: create SkCrabbyAvif codec instead of SkHeifCodec
-         */
-        kPreferCrabbyAvif,
-// QTI_END: 2025-08-13: Video: Skia: Temporarily fallback HEIF decoding path to legacy libheif
     };
 
     /**
