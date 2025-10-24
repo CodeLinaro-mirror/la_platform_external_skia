@@ -41,7 +41,7 @@ class StrokeStyle;
 class Task;
 class Transform;
 class UploadList;
-struct MipLevel;
+class UploadSource;
 
 /**
  * DrawContext records draw commands into a specific Surface, via a general task graph
@@ -79,13 +79,15 @@ public:
                     const Clip& clip,
                     DrawOrder ordering,
                     const PaintParams* paint,
-                    const StrokeStyle* stroke);
+                    const StrokeStyle* stroke,
+                    bool dependsOnDst,
+                    bool dstReadReq);
 
     bool recordUpload(Recorder* recorder,
                       sk_sp<TextureProxy> targetProxy,
                       const SkColorInfo& srcColorInfo,
                       const SkColorInfo& dstColorInfo,
-                      const std::vector<MipLevel>& levels,
+                      const UploadSource& source,
                       const SkIRect& dstRect,
                       std::unique_ptr<ConditionalUploadContext>);
 

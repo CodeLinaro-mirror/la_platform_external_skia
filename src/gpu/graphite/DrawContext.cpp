@@ -144,30 +144,34 @@ void DrawContext::recordDraw(const Renderer* renderer,
                              const Clip& clip,
                              DrawOrder ordering,
                              const PaintParams* paint,
-                             const StrokeStyle* stroke) {
+                             const StrokeStyle* stroke,
+                             bool dependsOnDst,
+                             bool dstReadReq) {
     SkASSERTF(SkIRect::MakeSize(this->imageInfo().dimensions()).contains(clip.scissor()),
               "Image %dx%d, scissor %d,%d,%d,%d",
               this->imageInfo().width(), this->imageInfo().height(),
               clip.scissor().left(), clip.scissor().top(),
               clip.scissor().right(), clip.scissor().bottom());
-    fPendingDraws->recordDraw(renderer, localToDevice, geometry, clip, ordering, paint, stroke);
+    fPendingDraws->recordDraw(renderer, localToDevice, geometry, clip, ordering, paint, stroke,
+                              dependsOnDst, dstReadReq);
 }
 
 bool DrawContext::recordUpload(Recorder* recorder,
                                sk_sp<TextureProxy> targetProxy,
                                const SkColorInfo& srcColorInfo,
                                const SkColorInfo& dstColorInfo,
-                               const std::vector<MipLevel>& levels,
+                               const UploadSource& source,
                                const SkIRect& dstRect,
                                std::unique_ptr<ConditionalUploadContext> condContext) {
     // Our caller should have clipped to the bounds of the surface already.
     SkASSERT(targetProxy->isFullyLazy() ||
              SkIRect::MakeSize(targetProxy->dimensions()).contains(dstRect));
+    SkASSERT(source.isValid());
     return fPendingUploads->recordUpload(recorder,
                                          std::move(targetProxy),
                                          srcColorInfo,
                                          dstColorInfo,
-                                         levels,
+                                         source,
                                          dstRect,
                                          std::move(condContext));
 }

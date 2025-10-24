@@ -46,10 +46,6 @@
 #include "include/codec/SkGifDecoder.h"
 #endif
 
-#if defined(SK_HAS_HEIF_LIBRARY)
-#include "include/android/SkHeifDecoder.h"
-#endif
-
 #if defined(SK_CODEC_DECODES_ICO)
 #include "include/codec/SkIcoDecoder.h"
 #endif
@@ -64,6 +60,8 @@
 
 #if defined(SK_CODEC_DECODES_PNG_WITH_LIBPNG)
 #include "include/codec/SkPngDecoder.h"
+#elif defined(SK_CODEC_DECODES_PNG_WITH_RUST)
+#include "include/codec/SkPngRustDecoder.h"
 #endif
 
 #if defined(SK_CODEC_DECODES_RAW)
@@ -94,6 +92,8 @@ static std::vector<Decoder>* get_decoders_for_editing() {
         if (decoders->empty()) {
 #if defined(SK_CODEC_DECODES_PNG_WITH_LIBPNG)
             decoders->push_back(SkPngDecoder::Decoder());
+#elif defined(SK_CODEC_DECODES_PNG_WITH_RUST)
+            decoders->push_back(SkPngRustDecoder::Decoder());
 #endif
 #if defined(SK_CODEC_DECODES_JPEG)
             decoders->push_back(SkJpegDecoder::Decoder());
@@ -112,10 +112,6 @@ static std::vector<Decoder>* get_decoders_for_editing() {
 #endif
 #if defined(SK_CODEC_DECODES_WBMP)
             decoders->push_back(SkWbmpDecoder::Decoder());
-#endif
-#if defined(SK_HAS_HEIF_LIBRARY)
-            // Temporarily fallback to legacy libheif path if this lib exist
-            decoders->push_back(SkHeifDecoder::Decoder());
 #endif
 #if defined(SK_CODEC_DECODES_AVIF)
 #if defined(SK_BUILD_FOR_ANDROID_FRAMEWORK)

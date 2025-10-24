@@ -23,7 +23,6 @@ class Context;
 class GraphicsPipeline;
 class ResourceProvider;
 class RuntimeEffectDictionary;
-class TextureProxy;
 
 /**
  * DrawTask is a collection of subtasks that are executed in order to produce some intended
@@ -37,7 +36,7 @@ public:
 
     Status prepareResources(ResourceProvider*,
                             ScratchResourceManager*,
-                            const RuntimeEffectDictionary*) override;
+                            sk_sp<const RuntimeEffectDictionary>) override;
 
     Status addCommands(Context*, CommandBuffer*, ReplayTargetData) override;
 

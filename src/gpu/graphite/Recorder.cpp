@@ -27,6 +27,7 @@
 #include "src/gpu/AtlasTypes.h"
 #include "src/gpu/GpuTypesPriv.h"
 #include "src/gpu/RefCntedCallback.h"
+#include "src/gpu/Token.h"
 #include "src/gpu/graphite/AtlasProvider.h"
 #include "src/gpu/graphite/BufferManager.h"
 #include "src/gpu/graphite/Caps.h"
@@ -112,7 +113,7 @@ Recorder::Recorder(sk_sp<SharedContext> sharedContext,
                    const RecorderOptions& options,
                    const Context* context)
         : fSharedContext(std::move(sharedContext))
-        , fRuntimeEffectDict(std::make_unique<RuntimeEffectDictionary>())
+        , fRuntimeEffectDict(sk_make_sp<RuntimeEffectDictionary>())
         , fRootTaskList(new TaskList)
         , fRootUploads(new UploadList)
         , fFloatStorageManager(sk_make_sp<FloatStorageManager>())
@@ -228,7 +229,7 @@ std::unique_ptr<Recording> Recorder::snap() {
     // kDiscard will return a non-null Recording that has no tasks in it.
     valid &= recording->priv().prepareResources(fResourceProvider,
                                                 &scratchManager,
-                                                fRuntimeEffectDict.get());
+                                                fRuntimeEffectDict);
     if (!valid) {
         recording = nullptr;
         fAtlasProvider->invalidateAtlases();
@@ -239,7 +240,7 @@ std::unique_ptr<Recording> Recorder::snap() {
     fResourceProvider->forceProcessReturnedResources();
 
     // Remaining cleanup that must always happen regardless of success or failure
-    fRuntimeEffectDict->reset();
+    fRuntimeEffectDict = sk_make_sp<RuntimeEffectDictionary>();
     fProxyReadCounts = std::make_unique<ProxyReadCountMap>();
     fFloatStorageManager = sk_make_sp<FloatStorageManager>();
     if (!fRequireOrderedRecordings) {
@@ -354,8 +355,7 @@ bool Recorder::updateBackendTexture(const BackendTexture& backendTex,
     // If the texture has MIP levels then we require that the full set is overwritten.
     int numExpectedLevels = 1;
     if (backendTex.info().mipmapped() == Mipmapped::kYes) {
-        numExpectedLevels = SkMipmap::ComputeLevelCount(backendTex.dimensions().width(),
-                                                        backendTex.dimensions().height()) + 1;
+        numExpectedLevels = SkMipmap::ComputeLevelCount(backendTex.dimensions()) + 1;
     }
     if (numLevels != numExpectedLevels) {
         return false;
@@ -373,8 +373,6 @@ bool Recorder::updateBackendTexture(const BackendTexture& backendTex,
     }
     texture->setReleaseCallback(std::move(releaseHelper));
 
-    sk_sp<TextureProxy> proxy = TextureProxy::Wrap(std::move(texture));
-
     std::vector<MipLevel> mipLevels;
     mipLevels.resize(numLevels);
 
@@ -386,14 +384,31 @@ bool Recorder::updateBackendTexture(const BackendTexture& backendTex,
         mipLevels[i].fRowBytes = srcData[i].rowBytes();
     }
 
+    sk_sp<TextureProxy> proxy = TextureProxy::Wrap(std::move(texture));
+
     // Src and dst colorInfo are the same
     const SkColorInfo& colorInfo = srcData[0].info().colorInfo();
+
+    const SkIRect dimensions = SkIRect::MakeSize(backendTex.dimensions());
+    UploadSource uploadSource = UploadSource::Make(
+            this->priv().caps(), *proxy, colorInfo, colorInfo, mipLevels, dimensions);
+    if (!uploadSource.isValid()) {
+        SKGPU_LOG_E("Recorder::updateBackendTexture: Could not create UploadSource");
+        return false;
+    }
+
+    // Attempt to update the texture directly on the host if possible.
+    if (uploadSource.canUploadOnHost()) {
+        return proxy->texture()->uploadDataOnHost(uploadSource, dimensions);
+    }
+
     // Add UploadTask to Recorder
     UploadInstance upload = UploadInstance::Make(this,
                                                  std::move(proxy),
-                                                 colorInfo, colorInfo,
-                                                 mipLevels,
-                                                 SkIRect::MakeSize(backendTex.dimensions()),
+                                                 colorInfo,
+                                                 colorInfo,
+                                                 uploadSource,
+                                                 dimensions,
                                                  std::make_unique<ImageUploadContext>());
     if (!upload.isValid()) {
         SKGPU_LOG_E("Recorder::updateBackendTexture: Could not create UploadInstance");
@@ -434,13 +449,23 @@ bool Recorder::updateCompressedBackendTexture(const BackendTexture& backendTex,
 
     sk_sp<TextureProxy> proxy = TextureProxy::Wrap(std::move(texture));
 
+    UploadSource uploadSource =
+            UploadSource::MakeCompressed(this->priv().caps(), *proxy, data, dataSize);
+    if (!uploadSource.isValid()) {
+        SKGPU_LOG_E("Recorder::updateBackendTexture: Could not create compressed UploadSource");
+        return false;
+    }
+
+    // Attempt to update the texture directly on the host if possible.
+    if (uploadSource.canUploadOnHost()) {
+        return proxy->texture()->uploadDataOnHost(uploadSource,
+                                                  SkIRect::MakeSize(proxy->dimensions()));
+    }
+
     // Add UploadTask to Recorder
-    UploadInstance upload = UploadInstance::MakeCompressed(this,
-                                                           std::move(proxy),
-                                                           data,
-                                                           dataSize);
+    UploadInstance upload = UploadInstance::MakeCompressed(this, std::move(proxy), uploadSource);
     if (!upload.isValid()) {
-        SKGPU_LOG_E("Recorder::updateBackendTexture: Could not create UploadInstance");
+        SKGPU_LOG_E("Recorder::updateBackendTexture: Could not create compressed UploadInstance");
         return false;
     }
     sk_sp<Task> uploadTask = UploadTask::Make(std::move(upload));
@@ -520,6 +545,10 @@ void Recorder::dumpMemoryStatistics(SkTraceMemoryDump* traceMemoryDump) const {
     fResourceProvider->dumpMemoryStatistics(traceMemoryDump);
     // TODO: What is the graphite equivalent for the text blob cache and how do we print out its
     // used bytes here (see Ganesh implementation).
+}
+
+sk_sp<RuntimeEffectDictionary> RecorderPriv::runtimeEffectDictionary() {
+    return fRecorder->fRuntimeEffectDict;
 }
 
 void RecorderPriv::addPendingRead(const TextureProxy* proxy) {

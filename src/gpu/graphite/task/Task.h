@@ -11,7 +11,9 @@
 #include "include/core/SkPoint.h"
 #include "include/core/SkRect.h"
 #include "include/core/SkRefCnt.h"
+#include "src/gpu/Token.h"
 #include "src/gpu/graphite/Log.h"
+#include "src/gpu/graphite/RuntimeEffectDictionary.h"
 
 #include <functional>
 
@@ -21,7 +23,6 @@ class CommandBuffer;
 class Context;
 class GraphicsPipeline;
 class ResourceProvider;
-class RuntimeEffectDictionary;
 class ScratchResourceManager;
 class Texture;
 class TextureProxy;
@@ -56,7 +57,7 @@ public:
     // Recorder.
     virtual Status prepareResources(ResourceProvider*,
                                     ScratchResourceManager*,
-                                    const RuntimeEffectDictionary*) = 0;
+                                    sk_sp<const RuntimeEffectDictionary>) = 0;
 
     // Returns true on success; false on failure.
     virtual Status addCommands(Context*, CommandBuffer*, ReplayTargetData) = 0;

@@ -47,6 +47,10 @@ struct SkPathVerbAnalysis {
 
 class SkPathPriv {
 public:
+    static SkPathConvexity ComputeConvexity(SkSpan<const SkPoint> pts,
+                                            SkSpan<const SkPathVerb> points,
+                                            SkSpan<const float> conicWeights);
+
     static uint8_t ComputeSegmentMask(SkSpan<const SkPathVerb>);
 
     static SkPathVerbAnalysis AnalyzeVerbs(SkSpan<const SkPathVerb> verbs);
@@ -77,6 +81,7 @@ public:
      *  or the contour is known to be convex, return kUnknown. If the direction was determined,
      *  it is cached to make subsequent calls return quickly.
      */
+    static SkPathFirstDirection ComputeFirstDirection(const SkPathRaw&);
     static SkPathFirstDirection ComputeFirstDirection(const SkPath&);
 
     static bool IsClosedSingleContour(SkSpan<const SkPathVerb> verbs) {
@@ -136,7 +141,7 @@ public:
      * Creates a path from arc params using the semantics of SkCanvas::drawArc. This function
      * assumes empty ovals and zero sweeps have already been filtered out.
      */
-    static void CreateDrawArcPath(SkPath* path, const SkArc& arc, bool isFillNoPathEffect);
+    static SkPath CreateDrawArcPath(const SkArc& arc, bool isFillNoPathEffect);
 
     /**
      * Determines whether an arc produced by CreateDrawArcPath will be convex. Assumes a non-empty
@@ -313,10 +318,6 @@ public:
                                                     SkSpan<const SkPathVerb> vbSpan,
                                                     bool allowPartial);
 
-    static bool IsRectContour(const SkPath&, bool allowPartial, int* currVerb,
-                              const SkPoint** ptsPtr, bool* isClosed, SkPathDirection* direction,
-                              SkRect* rect);
-
     /** Returns true if SkPath is equivalent to nested SkRect pair when filled.
      If false, rect and dirs are unchanged.
      If true, rect and dirs are written to if not nullptr:
@@ -328,8 +329,14 @@ public:
      @param dirs  storage for SkPathDirection pair; may be nullptr
      @return      true if SkPath contains nested SkRect pair
      */
-    static bool IsNestedFillRects(const SkPath&, SkRect rect[2],
+    static bool IsNestedFillRects(const SkPathRaw&, SkRect rect[2],
                                   SkPathDirection dirs[2] = nullptr);
+
+    static bool IsNestedFillRects(const SkPath& path, SkRect rect[2],
+                                  SkPathDirection dirs[2] = nullptr) {
+        return IsNestedFillRects(Raw(path), rect, dirs);
+    }
+
 
     static bool IsInverseFillType(SkPathFillType fill) {
         return (static_cast<int>(fill) & 2) != 0;
@@ -426,14 +433,15 @@ public:
     }
 
     static SkPathRaw Raw(const SkPath& path) {
+        const SkPathRef* ref = path.fPathRef.get();
         return {
-            path.fPathRef->fPoints,
-            path.fPathRef->verbs(),
-            path.fPathRef->fConicWeights,
-            path.getBounds(),
+            ref->pointSpan(),
+            ref->verbs(),
+            ref->conicSpan(),
+            ref->getBounds(),
             path.getFillType(),
             path.isConvex(),
-            SkTo<uint8_t>(path.getSegmentMasks()),
+            SkTo<uint8_t>(ref->getSegmentMasks()),
         };
     }
 
@@ -444,7 +452,7 @@ public:
             builder.conicWeights(),
             builder.computeBounds(),
             builder.fillType(),
-            builder.fConvexity == SkPathConvexity::kConvex,
+            SkPathConvexity_IsConvex(builder.fConvexity),
             SkTo<uint8_t>(builder.fSegmentMask),
         };
     }

@@ -175,7 +175,6 @@ bool paint_depends_on_dst(const PaintParams& paintParams) {
             srcIsTransparent = true;
         }
     }
-
     return srcIsTransparent;
 }
 
@@ -705,8 +704,22 @@ bool Device::onWritePixels(const SkPixmap& src, int x, int y) {
     // The new upload will be executed before any new draws are recorded and also ensures that
     // the next call to flushDeviceToRecorder() will produce a non-null DrawTask. If this Device's
     // target is mipmapped, mipmap generation tasks will be added automatically at that point.
-    return fDC->recordUpload(fRecorder, fDC->refTarget(), src.info().colorInfo(),
-                             this->imageInfo().colorInfo(), levels, dstRect, nullptr);
+    const UploadSource uploadSource = UploadSource::Make(fRecorder->priv().caps(),
+                                                         *fDC->refTarget(),
+                                                         src.info().colorInfo(),
+                                                         this->imageInfo().colorInfo(),
+                                                         levels,
+                                                         dstRect);
+    if (!uploadSource.isValid()) {
+        return false;
+    }
+    return fDC->recordUpload(fRecorder,
+                             fDC->refTarget(),
+                             src.info().colorInfo(),
+                             this->imageInfo().colorInfo(),
+                             uploadSource,
+                             dstRect,
+                             nullptr);
 }
 
 
@@ -741,8 +754,7 @@ void Device::android_utils_clipAsRgn(SkRegion* region) const {
         if (e.fShape.isRect() && e.fLocalToDevice.type() == Transform::Type::kIdentity) {
             tmp.setRect(rect_to_pixelbounds(e.fShape.rect()));
         } else {
-            SkPath tmpPath = e.fShape.asPath();
-            tmpPath.transform(e.fLocalToDevice);
+            SkPath tmpPath = e.fShape.asPath().makeTransform(e.fLocalToDevice);
             tmp.setPath(tmpPath, deviceBounds);
         }
 
@@ -1424,8 +1436,7 @@ void Device::drawGeometry(const Transform& localToDevice,
     // issues).
     if (geometry.isShape() && localToDevice.type() == Transform::Type::kPerspective &&
         !is_simple_shape(geometry.shape(), style.getStyle())) {
-        SkPath devicePath = geometry.shape().asPath();
-        devicePath.transform(localToDevice.matrix().asM33());
+        SkPath devicePath = geometry.shape().asPath().makeTransform(localToDevice.matrix().asM33());
         devicePath.setIsVolatile(true);
         this->drawGeometry(Transform::Identity(), Geometry(Shape(devicePath)), paint, style, flags,
                            std::move(primitiveBlender), skipColorXform);
@@ -1481,19 +1492,6 @@ void Device::drawGeometry(const Transform& localToDevice,
     const SkBlenderBase* blender = as_BB(paint.getBlender());
     const std::optional<SkBlendMode> blendMode = blender ? blender->asBlendMode()
                                                          : SkBlendMode::kSrcOver;
-    Coverage rendererCoverage = renderer ? renderer->coverage()
-                                         : Coverage::kSingleChannel;
-    if (clip.needsCoverage() && rendererCoverage == Coverage::kNone) {
-        // Must upgrade to single channel coverage if the clip requires coverage;
-        // but preserve LCD coverage if the Renderer uses that.
-        rendererCoverage = Coverage::kSingleChannel;
-    }
-
-    TextureFormat targetFormat = TextureInfoPriv::ViewFormat(fDC->target()->textureInfo());
-    bool dstReadRequired = !CanUseHardwareBlending(fRecorder->priv().caps(),
-                                                   targetFormat,
-                                                   blendMode,
-                                                   rendererCoverage);
 
     // A primitive blender should be ignored if there is no primitive color to blend against.
     // Additionally, if a renderer emits a primitive color, then a null primitive blender should
@@ -1504,12 +1502,25 @@ void Device::drawGeometry(const Transform& localToDevice,
         primitiveBlender = SkBlender::Mode(SkBlendMode::kSrcOver);
     }
 
+    Coverage rendererCoverage = renderer ? renderer->coverage()
+                                         : Coverage::kSingleChannel;
+    TextureFormat targetFormat = TextureInfoPriv::ViewFormat(fDC->target()->textureInfo());
     PaintParams shading{paint,
                         std::move(primitiveBlender),
                         clip.nonMSAAClip(),
                         sk_ref_sp(clip.shader()),
-                        dstReadRequired,
+                        rendererCoverage,
+                        targetFormat,
                         skipColorXform};
+    if (clip.needsCoverage() && rendererCoverage == Coverage::kNone) {
+        // Must upgrade to single channel coverage if the clip requires coverage;
+        // but preserve LCD coverage if the Renderer uses that.
+        rendererCoverage = Coverage::kSingleChannel;
+    }
+    bool dstReadRequired = !CanUseHardwareBlending(fRecorder->priv().caps(),
+                                                   targetFormat,
+                                                   blendMode,
+                                                   rendererCoverage);
     const bool dependsOnDst = paint_depends_on_dst(shading) ||
                               clip.shader() || !clip.nonMSAAClip().isEmpty();
 
@@ -1686,7 +1697,7 @@ void Device::drawGeometry(const Transform& localToDevice,
         SkASSERT(atlasMask.has_value());
         auto [mask, origin] = *atlasMask;
         fDC->recordDraw(renderer, Transform::Translate(origin.fX, origin.fY), Geometry(mask),
-                        clip, order, &shading, nullptr);
+                        clip, order, &shading, nullptr, dependsOnDst, dstReadRequired);
     } else {
         if (styleType == SkStrokeRec::kStroke_Style ||
             styleType == SkStrokeRec::kHairline_Style ||
@@ -1697,7 +1708,8 @@ void Device::drawGeometry(const Transform& localToDevice,
             fDC->recordDraw(styleType == SkStrokeRec::kStrokeAndFill_Style
                                    ? fRecorder->priv().rendererProvider()->tessellatedStrokes()
                                    : renderer,
-                            localToDevice, geometry, clip, order, &shading, &stroke);
+                            localToDevice, geometry, clip, order, &shading, &stroke, dependsOnDst,
+                            dstReadRequired);
         }
         if (styleType == SkStrokeRec::kFill_Style ||
             styleType == SkStrokeRec::kStrokeAndFill_Style) {
@@ -1711,14 +1723,15 @@ void Device::drawGeometry(const Transform& localToDevice,
                 // we do want to sort the inner fill to maximize overdraw reduction
                 orderWithoutCoverage.reverseDepthAsStencil();
 
-                fDC->recordDraw(fRecorder->priv().rendererProvider()->nonAABounds(),
-                                localToDevice, Geometry(Shape(innerFillBounds)),
-                                clip, orderWithoutCoverage, &shading, nullptr);
+                fDC->recordDraw(fRecorder->priv().rendererProvider()->nonAABounds(), localToDevice,
+                                Geometry(Shape(innerFillBounds)), clip, orderWithoutCoverage,
+                                &shading, nullptr,  dependsOnDst, dstReadRequired);
                 // Force the coverage draw to come after the non-AA draw in order to benefit from
                 // early depth testing.
                 order.dependsOnPaintersOrder(orderWithoutCoverage.paintOrder());
             }
-            fDC->recordDraw(renderer, localToDevice, geometry, clip, order, &shading, nullptr);
+            fDC->recordDraw(renderer, localToDevice, geometry, clip, order, &shading, nullptr,
+                            dependsOnDst, dstReadRequired);
         }
     }
 
@@ -1765,12 +1778,13 @@ void Device::drawClipShape(const Transform& localToDevice,
     // Clips draws are depth-only (null PaintParams), and filled (null StrokeStyle).
     // TODO: Remove this CPU-transform once perspective is supported for all path renderers
     if (localToDevice.type() == Transform::Type::kPerspective) {
-        SkPath devicePath = geometry.shape().asPath();
-        devicePath.transform(localToDevice.matrix().asM33());
+        SkPath devicePath = geometry.shape().asPath().makeTransform(localToDevice.matrix().asM33());
         fDC->recordDraw(renderer, Transform::Identity(), Geometry(Shape(devicePath)), clip, order,
-                        nullptr, nullptr);
+                        /*paint*/nullptr, /*stroke*/nullptr, /*dependsOnDst*/false,
+                        /*dstReadReq*/false);
     } else {
-        fDC->recordDraw(renderer, localToDevice, geometry, clip, order, nullptr, nullptr);
+        fDC->recordDraw(renderer, localToDevice, geometry, clip, order, /*paint*/nullptr,
+                        /*stroke*/nullptr, /*dependsOnDst*/false,  /*dstReadReq*/false);
     }
     // This ensures that draws recorded after this clip shape has been popped off the stack will
     // be unaffected by the Z value the clip shape wrote to the depth attachment.
