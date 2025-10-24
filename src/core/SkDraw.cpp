@@ -1014,8 +1014,6 @@ void Draw::drawPath(const SkPath& origSrcPath,
     std::optional<SkPathRaw> raw;      // will point to either origSrcPath or builder
     bool          doFill = true;
 
-    SkPath scratchPath;
-
     sk_sp<SkPathData> pdata;
 
     if (needsFillPath) {
@@ -1033,17 +1031,19 @@ void Draw::drawPath(const SkPath& origSrcPath,
         }
         doFill = skpathutils::FillPathWithPaint(*pathPtr, *paint, &builder, cullRectPtr, *fCTM);
         builder.transform(*fCTM);
-        raw = SkPathPriv::Raw(builder);
+        raw = SkPathPriv::Raw(builder, SkResolveConvexity::kYes);
     } else {
         SkMatrix matrix = *fCTM;
         if (prePathMatrix) {
             matrix.preConcat(*prePathMatrix);
         }
 
-        raw = SkPathPriv::Raw(origSrcPath);
-        if (raw && !matrix.isIdentity()) {
-            if ((pdata = SkPathData::MakeTransform(*raw, matrix))) {
-                raw = pdata->raw(origSrcPath.getFillType());
+        if (matrix.isIdentity()) {
+            raw = SkPathPriv::Raw(origSrcPath, SkResolveConvexity::kYes);
+        } else {
+            raw = SkPathPriv::Raw(origSrcPath, SkResolveConvexity::kNo);
+            if (raw && (pdata = SkPathData::MakeTransform(*raw, matrix))) {
+                raw = pdata->raw(origSrcPath.getFillType(), SkResolveConvexity::kYes);
             } else {
                 return; // failed to create pdata
             }
