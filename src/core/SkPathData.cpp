@@ -16,6 +16,7 @@
 #include "src/core/SkPathPriv.h"
 #include "src/core/SkPathRawShapes.h"
 
+#include <new>
 #include <optional>
 #include <type_traits>
 
@@ -177,6 +178,10 @@ SkPathData::SkPathData(size_t npts, size_t nvbs, size_t ncns)
     // fBounds is initialized in finishInit()
 }
 
+void SkPathData::operator delete(void* p) {
+    ::operator delete(p);
+}
+
 // NOTE: This only allocates and initializes the span pointers (points, verbs),
 //       it does NOT set the other fields
 sk_sp<SkPathData> SkPathData::Alloc(size_t npts, size_t nvbs, size_t ncns) {
@@ -189,6 +194,7 @@ sk_sp<SkPathData> SkPathData::Alloc(size_t npts, size_t nvbs, size_t ncns) {
     if (auto size = accum.total()) {
         // This trick allows us to just make one allocation, for us and our buffer
         // rather than allocating us and also allocating the buffer (via malloc or new[])
+        // We have the corresponding operator delete() specified as well.
         void* storage = ::operator new (*size);
         sk_sp<SkPathData> path(new (storage) SkPathData(npts, nvbs, ncns));
 
@@ -253,7 +259,13 @@ sk_sp<SkPathData> SkPathData::MakeTransform(const SkPathRaw& src, const SkMatrix
         }
     }
 
-    return result->finishInit(transformedBounds, src.fSegmentMask) ? result : nullptr;
+    if (!result->finishInit(transformedBounds, src.fSegmentMask)) {
+        return nullptr;
+    }
+
+    result->setConvexity(SkPathPriv::TransformConvexity(mx, src.fPoints, src.fConvexity));
+
+    return result;
 }
 
 sk_sp<SkPathData> SkPathData::makeTransform(const SkMatrix& mx) const {
@@ -264,7 +276,7 @@ sk_sp<SkPathData> SkPathData::makeTransform(const SkMatrix& mx) const {
     // not important for transform, just need a value
     const SkPathFillType ft = SkPathFillType::kDefault;
 
-    if (auto result = MakeTransform(this->raw(ft), mx)) {
+    if (auto result = MakeTransform(this->raw(ft, SkResolveConvexity::kNo), mx)) {
         // See if we can maintian our IsA status ...
         if ((fType == SkPathIsAType::kOval || fType == SkPathIsAType::kRRect) &&
             mx.rectStaysRect() && SkPathPriv::IsAxisAligned(fPoints))
@@ -322,8 +334,7 @@ sk_sp<SkPathData> SkPathData::Empty() {
 }
 
 void SkPathData::setupIsA(SkPathIsAType type, SkPathDirection dir, unsigned index) {
-    fConvexity.store((uint8_t)SkPathDirection_ToConvexity(dir),
-                     std::memory_order_relaxed);
+    this->setConvexity(SkPathDirection_ToConvexity(dir));
 
     SkASSERT(type == SkPathIsAType::kOval || type == SkPathIsAType::kRRect);
     fType = type;
@@ -409,14 +420,15 @@ bool SkPathData::isConvex() const {
     return SkPathConvexity_IsConvex(this->getResolvedConvexity());
 }
 
-SkPathRaw SkPathData::raw(SkPathFillType ft) const {
+SkPathRaw SkPathData::raw(SkPathFillType ft, SkResolveConvexity rc) const {
     return {
         fPoints,
         fVerbs,
         fConics,
         fBounds,
         ft,
-        this->isConvex(),
+        rc == SkResolveConvexity::kYes ? this->getResolvedConvexity()
+                                       : this->getConvexityOrUnknown(),
         fSegmentMask,
     };
 }
