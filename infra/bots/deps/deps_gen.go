@@ -102,6 +102,11 @@ var deps = deps_parser.DepsEntries{
 		Version: "e7f2656f161f578e000ec967d4c0cc3fc33c5c52",
 		Path:    "third_party/externals/vulkan-utility-libraries",
 	},
+	"chromium.googlesource.com/external/github.com/KhronosGroup/glslang": {
+		Id:      "chromium.googlesource.com/external/github.com/KhronosGroup/glslang",
+		Version: "1d47ffa8ac4374a19b302021e216a20f22a3de92",
+		Path:    "third_party/externals/glslang",
+	},
 	"chromium.googlesource.com/external/github.com/google/highway": {
 		Id:      "chromium.googlesource.com/external/github.com/google/highway",
 		Version: "424360251cdcfc314cfc528f53c872ecd63af0f0",
@@ -132,6 +137,11 @@ var deps = deps_parser.DepsEntries{
 		Version: "66a3fa9dbdca3b67053a483d130564eabc5fe095",
 		Path:    "third_party/externals/unicodetools",
 	},
+	"chromium.googlesource.com/external/github.com/webgpu-native/webgpu-headers": {
+		Id:      "chromium.googlesource.com/external/github.com/webgpu-native/webgpu-headers",
+		Version: "706853a9da45b8e89b7ea005aa267294d115f8ce",
+		Path:    "third_party/externals/webgpu-headers",
+	},
 	"chromium.googlesource.com/external/gitlab.com/wg1/jpeg-xl": {
 		Id:      "chromium.googlesource.com/external/gitlab.com/wg1/jpeg-xl",
 		Version: "a205468bc5d3a353fb15dae2398a101dff52f2d3",
@@ -144,7 +154,7 @@ var deps = deps_parser.DepsEntries{
 	},
 	"chromium.googlesource.com/vulkan-deps": {
 		Id:      "chromium.googlesource.com/vulkan-deps",
-		Version: "f3586b617bd9b99dd747ed96fa29b8ffd8ff927f",
+		Version: "74082a7143504a11893f1c2290ee5f5feb84375d",
 		Path:    "third_party/externals/vulkan-deps",
 	},
 	"chromium.googlesource.com/webm/libwebp": {
