@@ -3,9 +3,11 @@
  *
  * Use of this source code is governed by a BSD-style license that can be
  * found in the LICENSE file.
+// QTI_BEGIN: 2025-04-18: Performance: Perf: Add QC support for jpeg decode multithread.
  * Changes from Qualcomm Technologies, Inc. are provided under the following license:
  * Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
  * SPDX-License-Identifier: BSD-3-Clause-Clear
+// QTI_END: 2025-04-18: Performance: Perf: Add QC support for jpeg decode multithread.
  */
 
 #include "src/codec/SkJpegCodec.h"
@@ -441,6 +443,7 @@ SkCodec::Result SkJpegCodec::readRows(const SkImageInfo& dstInfo, void* dst, siz
     }
 
     for (int y = 0; y < count; y++) {
+// QTI_BEGIN: 2025-04-18: Performance: Perf: Add QC support for jpeg decode multithread.
         uint32_t lines;
 #ifdef QC_JPEG_MT
         if (QCJPEG_DECODER.mAllSymbolsFound && fDecoderMgr->mQcJpeghandler) {
@@ -452,6 +455,7 @@ SkCodec::Result SkJpegCodec::readRows(const SkImageInfo& dstInfo, void* dst, siz
 #ifdef QC_JPEG_MT
         }
 #endif
+// QTI_END: 2025-04-18: Performance: Perf: Add QC support for jpeg decode multithread.
         if (0 == lines) {
             *rowsDecoded = y;
             return kSuccess;

@@ -18,6 +18,7 @@
 #include "include/core/SkTypes.h"
 #include "include/core/SkYUVAPixmaps.h"
 #include "include/private/SkEncodedInfo.h"
+#include "include/private/SkHdrMetadata.h"
 #include "include/private/base/SkNoncopyable.h"
 #include "modules/skcms/skcms.h"
 
@@ -146,10 +147,12 @@ public:
          *  SkCodec should choose one of the image sequences for animation.
          */
         kPreferAnimation,
+// QTI_BEGIN: 2025-08-13: Video: Skia: Temporarily fallback HEIF decoding path to legacy libheif
         /**
          * WA: create SkCrabbyAvif codec instead of SkHeifCodec
          */
         kPreferCrabbyAvif,
+// QTI_END: 2025-08-13: Video: Skia: Temporarily fallback HEIF decoding path to legacy libheif
     };
 
     /**
@@ -242,6 +245,12 @@ public:
     const skcms_ICCProfile* getICCProfile() const {
         return this->getEncodedInfo().profile();
     }
+
+    /**
+     * Return the HDR metadata associated with this image. Note that even SDR images can include
+     * HDR metadata (e.g, indicating how to inverse tone map when displayed on an HDR display).
+     */
+    const skhdr::Metadata& getHdrMetadata() const { return fEncodedInfo.getHdrMetadata(); }
 
     /**
      * Whether the encoded input uses 16 or more bits per component.
