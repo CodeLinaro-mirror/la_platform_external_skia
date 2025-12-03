@@ -186,10 +186,7 @@ std::unique_ptr<SkCodec> SkCodec::MakeFromStream(
     }
 
     if (selectionPolicy != SelectionPolicy::kPreferStillImage
-// QTI_BEGIN: 2025-08-13: Video: Skia: Temporarily fallback HEIF decoding path to legacy libheif
-            && selectionPolicy != SelectionPolicy::kPreferAnimation
-            && selectionPolicy != SelectionPolicy::kPreferCrabbyAvif) {
-// QTI_END: 2025-08-13: Video: Skia: Temporarily fallback HEIF decoding path to legacy libheif
+            && selectionPolicy != SelectionPolicy::kPreferAnimation) {
         *outResult = kInvalidParameters;
         return nullptr;
     }
@@ -229,12 +226,6 @@ std::unique_ptr<SkCodec> SkCodec::MakeFromStream(
             if (proc.id == "png") {
                 return proc.makeFromStream(std::move(stream), outResult, chunkReader);
             } else if (proc.id == "heif" || proc.id == "gif") {
-// QTI_BEGIN: 2025-08-13: Video: Skia: Temporarily fallback HEIF decoding path to legacy libheif
-                if (selectionPolicy == SelectionPolicy::kPreferCrabbyAvif) {
-                    // Request to create SkCrabbyAvifCodec, skip SkHeifCodec
-                    continue;
-                }
-// QTI_END: 2025-08-13: Video: Skia: Temporarily fallback HEIF decoding path to legacy libheif
                 return proc.makeFromStream(std::move(stream), outResult, &selectionPolicy);
             } else if (proc.id == "raw") {
                 rawFallback = proc.makeFromStream;

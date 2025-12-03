@@ -888,6 +888,7 @@ var androidDeviceInfos = map[string][]string{
 	"Pixel7":          {"panther", "AP4A.241205.013"},
 	"Pixel7Pro":       {"cheetah", "TD1A.221105.002"},
 	"Pixel9":          {"tokay", "AP4A.241205.013"},
+	"Pixel10":         {"frankel", "BD1A.250702.001"},
 	"TecnoSpark3Pro":  {"TECNO-KB8", "PPR1.180610.011"},
 	"Wembley":         {"wembley", "SP2A.220505.008"},
 }
@@ -1297,6 +1298,7 @@ func (b *jobBuilder) compile() string {
 			if b.ExtraConfig("Dawn") {
 				// https://dawn.googlesource.com/dawn/+/516701da8184655a47c92a573cc84da7db5e69d4/generator/dawn_version_generator.py#21
 				b.usesGit()
+				b.usesCMake()
 			}
 
 			// Android bots require a toolchain.

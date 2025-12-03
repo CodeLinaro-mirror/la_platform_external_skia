@@ -21,6 +21,7 @@
 #include "src/base/SkVx.h"
 #include "src/core/SkGeometry.h"
 #include "src/core/SkMatrixPriv.h"
+#include "src/core/SkPathData.h"
 #include "src/core/SkPathEnums.h"
 #include "src/core/SkPathPriv.h"
 #include "src/core/SkPathRawShapes.h"
@@ -105,9 +106,23 @@ SkPathBuilder& SkPathBuilder::operator=(const SkPath& src) {
     return *this;
 }
 
-void SkPathBuilder::incReserve(int extraPtCount, int extraVbCount) {
+bool SkPathBuilder::operator==(const SkPathBuilder& o) const {
+    // quick-accept
+    if (this == &o) {
+        return true;
+    }
+    // quick-reject
+    if (fSegmentMask != o.fSegmentMask || fFillType != o.fFillType) {
+        return false;
+    }
+    // deep compare
+    return fVerbs == o.fVerbs && fPts == o.fPts && fConicWeights == o.fConicWeights;
+}
+
+void SkPathBuilder::incReserve(int extraPtCount, int extraVbCount, int extraCnCount) {
     fPts.reserve_exact(Sk32_sat_add(fPts.size(), extraPtCount));
     fVerbs.reserve_exact(Sk32_sat_add(fVerbs.size(), extraVbCount));
+    fConicWeights.reserve_exact(Sk32_sat_add(fConicWeights.size(), extraCnCount));
 }
 
 std::tuple<SkPoint*, SkScalar*> SkPathBuilder::growForVerbsInPath(const SkPathRef& path) {
@@ -131,10 +146,6 @@ std::tuple<SkPoint*, SkScalar*> SkPathBuilder::growForVerbsInPath(const SkPathRe
     }
 
     return {pts, weights};
-}
-
-SkRect SkPathBuilder::computeBounds() const {
-    return SkRect::BoundsOrEmpty(fPts);
 }
 
 /*
@@ -329,6 +340,39 @@ SkPath SkPathBuilder::detach(const SkMatrix* mx) {
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 
+sk_sp<SkPathData> SkPathBuilder::snapshotData() const {
+    if (fVerbs.size() <= 1) {
+        return SkPathData::Empty();
+    }
+
+    switch (fType) {
+        case SkPathIsAType::kGeneral:
+            break;
+        case SkPathIsAType::kOval:
+            if (auto r = SkRect::Bounds(fPts)) {
+                return SkPathData::Oval(*r, fIsA.fDirection, fIsA.fStartIndex);
+            }
+            return nullptr;
+        case SkPathIsAType::kRRect:
+            if (auto r = SkRect::Bounds(fPts)) {
+                return SkPathData::RRect(SkPathPriv::DeduceRRectFromContour(*r, fPts, fVerbs),
+                                         fIsA.fDirection, fIsA.fStartIndex);
+            }
+            return nullptr;
+    }
+    SkASSERT(fType == SkPathIsAType::kGeneral);
+
+    return SkPathData::Make(fPts, fVerbs, fConicWeights);
+}
+
+sk_sp<SkPathData> SkPathBuilder::detachData() {
+    auto data = this->snapshotData();
+    this->reset();
+    return data;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
+
 static bool arc_is_lone_point(const SkRect& oval, SkScalar startAngle, SkScalar sweepAngle,
                               SkPoint* pt) {
     if (0 == sweepAngle && (0 == startAngle || SkIntToScalar(360) == startAngle)) {
@@ -475,12 +519,10 @@ SkPathBuilder& SkPathBuilder::arcTo(const SkRect& oval, SkScalar startAngle, SkS
     return *this;
 }
 
-SkPathBuilder& SkPathBuilder::rArcTo(SkScalar rx, SkScalar ry, SkScalar xAxisRotate,
-                                     SkPathBuilder::ArcSize largeArc,
-                                     SkPathDirection sweep, SkScalar dx, SkScalar dy) {
+SkPathBuilder& SkPathBuilder::rArcTo(SkPoint r, SkScalar xAxisRotate, ArcSize largeArc,
+                                     SkPathDirection sweep, SkPoint dxdy) {
     const SkPoint currentPoint = this->getLastPt().value_or(SkPoint{0, 0});
-    return this->arcTo({rx, ry}, xAxisRotate, largeArc, sweep,
-                       {currentPoint.fX + dx, currentPoint.fY + dy});
+    return this->arcTo(r, xAxisRotate, largeArc, sweep, currentPoint + dxdy);
 }
 
 SkPathBuilder& SkPathBuilder::addArc(const SkRect& oval, SkScalar startAngle, SkScalar sweepAngle) {
@@ -684,7 +726,7 @@ SkPathIter SkPathBuilder::iter() const {
 }
 
 SkPathBuilder& SkPathBuilder::addRaw(const SkPathRaw& raw) {
-    this->incReserve(raw.points().size(), raw.verbs().size());
+    this->incReserve(raw.points().size(), raw.verbs().size(), raw.conics().size());
 
     for (auto iter = raw.iter(); auto rec = iter.next();) {
         const auto pts = rec->fPoints;
@@ -701,7 +743,7 @@ SkPathBuilder& SkPathBuilder::addRaw(const SkPathRaw& raw) {
 }
 
 SkPathBuilder& SkPathBuilder::addRect(const SkRect& rect, SkPathDirection dir, unsigned index) {
-    const bool wasEmpty = this->isEmpty();
+    const bool wasEmpty = (fSegmentMask == 0);
 
     this->addRaw(SkPathRawShapes::Rect(rect, dir, index));
 
@@ -713,7 +755,7 @@ SkPathBuilder& SkPathBuilder::addRect(const SkRect& rect, SkPathDirection dir, u
 }
 
 SkPathBuilder& SkPathBuilder::addOval(const SkRect& oval, SkPathDirection dir, unsigned index) {
-    const bool wasEmpty = this->isEmpty();
+    const bool wasEmpty = (fSegmentMask == 0);
 
     this->addRaw(SkPathRawShapes::Oval(oval, dir, index));
 
@@ -739,7 +781,7 @@ SkPathBuilder& SkPathBuilder::addRRect(const SkRRect& rrect, SkPathDirection dir
         return this->addOval(bounds, dir, index / 2);
     }
 
-    const bool wasEmpty = this->isEmpty();
+    const bool wasEmpty = (fSegmentMask == 0);
 
     this->addRaw(SkPathRawShapes::RRect(rrect, dir, index));
 
@@ -777,7 +819,7 @@ SkPathBuilder& SkPathBuilder::polylineTo(SkSpan<const SkPoint> pts) {
         this->ensureMove();
 
         const auto count = pts.size();
-        this->incReserve(count, count);
+        this->incReserve(count, count, 0);
         memcpy(fPts.push_back_n(count), pts.data(), count * sizeof(SkPoint));
         memset(fVerbs.push_back_n(count), (uint8_t)SkPathVerb::kLine, count);
         fSegmentMask |= kLine_SkPathSegmentMask;
@@ -816,6 +858,9 @@ SkPathBuilder& SkPathBuilder::addPath(const SkPath& src, const SkMatrix& matrix,
         return *this;
     }
 
+    // We're about to append - clear convexity.
+    fConvexity = SkPathConvexity::kUnknown;
+
     if (SkPath::AddPathMode::kAppend_AddPathMode == mode && !matrix.hasPerspective()) {
         if (src.fLastMoveToIndex >= 0) {
             fLastMoveIndex = src.fLastMoveToIndex + this->countPoints();
@@ -832,7 +877,7 @@ SkPathBuilder& SkPathBuilder::addPath(const SkPath& src, const SkMatrix& matrix,
             memcpy(newWeights, src.fPathRef->conicWeights(), numWeights * sizeof(newWeights[0]));
         }
         fLastMovePoint = fPts.at(fLastMoveIndex);
-        return *this;  // TODO(borenet): dirtyAfterEdit sets convexity and firstDirection.
+        return *this;
     }
 
     SkMatrixPriv::MapPtsProc mapPtsProc = SkMatrixPriv::GetMapPtsProc(matrix);
@@ -968,7 +1013,7 @@ std::optional<SkPoint> SkPathBuilder::getLastPt() const {
         return this->fPts.at(count - 1);
     }
     return std::nullopt;
-};
+}
 
 void SkPathBuilder::setLastPt(SkScalar x, SkScalar y) {
     int count = fPts.size();
@@ -976,6 +1021,14 @@ void SkPathBuilder::setLastPt(SkScalar x, SkScalar y) {
         this->moveTo(x, y);
     } else {
         fPts.at(count-1).set(x, y);
+        fType = SkPathIsAType::kGeneral;
+    }
+}
+
+void SkPathBuilder::setPoint(size_t index, SkPoint p) {
+    if (index < (size_t)fPts.size()) {
+        fPts[index] = p;
+        fType = SkPathIsAType::kGeneral;
     }
 }
 
