@@ -15,10 +15,31 @@
 #include "src/core/SkPathEnums.h"
 #include "src/core/SkPathPriv.h"
 #include "src/core/SkPathRawShapes.h"
+#include "src/core/SkSpanPriv.h"
 
 #include <new>
 #include <optional>
 #include <type_traits>
+
+SkPathData* SkPathData::PeekEmptySingleton() {
+    static SkPathData* gEmpty = SkPathData::MakeNoCheck({}, {}, {}, {}, {}).release();
+    return gEmpty;
+}
+
+static uint32_t next_pathdata_unique_id() {
+    constexpr int kHighBitsToMakeRoomForFillType = 2;
+
+    static std::atomic<int32_t> nextID{1};
+
+    uint32_t id;
+    do {
+        id = nextID.fetch_add(1, std::memory_order_relaxed);
+        // clear the high bits to make room for filltype
+        id <<= kHighBitsToMakeRoomForFillType;
+        id >>= kHighBitsToMakeRoomForFillType;
+    } while (id == 0);
+    return id;
+}
 
 class SkSafeAccumulator {
 public:
@@ -47,20 +68,6 @@ private:
     SkSafeMath fSafe;
     size_t     fTotal;
 };
-
-namespace {
-template <typename T> bool spaneq(SkSpan<T> a, SkSpan<T> b) {
-    if (a.size() != b.size()) {
-        return false;
-    }
-    return std::equal(a.begin(), a.end(), b.begin());
-}
-
-template <typename T> void spancpy(SkSpan<T> dst, SkSpan<const T> src) {
-    SkASSERT(dst.size() == src.size());
-    sk_careful_memcpy(dst.data(), src.data(), src.size_bytes());
-}
-}
 
 const uint8_t gPtsPerVerb[] = {
     1, 1, 2, 2, 3, 0,  // move, line, quad, conic, cubic, close
@@ -143,7 +150,8 @@ static void report_pathdata_make_failure(const char reason[]) {
 // This just sets-up the spans to point inside our allocation
 //
 SkPathData::SkPathData(size_t npts, size_t nvbs, size_t ncns)
-    : fConvexity((uint8_t)SkPathConvexity::kUnknown)
+    : fUniqueID(next_pathdata_unique_id())
+    , fConvexity((uint8_t)SkPathConvexity::kUnknown)
     , fType(SkPathIsAType::kGeneral)
 {
     SkASSERT((npts == 0 && nvbs == 0 && ncns == 0) ||
@@ -178,9 +186,25 @@ SkPathData::SkPathData(size_t npts, size_t nvbs, size_t ncns)
     // fBounds is initialized in finishInit()
 }
 
+SkPathData::~SkPathData() {
+    // We will implicitly call our IDChangeList here, notifying them that we are
+    // being dstroyed.
+    SkDEBUGCODE(fUniqueID = 0xEEEEEEEE;)
+}
+
 void SkPathData::operator delete(void* p) {
     ::operator delete(p);
 }
+
+void SkPathData::addGenIDChangeListener(sk_sp<SkIDChangeListener> listener) const {
+    // our empty singleton is never deleted, so we don't want to add any listeners to it.
+    if (this != SkPathData::PeekEmptySingleton()) {
+        // this method on the list is thread-safe
+        fGenIDChangeListeners.add(std::move(listener));
+    }
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////////
 
 // NOTE: This only allocates and initializes the span pointers (points, verbs),
 //       it does NOT set the other fields
@@ -246,8 +270,8 @@ sk_sp<SkPathData> SkPathData::MakeTransform(const SkPathRaw& src, const SkMatrix
     // Allocate our result, so we can map the new points directly into it
     auto result = Alloc(src.points().size(), src.verbs().size(), src.conics().size());
     mx.mapPoints(result->fPoints, src.points());
-    spancpy(result->fConics, src.conics());
-    spancpy(result->fVerbs,  src.verbs());
+    SkSpanPriv::Copy(result->fConics, src.conics());
+    SkSpanPriv::Copy(result->fVerbs,  src.verbs());
 
     std::optional<SkRect> transformedBounds;
     if (mx.rectStaysRect()) {
@@ -300,9 +324,9 @@ bool operator==(const SkPathData& a, const SkPathData& b) {
         return true;
     }
 
-    return  spaneq(a.fPoints, b.fPoints) &&
-            spaneq(a.fConics, b.fConics) &&
-            spaneq(a.fVerbs,  b.fVerbs);
+    return  SkSpanPriv::EQ(a.fPoints, b.fPoints) &&
+            SkSpanPriv::EQ(a.fConics, b.fConics) &&
+            SkSpanPriv::EQ(a.fVerbs,  b.fVerbs);
 }
 
 /////////////////////////////////////
@@ -317,9 +341,9 @@ sk_sp<SkPathData> SkPathData::MakeNoCheck(SkSpan<const SkPoint> pts,
 
     auto path = Alloc(pts.size(), vbs.size(), conics.size());
 
-    spancpy(path->fPoints, pts);
-    spancpy(path->fConics, conics);
-    spancpy(path->fVerbs,  vbs);
+    SkSpanPriv::Copy(path->fPoints, pts);
+    SkSpanPriv::Copy(path->fConics, conics);
+    SkSpanPriv::Copy(path->fVerbs,  vbs);
 
     return path->finishInit(bounds, segmentMask) ? path : nullptr;
 }
@@ -329,8 +353,7 @@ sk_sp<SkPathData> SkPathData::MakeNoCheck(const SkPathRaw& raw) {
 }
 
 sk_sp<SkPathData> SkPathData::Empty() {
-    static SkPathData* gEmpty = MakeNoCheck({}, {}, {}, {}, {}).release();
-    return sk_ref_sp(gEmpty);
+    return sk_ref_sp(PeekEmptySingleton());
 }
 
 void SkPathData::setupIsA(SkPathIsAType type, SkPathDirection dir, unsigned index) {
@@ -338,6 +361,9 @@ void SkPathData::setupIsA(SkPathIsAType type, SkPathDirection dir, unsigned inde
 
     SkASSERT(type == SkPathIsAType::kOval || type == SkPathIsAType::kRRect);
     fType = type;
+
+    SkASSERT((type == SkPathIsAType::kOval && index < 4) ||
+             (type == SkPathIsAType::kRRect && index < 8));
 
     fIsA.fDirection  = dir;
     fIsA.fStartIndex = SkTo<uint8_t>(index);
@@ -384,7 +410,7 @@ sk_sp<SkPathData> SkPathData::Polygon(SkSpan<const SkPoint> pts, bool isClosed) 
     const size_t nconics = 0;
     auto path = Alloc(pts.size(), nverbs, nconics);
 
-    spancpy(path->fPoints, pts);
+    SkSpanPriv::Copy(path->fPoints, pts);
 
     path->fVerbs[0] = SkPathVerb::kMove;
     for (size_t i = 1; i < pts.size(); ++i) {
@@ -420,6 +446,10 @@ bool SkPathData::isConvex() const {
     return SkPathConvexity_IsConvex(this->getResolvedConvexity());
 }
 
+SkRect SkPathData::computeTightBounds() const {
+    return SkPathPriv::ComputeTightBounds(this->points(), this->verbs(), this->conics());
+}
+
 SkPathRaw SkPathData::raw(SkPathFillType ft, SkResolveConvexity rc) const {
     return {
         fPoints,
@@ -444,7 +474,7 @@ std::optional<std::array<SkPoint, 2>> SkPathData::asLine() const {
 }
 
 std::optional<SkPathRectInfo> SkPathData::asRect() const {
-    if (auto rc = SkPathPriv::IsRectContour(fPoints, fVerbs, false)) {
+    if (auto rc = SkPathPriv::IsRectContour(fPoints, fVerbs, fSegmentMask, false)) {
         SkASSERT(rc->fRect == fBounds);
         return {{
             fBounds,
@@ -475,6 +505,10 @@ std::optional<SkPathRRectInfo> SkPathData::asRRect() const {
         }};
     }
     return {};
+}
+
+bool SkPathData::contains(SkPoint p, SkPathFillType ft) const {
+    return SkPathPriv::Contains(this->raw(ft, SkResolveConvexity::kNo), p);
 }
 
 /////////////////

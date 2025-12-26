@@ -15,7 +15,10 @@
 #include "include/core/SkSurfaceProps.h"
 #include "include/docs/SkMultiPictureDocument.h"
 #include "tools/flags/CommonFlagsConfig.h"
+
+#if defined(SK_GANESH)
 #include "tools/ganesh/MemoryCache.h"
+#endif
 
 #if defined(SK_GRAPHITE)
 #include "include/gpu/graphite/PrecompileContext.h"
@@ -44,6 +47,7 @@ namespace DM {
 
 // This is just convenience.  It lets you use either return "foo" or return SkStringPrintf(...).
 struct ImplicitString : public SkString {
+    // This constructor is intentionally not explicit to allow for convenient implicit conversions.
     template <typename T>
     ImplicitString(const T& s) : SkString(s) {}
     ImplicitString() : SkString("") {}
@@ -131,6 +135,8 @@ struct Sink {
     virtual ~Sink() {}
     // You may write to either the bitmap or stream.  If you write to log, we'll print that out.
     [[nodiscard]] virtual Result draw(const Src&, SkBitmap*, SkWStream*, SkString* log) const = 0;
+
+    virtual void done() const {}
 
     // Override the color space of this Sink, after creation
     virtual void setColorSpace(sk_sp<SkColorSpace>) {}
@@ -381,6 +387,7 @@ public:
     SinkFlags flags() const override { return SinkFlags{ SinkFlags::kNull, SinkFlags::kDirect }; }
 };
 
+#if defined(SK_GANESH)
 class GPUSink : public Sink {
 public:
     GPUSink(const SkCommandLineConfigGpu*, const GrContextOptions&);
@@ -508,6 +515,7 @@ private:
 
     using INHERITED = GPUSink;
 };
+#endif
 
 class PDFSink : public Sink {
 public:
@@ -569,7 +577,7 @@ public:
 
 class SVGSink : public Sink {
 public:
-    SVGSink(int pageIndex = 0);
+    explicit SVGSink(int pageIndex = 0);
 
     Result draw(const Src&, SkBitmap*, SkWStream*, SkString*) const override;
     const char* fileExtension() const override { return "svg"; }
@@ -620,6 +628,24 @@ private:
     mutable sk_gpu_test::GraphiteMemoryPipelineStorage fMemoryPipelineStorage;
 };
 
+// This Sink exercises the use case where Pipeline labels are tracked over the course of
+// many draws. It makes use of the ContextOptions::PipelineCachingCallback.
+class GraphitePipelineTrackingSink : public GraphiteSink {
+public:
+    GraphitePipelineTrackingSink(const SkCommandLineConfigGraphite*,
+                                 const skiatest::graphite::TestOptions&);
+
+    void done() const override;
+
+    const char* fileExtension() const override {
+        // Suppress writing out results from this config - we just want to do our matching test
+        return nullptr;
+    }
+
+private:
+    std::unique_ptr<skiatools::graphite::PipelineCallBackHandler> fPipelineHandler;
+};
+
 #if defined(SK_ENABLE_PRECOMPILE)
 // In general this sink:
 //   renders a gm, skp or svg (in drawSrc)
@@ -650,8 +676,8 @@ private:
                    skgpu::graphite::Context*,
                    skiatest::graphite::GraphiteTestContext*,
                    skgpu::graphite::Recorder*) const;
-    Result resetAndRecreatePipelines(skiatools::graphite::PipelineCallBackHandler*,
-                                     skgpu::graphite::PrecompileContext*) const;
+
+    Result resetAndRecreatePipelines(skgpu::graphite::PrecompileContext*) const;
 
 #ifdef SK_DEBUG
     static void LogMissingKey(skgpu::graphite::PrecompileContext*,
@@ -664,6 +690,8 @@ private:
     static void CompareKeys(skgpu::graphite::PrecompileContext*,
                             const std::vector<skgpu::UniqueKey>& vA, const char* aName,
                             const std::vector<skgpu::UniqueKey>& vB, const char* bName);
+
+    std::unique_ptr<skiatools::graphite::PipelineCallBackHandler> fPipelineHandler;
 };
 #endif // SK_ENABLE_PRECOMPILE
 #endif // SK_GRAPHITE
