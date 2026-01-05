@@ -8,6 +8,7 @@
 #include "tests/Test.h"
 
 #include "include/core/SkCanvas.h"
+#include "include/core/SkData.h"
 #include "include/core/SkPaint.h"
 #include "include/effects/SkGradientShader.h"
 #include "include/gpu/graphite/Context.h"
@@ -129,12 +130,12 @@ void run_precompile_test(skiatest::Reporter* reporter,
     std::unique_ptr<PrecompileContext> precompileContext = newContext->makePrecompileContext();
 
     PaintOptions paintOptions;
-    paintOptions.setShaders({ PrecompileShaders::LinearGradient(
-                                      PrecompileShaders::GradientShaderFlags::kSmall) });
+    paintOptions.setShaders({{ PrecompileShaders::LinearGradient(
+                                      PrecompileShaders::GradientShaderFlags::kSmall) }});
 
     Precompile(precompileContext.get(), paintOptions,
                DrawTypeFlags::kNonAAFillRect,
-               { { DepthStencilFlags::kDepth, kRGBA_8888_SkColorType} });
+               {{ { DepthStencilFlags::kDepth, kRGBA_8888_SkColorType} }});
 
     REPORTER_ASSERT(reporter, !data.empty());    // some Pipeline should've been reported
 }

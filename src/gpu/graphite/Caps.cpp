@@ -39,7 +39,6 @@ void Caps::finishInitialization(const ContextOptions& options) {
 #if defined(GPU_TEST_UTILS)
     if (options.fOptionsPriv) {
         fMaxTextureSize = std::min(fMaxTextureSize, options.fOptionsPriv->fMaxTextureSizeOverride);
-        fMaxTextureAtlasSize = options.fOptionsPriv->fMaxTextureAtlasSize;
         fRequestedPathRendererStrategy = options.fOptionsPriv->fPathRendererStrategy;
     }
 #endif
@@ -62,7 +61,7 @@ SkISize Caps::getDepthAttachmentDimensions(const TextureInfo& textureInfo,
 }
 
 bool Caps::isTexturable(const TextureInfo& info) const {
-    if (info.numSamples() > 1) {
+    if (info.sampleCount() > SampleCount::k1) {
         return false;
     }
     return this->onIsTexturable(info);

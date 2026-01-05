@@ -231,15 +231,13 @@ SkPathBuilder& SkPathBuilder::operator=(const SkPath& src) {
         return *this;
     }
 
-    const SkPathData& pdata = *src.fPathData;
-
-    this->addRaw(pdata.raw(src.getFillType(), SkResolveConvexity::kYes));
+    this->addRaw(src.fPathData->raw(src.getFillType(), SkResolveConvexity::kYes));
 
     // These are not part of SkPathRaw, so we set them separately
-
-    fLastMoveIndex = SkPathPriv::FindLastMoveToIndex(pdata.verbs(), pdata.points().size());
-    fType = pdata.fType;
-    fIsA  = pdata.fIsA;
+    fLastMoveIndex = SkPathPriv::FindLastMoveToIndex(fVerbs, fPts.size());
+    SkASSERT(fLastMoveIndex < fPts.size());
+    fType = src.fPathData->fType;
+    fIsA  = src.fPathData->fIsA;
 
     return *this;
 }
@@ -250,7 +248,7 @@ SkPath SkPathBuilder::snapshot(const SkMatrix* mx) const {
     }
 
     sk_sp<SkPathData> pdata;
-    if (auto raw = SkPathPriv::Raw(*this, SkResolveConvexity::kYes)) {
+    if (auto raw = SkPathPriv::Raw(*this, SkResolveConvexity::kNo)) {
         pdata = SkPathData::MakeTransform(*raw, *mx);
     }
     if (pdata && fType != SkPathIsAType::kGeneral) {

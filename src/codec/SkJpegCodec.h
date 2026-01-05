@@ -83,7 +83,7 @@ private:
      * Allows SkRawCodec to communicate the color profile from the exif data.
      */
     static std::unique_ptr<SkCodec> MakeFromStream(std::unique_ptr<SkStream>, Result*,
-            std::unique_ptr<SkEncodedInfo::ICCProfile> defaultColorProfile);
+            std::unique_ptr<SkCodecs::ColorProfile> defaultColorProfile);
 
     /*
      * Read enough of the stream to initialize the SkJpegCodec.
@@ -109,7 +109,7 @@ private:
      */
     static Result ReadHeader(SkStream* stream, SkCodec** codecOut,
             JpegDecoderMgr** decoderMgrOut,
-            std::unique_ptr<SkEncodedInfo::ICCProfile> defaultColorProfile);
+            std::unique_ptr<SkCodecs::ColorProfile> defaultColorProfile);
 
     /*
      * Creates an instance of the decoder
@@ -148,8 +148,7 @@ private:
     // This allows us to safely call onGetScaledDimensions() at any time.
     const int                          fReadyState;
 
-
-    skia_private::AutoTMalloc<uint8_t>             fStorage;
+    skia_private::AutoTMalloc<uint8_t> fStorage;
     uint8_t* fSwizzleSrcRow = nullptr;
     uint32_t* fColorXformSrcRow = nullptr;
 
@@ -161,8 +160,6 @@ private:
     std::unique_ptr<SkSwizzler>        fSwizzler;
 
     friend class SkRawCodec;
-
-    using INHERITED = SkCodec;
 };
 
 #endif

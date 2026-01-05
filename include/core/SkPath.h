@@ -45,9 +45,9 @@ struct SkPathRRectInfo;
 // Migrate clients so this is unneeded
 #define SK_LEGACY_PATH_ACCESSORS
 
-#ifdef SK_HIDE_PATH_EDIT_METHODS
+#if defined(SK_HIDE_PATH_EDIT_METHODS) && !defined(SK_DISABLE_PATHDATA)
     // enable this to try using SkPathData
-    //#define SK_PATH_USES_PATHDATA
+    #define SK_PATH_USES_PATHDATA
 #endif
 
 #ifdef SK_PATH_USES_PATHDATA
@@ -120,7 +120,7 @@ public:
                           bool isVolatile = false);
 
     static SkPath Line(SkPoint a, SkPoint b) {
-        return Polygon({a, b}, false);
+        return Polygon({{a, b}}, false);
     }
 
     // Deprecated: use Raw()
@@ -1498,6 +1498,8 @@ public:
 #ifdef SK_HIDE_PATH_EDIT_METHODS
 private:
 #endif
+
+#ifndef SK_PATH_USES_PATHDATA
     /** Offsets SkPoint array by (dx, dy). Offset SkPath replaces dst.
         If dst is nullptr, SkPath is replaced by offset data.
 
@@ -1543,6 +1545,8 @@ private:
         this->transform(matrix, this);
         return *this;
     }
+#endif
+
 #ifdef SK_HIDE_PATH_EDIT_METHODS
 public:
 #endif

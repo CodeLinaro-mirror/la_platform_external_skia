@@ -61,7 +61,7 @@ bool SkJpegCodec::IsJpeg(const void* buffer, size_t bytesRead) {
     return bytesRead >= sizeof(kJpegSig) && !memcmp(buffer, kJpegSig, sizeof(kJpegSig));
 }
 
-SkJpegMarkerList get_sk_marker_list(jpeg_decompress_struct* dinfo) {
+static SkJpegMarkerList get_sk_marker_list(jpeg_decompress_struct* dinfo) {
     SkJpegMarkerList markerList;
     for (auto* marker = dinfo->marker_list; marker; marker = marker->next) {
         markerList.emplace_back(marker->marker,
@@ -70,7 +70,7 @@ SkJpegMarkerList get_sk_marker_list(jpeg_decompress_struct* dinfo) {
     return markerList;
 }
 
-static SkEncodedOrigin get_exif_orientation(sk_sp<SkData> exifData) {
+static SkEncodedOrigin get_exif_orientation(sk_sp<const SkData> exifData) {
     SkEncodedOrigin origin = kDefault_SkEncodedOrigin;
     if (exifData && SkParseEncodedOrigin(exifData->bytes(), exifData->size(), &origin)) {
         return origin;
@@ -82,7 +82,7 @@ SkCodec::Result SkJpegCodec::ReadHeader(
         SkStream* stream,
         SkCodec** codecOut,
         JpegDecoderMgr** decoderMgrOut,
-        std::unique_ptr<SkEncodedInfo::ICCProfile> defaultColorProfile) {
+        std::unique_ptr<SkCodecs::ColorProfile> defaultColorProfile) {
     // Create a JpegDecoderMgr to own all of the decompress information
     std::unique_ptr<JpegDecoderMgr> decoderMgr(new JpegDecoderMgr(stream));
 
@@ -128,28 +128,28 @@ SkCodec::Result SkJpegCodec::ReadHeader(
         SkEncodedOrigin orientation =
                 get_exif_orientation(metadataDecoder->getExifMetadata(/*copyData=*/false));
 
-        std::unique_ptr<SkEncodedInfo::ICCProfile> profile;
+        std::unique_ptr<SkCodecs::ColorProfile> profile;
         if (auto iccProfileData = metadataDecoder->getICCProfileData(/*copyData=*/true)) {
-            profile = SkEncodedInfo::ICCProfile::Make(std::move(iccProfileData));
+            profile = SkCodecs::ColorProfile::MakeICCProfile(std::move(iccProfileData));
         }
         if (profile) {
-            auto type = profile->profile()->data_color_space;
+            const auto colorDataSpace = profile->dataSpace();
             switch (decoderMgr->dinfo()->jpeg_color_space) {
                 case JCS_CMYK:
                 case JCS_YCCK:
-                    if (type != skcms_Signature_CMYK) {
+                    if (colorDataSpace != SkCodecs::ColorProfile::DataSpace::kCMYK) {
                         profile = nullptr;
                     }
                     break;
                 case JCS_GRAYSCALE:
-                    if (type != skcms_Signature_Gray &&
-                        type != skcms_Signature_RGB)
+                    if (colorDataSpace != SkCodecs::ColorProfile::DataSpace::kGray &&
+                        colorDataSpace != SkCodecs::ColorProfile::DataSpace::kRGB)
                     {
                         profile = nullptr;
                     }
                     break;
                 default:
-                    if (type != skcms_Signature_RGB) {
+                    if (colorDataSpace != SkCodecs::ColorProfile::DataSpace::kRGB) {
                         profile = nullptr;
                     }
                     break;
@@ -180,8 +180,9 @@ std::unique_ptr<SkCodec> SkJpegCodec::MakeFromStream(std::unique_ptr<SkStream> s
     return SkJpegCodec::MakeFromStream(std::move(stream), result, nullptr);
 }
 
-std::unique_ptr<SkCodec> SkJpegCodec::MakeFromStream(std::unique_ptr<SkStream> stream,
-        Result* result, std::unique_ptr<SkEncodedInfo::ICCProfile> defaultColorProfile) {
+std::unique_ptr<SkCodec> SkJpegCodec::MakeFromStream(
+        std::unique_ptr<SkStream> stream,
+        Result* result, std::unique_ptr<SkCodecs::ColorProfile> defaultColorProfile) {
     SkASSERT(result);
     if (!stream) {
         *result = SkCodec::kInvalidInput;
@@ -202,7 +203,7 @@ SkJpegCodec::SkJpegCodec(SkEncodedInfo&& info,
                          std::unique_ptr<SkStream> stream,
                          JpegDecoderMgr* decoderMgr,
                          SkEncodedOrigin origin)
-        : INHERITED(std::move(info), skcms_PixelFormat_RGBA_8888, std::move(stream), origin)
+        : SkCodec(std::move(info), skcms_PixelFormat_RGBA_8888, std::move(stream), origin)
         , fDecoderMgr(decoderMgr)
         , fReadyState(decoderMgr->dinfo()->global_state) {}
 SkJpegCodec::~SkJpegCodec() = default;
@@ -223,7 +224,9 @@ static size_t get_row_bytes(const j_decompress_ptr dinfo) {
  *  Not to be used on the actual jpeg_decompress_struct used for decoding, since it will
  *  incorrectly modify num_components.
  */
-void calc_output_dimensions(jpeg_decompress_struct* dinfo, unsigned int num, unsigned int denom) {
+static void calc_output_dimensions(jpeg_decompress_struct* dinfo,
+                                   unsigned int num,
+                                   unsigned int denom) {
     dinfo->num_components = 0;
     dinfo->scale_num = num;
     dinfo->scale_denom = denom;
@@ -403,8 +406,12 @@ bool SkJpegCodec::onDimensionsSupported(const SkISize& size) {
     return true;
 }
 
-SkCodec::Result SkJpegCodec::readRows(const SkImageInfo& dstInfo, void* dst, size_t rowBytes, int count,
-                          const Options& opts, int* rowsDecoded) {
+SkCodec::Result SkJpegCodec::readRows(const SkImageInfo& dstInfo,
+                                      void* dst,
+                                      size_t rowBytes,
+                                      int count,
+                                      const Options& opts,
+                                      int* rowsDecoded) {
     // Set the jump location for libjpeg-turbo errors
     skjpeg_error_mgr::AutoPushJmpBuf jmp(fDecoderMgr->errorMgr());
     if (setjmp(jmp)) {
@@ -485,13 +492,14 @@ SkCodec::Result SkJpegCodec::readRows(const SkImageInfo& dstInfo, void* dst, siz
  * xform, the color xform will handle the CMYK->RGB conversion.
  */
 static inline bool needs_swizzler_to_convert_from_cmyk(J_COLOR_SPACE jpegColorType,
-                                                       const skcms_ICCProfile* srcProfile,
+                                                       const SkCodecs::ColorProfile* srcProfile,
                                                        bool hasColorSpaceXform) {
     if (JCS_CMYK != jpegColorType) {
         return false;
     }
 
-    bool hasCMYKColorSpace = srcProfile && srcProfile->data_color_space == skcms_Signature_CMYK;
+    bool hasCMYKColorSpace = srcProfile &&
+                             srcProfile->dataSpace() == SkCodecs::ColorProfile::DataSpace::kCMYK;
     return !hasCMYKColorSpace || !hasColorSpaceXform;
 }
 
@@ -529,7 +537,8 @@ SkCodec::Result SkJpegCodec::onGetPixels(const SkImageInfo& dstInfo,
     SkASSERT(1 == dinfo->rec_outbuf_height);
 
     if (needs_swizzler_to_convert_from_cmyk(dinfo->out_color_space,
-                                            this->getEncodedInfo().profile(), this->colorXform())) {
+                                            this->getEncodedInfo().colorProfile(),
+                                            this->colorXform())) {
         this->initializeSwizzler(dstInfo, options, true);
     }
 
@@ -666,7 +675,7 @@ SkSampler* SkJpegCodec::getSampler(bool createIfNecessary) {
     }
 
     bool needsCMYKToRGB = needs_swizzler_to_convert_from_cmyk(
-            fDecoderMgr->dinfo()->out_color_space, this->getEncodedInfo().profile(),
+            fDecoderMgr->dinfo()->out_color_space, this->getEncodedInfo().colorProfile(),
             this->colorXform());
     this->initializeSwizzler(this->dstInfo(), this->options(), needsCMYKToRGB);
     if (!this->allocateStorage(this->dstInfo())) {
@@ -690,7 +699,7 @@ SkCodec::Result SkJpegCodec::onStartScanlineDecode(const SkImageInfo& dstInfo,
     }
 
     bool needsCMYKToRGB = needs_swizzler_to_convert_from_cmyk(
-            fDecoderMgr->dinfo()->out_color_space, this->getEncodedInfo().profile(),
+            fDecoderMgr->dinfo()->out_color_space, this->getEncodedInfo().colorProfile(),
             this->colorXform());
     if (options.fSubset) {
         uint32_t startX = options.fSubset->x();
@@ -995,22 +1004,15 @@ bool SkJpegCodec::onGetGainmapCodec(SkGainmapInfo* info, std::unique_ptr<SkCodec
 bool SkJpegCodec::onGetGainmapInfo(SkGainmapInfo* info,
                                    std::unique_ptr<SkStream>* gainmapImageStream) {
 #ifdef SK_CODEC_DECODES_JPEG_GAINMAPS
-    sk_sp<SkData> gainmap_data;
-    SkGainmapInfo gainmap_info;
-
     auto metadataDecoder =
             std::make_unique<SkJpegMetadataDecoderImpl>(get_sk_marker_list(fDecoderMgr->dinfo()));
-    if (!metadataDecoder->findGainmapImage(
-                fDecoderMgr->getSourceMgr(), gainmap_data, gainmap_info)) {
-        return false;
+    if (auto [data, gInfo] = metadataDecoder->findGainmapImage(fDecoderMgr->getSourceMgr()); data) {
+        *info = gInfo;
+        *gainmapImageStream = SkMemoryStream::Make(data);
+        return true;
     }
-
-    *info = gainmap_info;
-    *gainmapImageStream = SkMemoryStream::Make(gainmap_data);
-    return true;
-#else
+#endif // SK_CODEC_DECODES_JPEG_GAINMAPS
     return false;
-#endif  // SK_CODEC_DECODES_JPEG_GAINMAPS
 }
 
 namespace SkJpegDecoder {
@@ -1028,7 +1030,7 @@ std::unique_ptr<SkCodec> Decode(std::unique_ptr<SkStream> stream,
     return SkJpegCodec::MakeFromStream(std::move(stream), outResult);
 }
 
-std::unique_ptr<SkCodec> Decode(sk_sp<SkData> data,
+std::unique_ptr<SkCodec> Decode(sk_sp<const SkData> data,
                                 SkCodec::Result* outResult,
                                 SkCodecs::DecodeContext) {
     if (!data) {

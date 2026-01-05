@@ -29,12 +29,14 @@ ANY_DECODER_HDRS = ["SkCodecImageGenerator.h"]
 
 ANY_DECODER_SRCS = [
     "SkCodec.cpp",
+    "SkCodecColorProfile.cpp",
     "SkCodecImageGenerator.cpp",
     "SkColorPalette.cpp",
     "SkEncodedInfo.cpp",
     "SkExif.cpp",
     "SkGainmapInfo.cpp",
     "SkHdrAgtm.cpp",
+    "SkHdrAgtmParse.cpp",
     "SkHdrMetadata.cpp",
     "SkImageGenerator_FromEncoded.cpp",
     "SkMaskSwizzler.cpp",
@@ -392,7 +394,7 @@ skia_cc_library(
         ":png_codec_base",
         "//:core",
         "//modules/skcms",
-        "//rust/common:span_utils",
+        "//rust/common:ffi_utils",
         "//rust/png:cxx_bridge",
         "//rust/png:ffi_cpp",
         "//src/base",
