@@ -9,6 +9,7 @@
 #include "include/core/SkScalar.h"
 #include "include/core/SkString.h"
 #include "include/private/base/SkAPI.h"
+#include "include/private/base/SkMacros.h"
 #include "include/private/base/SkNoncopyable.h"
 
 #include <cstdint>
@@ -24,9 +25,6 @@ class SkPDFStructTree;
 class SkPixmap;
 class SkWStream;
 
-#define SKPDF_STRING(X) SKPDF_STRING_IMPL(X)
-#define SKPDF_STRING_IMPL(X) #X
-
 namespace SkPDF {
 
 /** Attributes for nodes in the PDF tree. */
@@ -41,6 +39,7 @@ public:
     void appendInt(const char* owner, const char* name, int value);
     void appendFloat(const char* owner, const char* name, float value);
     void appendName(const char* owner, const char* attrName, const char* value);
+    void appendTextString(const char* owner, const char* attrName, const char* value);
     void appendFloatArray(const char* owner,
                           const char* name,
                           const std::vector<float>& value);
@@ -114,7 +113,7 @@ struct Metadata {
 
     /** The product that is converting this document to PDF.
     */
-    SkString fProducer = SkString("Skia/PDF m" SKPDF_STRING(SK_MILESTONE));
+    SkString fProducer = SkString("Skia/PDF m" SK_MACRO_STRINGIFY(SK_MILESTONE));
 
     /** The date and time the document was created.
         The zero default value represents an unknown/unset time.
@@ -264,6 +263,4 @@ static inline sk_sp<SkDocument> MakeDocument(SkWStream* stream) {
 
 }  // namespace SkPDF
 
-#undef SKPDF_STRING
-#undef SKPDF_STRING_IMPL
 #endif  // SkPDFDocument_DEFINED
