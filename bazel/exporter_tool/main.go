@@ -60,6 +60,11 @@ var gniExportDescs = []exporter.GNIExportDesc{
 				"//src/codec:common_libpng_srcs",
 			},
 		},
+		{Var: "skia_codec_libpng_public",
+			Rules: []string{
+				"//include/codec:libpng_public_hdrs",
+			},
+		},
 		{Var: "skia_codec_rust_png_public",
 			Rules: []string{
 				"//include/codec:rust_png_public_hdrs",
@@ -179,8 +184,10 @@ var gniExportDescs = []exporter.GNIExportDesc{
 				"//src/encode:png_encode_srcs",
 				"//src/encode:png_encode_hdrs",
 			}},
-		// TODO(https://crbug.com/381900683): Rename this list.
+		// TODO(https://crbug.com/381900683): Delete this list after updating Flutter.
 		{Var: "skia_encode_png_public",
+			Rules: []string{"//include/encode:png_hdrs"}},
+		{Var: "skia_encode_libpng_public",
 			Rules: []string{"//include/encode:png_hdrs"}},
 		{Var: "skia_encode_webp_public",
 			Rules: []string{"//include/encode:webp_hdrs"}},
@@ -194,8 +201,15 @@ var gniExportDescs = []exporter.GNIExportDesc{
 			Rules: []string{"//src/encode:no_webp_encode_srcs"}},
 		{Var: "skia_discardable_memory_chromium",
 			Rules: []string{"//include/private/chromium:discardable_memory_hdrs"}},
-		{Var: "skia_no_slug_srcs",
-			Rules: []string{}},
+		{Var: "skia_android_core_srcs",
+			Rules: []string{
+				"//src/image:android_srcs",
+				"//src/android:animated_image",
+			}},
+		{Var: "skia_android_core_hdrs",
+			Rules: []string{
+				"//include/android:animated_image_hdrs",
+			}},
 	},
 	},
 	{GNI: "gn/effects.gni", Vars: []exporter.GNIFileListExportDesc{
@@ -610,8 +624,7 @@ var gniExportDescs = []exporter.GNIExportDesc{
 				"//src/utils:multi_picture_document",
 				"//src/utils:clip_stack_utils",
 				"//src/utils:float_to_decimal",
-				"//src/utils:utils_skslc_hdrs",
-				"//src/utils:utils_skslc_srcs",
+				"//src/utils:shader_utils",
 			}},
 		{Var: "skia_clipstack_utils_sources",
 			Rules: []string{
@@ -670,11 +683,15 @@ var gniExportDescs = []exporter.GNIExportDesc{
 				"//src/gpu/ganesh:core_skslc_srcs",
 				"//src/gpu/ganesh:core_srcs",
 			}},
+		{Var: "skia_gpu_android_private_hdrs",
+			Rules: []string{
+				"//include/android:private_hdrs",
+			}},
 		{Var: "skia_gpu_android_private",
 			Rules: []string{
 				"//src/gpu/ganesh/surface:android_srcs",
 				"//src/gpu/ganesh:android_srcs",
-				"//src/image:android_srcs",
+				"//src/gpu/ganesh/image:android_srcs",
 			}},
 		{Var: "skia_gpu_chromium_public",
 			Rules: []string{
