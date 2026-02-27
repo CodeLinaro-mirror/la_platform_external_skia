@@ -4,6 +4,7 @@
  * Use of this source code is governed by a BSD-style license that can be
  * found in the LICENSE file.
  */
+#include "tools/window/win/WindowContextFactory_win.h"
 
 #include "include/core/SkSurface.h"
 #include "include/gpu/ganesh/GrBackendSurface.h"
@@ -12,10 +13,11 @@
 #include "include/gpu/ganesh/SkSurfaceGanesh.h"
 #include "include/gpu/ganesh/d3d/GrD3DBackendContext.h"
 #include "include/gpu/ganesh/d3d/GrD3DBackendSurface.h"
+#include "include/gpu/ganesh/d3d/GrD3DDirectContext.h"
+#include "include/private/base/SkLog.h"
 #include "tools/ganesh/d3d/D3DTestUtils.h"
 #include "tools/window/DisplayParams.h"
 #include "tools/window/WindowContext.h"
-#include "tools/window/win/WindowContextFactory_win.h"
 
 #include <d3d12.h>
 #include <dxgi1_4.h>
@@ -88,7 +90,7 @@ void D3D12WindowContext::initializeContext() {
     fDevice = backendContext.fDevice;
     fQueue = backendContext.fQueue;
 
-    fContext = GrDirectContext::MakeDirect3D(backendContext, fDisplayParams->grContextOptions());
+    fContext = GrDirectContexts::MakeD3D(backendContext, fDisplayParams->grContextOptions());
     SkASSERT(fContext);
 
     // Make the swapchain
@@ -260,6 +262,7 @@ std::unique_ptr<WindowContext> MakeD3D12ForWin(HWND hwnd,
                                                std::unique_ptr<const DisplayParams> params) {
     std::unique_ptr<WindowContext> ctx(new D3D12WindowContext(hwnd, std::move(params)));
     if (!ctx->isValid()) {
+        SKIA_LOG_E("Invalid D3D context for Windows");
         return nullptr;
     }
     return ctx;
