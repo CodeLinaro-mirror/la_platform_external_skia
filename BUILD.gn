@@ -908,7 +908,7 @@ optional("gpu_shared") {
     if (skia_enable_vulkan_debug_layers) {
       public_defines += [ "SK_ENABLE_VK_LAYERS" ]
     }
-    if (skia_use_vma || skia_use_backup_vma) {
+    if (skia_use_vma) {
       sources += skia_vma_sources
       public_deps += [ "src/gpu/vk/vulkanmemoryallocator" ]
     }
@@ -922,10 +922,6 @@ optional("gpu_shared") {
   if (is_android) {
     sources += skia_shared_android_sources
   }
-}
-
-config("use_backup_vma") {
-  defines = [ "SK_USE_VMA" ]
 }
 
 optional("gpu") {
@@ -1016,9 +1012,6 @@ optional("gpu") {
     configs += [ ":use_skia_vulkan_headers" ]
     if (is_android) {
       sources += skia_gpu_vk_android_private
-    }
-    if (skia_use_backup_vma) {
-      public_configs += [ ":use_backup_vma" ]
     }
   }
 
@@ -1209,9 +1202,6 @@ optional("graphite") {
         "//third_party/externals/spirv-tools:spvtools_val",
       ]
     }
-    if (skia_use_backup_vma) {
-      public_configs += [ ":use_backup_vma" ]
-    }
   }
   if (skia_enable_precompile) {
     public += skia_graphite_precompile_public
@@ -1297,6 +1287,9 @@ optional("png_decode_libpng") {
     "//third_party/libpng",
   ]
   sources = [ "src/codec/SkIcoCodec.cpp" ] + skia_codec_libpng_srcs
+
+  # Export this so fiddles could decode png using libpng
+  public = skia_codec_libpng_public
 }
 
 optional("png_encode_common") {
@@ -1915,8 +1908,8 @@ skia_component("skia") {
 
   if (is_win) {
     sources += skia_ports_windows_sources + [
-                 "src/ports/SkDebug_win.cpp",
                  "src/ports/SkImageGeneratorWIC.cpp",
+                 "src/ports/SkLog_win.cpp",
                ]
     libs += [
       "Ole32.lib",
@@ -1943,7 +1936,7 @@ skia_component("skia") {
     if (defined(ndk) && ndk != "") {
       deps += [ "//third_party/cpu-features" ]
     }
-    sources += [ "src/ports/SkDebug_android.cpp" ]
+    sources += [ "src/ports/SkLog_android.cpp" ]
     libs += [
       "EGL",
       "GLESv2",
@@ -1952,7 +1945,7 @@ skia_component("skia") {
   }
 
   if (is_linux || is_wasm) {
-    sources += [ "src/ports/SkDebug_stdio.cpp" ]
+    sources += [ "src/ports/SkLog_stdio.cpp" ]
     if (skia_use_egl) {
       libs += [ "GLESv2" ]
     }
@@ -1961,8 +1954,8 @@ skia_component("skia") {
   if (is_mac) {
     public += [ "include/ports/SkCFObject.h" ]
     sources += [
-      "src/ports/SkDebug_stdio.cpp",
       "src/ports/SkImageGeneratorCG.cpp",
+      "src/ports/SkLog_stdio.cpp",
     ]
     frameworks = [
       "ApplicationServices.framework",
@@ -1973,8 +1966,8 @@ skia_component("skia") {
   if (is_ios) {
     public += [ "include/ports/SkCFObject.h" ]
     sources += [
-      "src/ports/SkDebug_stdio.cpp",
       "src/ports/SkImageGeneratorCG.cpp",
+      "src/ports/SkLog_stdio.cpp",
     ]
     frameworks = [
       "CoreFoundation.framework",
