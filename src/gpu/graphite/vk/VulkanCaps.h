@@ -8,7 +8,7 @@
 #ifndef skgpu_graphite_VulkanCaps_DEFINED
 #define skgpu_graphite_VulkanCaps_DEFINED
 
-#include "include/private/base/SkTDArray.h"
+#include "include/private/base/SkTArray.h"
 #include "src/gpu/graphite/Caps.h"
 #include "src/gpu/vk/VulkanInterface.h"
 #include "src/gpu/vk/VulkanUtilsPriv.h"
@@ -95,6 +95,14 @@ public:
         return fSupportsPipelineCreationCacheControl;
     }
 
+    bool supportsOcclusionQueryPrecise() const { return fOcclusionQueryPrecise; }
+
+    uint32_t timestampValidBits(uint32_t queueIndex) const {
+        return fQueueFamilyTimestampValidBits[queueIndex];
+    }
+
+    float timestampPeriod() const { return fTimestampPeriod; }
+
 private:
     void init(const ContextOptions&,
               const skgpu::VulkanInterface*,
@@ -107,6 +115,7 @@ private:
     struct EnabledFeatures {
         // VkPhysicalDeviceFeatures
         bool fDualSrcBlend = false;
+        bool fOcclusionQueryPrecise = false;
         // From VkPhysicalDeviceSamplerYcbcrConversionFeatures or VkPhysicalDeviceVulkan11Features:
         bool fSamplerYcbcrConversion = false;
         // From VkPhysicalDeviceFaultFeaturesEXT:
@@ -282,9 +291,13 @@ private:
     bool fIsInputAttachmentReadCoherent = false;
     bool fSupportsFrameBoundary = false;
     bool fSupportsPipelineCreationCacheControl = false;
+    bool fOcclusionQueryPrecise = false;
 
     // Flags to enable workarounds for driver bugs
     bool fMustLoadFullImageForMSAA = false;
+
+    skia_private::TArray<uint32_t> fQueueFamilyTimestampValidBits;
+    float fTimestampPeriod = 1.0f;
 };
 
 } // namespace skgpu::graphite

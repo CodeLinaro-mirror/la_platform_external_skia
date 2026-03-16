@@ -218,6 +218,32 @@ void VulkanCaps::init(const ContextOptions& contextOptions,
                 SkSL::ShaderCaps::AdvBlendEqInteraction::kAutomatic_AdvBlendEqInteraction;
     }
 
+    uint32_t queueFamilyCount = 0;
+    VULKAN_CALL(vkInterface,
+                GetPhysicalDeviceQueueFamilyProperties(physDev, &queueFamilyCount, nullptr));
+    if (queueFamilyCount > 0) {
+        skia_private::TArray<VkQueueFamilyProperties> queueProps;
+        queueProps.resize_back(queueFamilyCount);
+        VULKAN_CALL(vkInterface,
+                    GetPhysicalDeviceQueueFamilyProperties(
+                            physDev, &queueFamilyCount, queueProps.data()));
+        fQueueFamilyTimestampValidBits.reserve(queueFamilyCount);
+        for (uint32_t i = 0; i < queueFamilyCount; ++i) {
+            fQueueFamilyTimestampValidBits.push_back(queueProps[i].timestampValidBits);
+        }
+    }
+    fTimestampPeriod = deviceProperties.fBase.properties.limits.timestampPeriod;
+
+    if (deviceProperties.fBase.properties.limits.timestampComputeAndGraphics &&
+        fTimestampPeriod > 0) {
+        fSupportedGpuStats |= GpuStatsFlags::kElapsedTime;
+    }
+
+    fOcclusionQueryPrecise = enabledFeatures.fOcclusionQueryPrecise;
+    if (fOcclusionQueryPrecise) {
+        fSupportedGpuStats |= GpuStatsFlags::kOcclusionPassSamples;
+    }
+
     // Note: ARM GPUs have always been coherent, do not add a subpass self-dependency even if the
     // application hasn't enabled this feature as it comes with a performance cost on this GPU. Use
     // of VK_EXT_rasterization_order_attachment_access is disabled on ARM due to an unexplained
@@ -299,6 +325,7 @@ VulkanCaps::EnabledFeatures VulkanCaps::getEnabledFeatures(
     if (features) {
         // Base features:
         enabled.fDualSrcBlend = features->features.dualSrcBlend;
+        enabled.fOcclusionQueryPrecise = features->features.occlusionQueryPrecise;
 
         if (physicalDeviceVersion >= VK_API_VERSION_1_3) {
             enabled.fExtendedDynamicState = true;
