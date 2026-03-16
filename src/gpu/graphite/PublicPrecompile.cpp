@@ -27,7 +27,6 @@
 #include "src/gpu/graphite/RendererProvider.h"
 #include "src/gpu/graphite/ResourceProvider.h"
 #include "src/gpu/graphite/RuntimeEffectDictionary.h"
-#include "src/gpu/graphite/TextureInfoPriv.h"
 #include "src/gpu/graphite/UniquePaintParamsID.h"
 #include "src/gpu/graphite/precompile/PaintOptionsPriv.h"
 #include "src/gpu/graphite/precompile/PrecompileColorFiltersPriv.h"
@@ -99,11 +98,8 @@ void Precompile(PrecompileContext* precompileContext,
                                                               Mipmapped::kNo,
                                                               Protected::kNo,
                                                               Renderable::kYes);
-        std::optional<Swizzle> writeSwizzle = WriteSwizzleForColorType(
-                rpp.fDstCT, TextureInfoPriv::ViewFormat(info));
-        if (!writeSwizzle.has_value()) {
-            continue; // Skip generating pipelines that would never show up at runtime
-        }
+
+        Swizzle writeSwizzle = caps->getWriteSwizzle(rpp.fDstCT, info);
 
         // TODO(robertphillips): address mismatches between the MSAA requirements of the Renderers
         // associated w/ the requested drawTypes and the specified MSAA setting
@@ -130,7 +126,7 @@ void Precompile(PrecompileContext* precompileContext,
                                          rpp.fDSFlags,
                                          /* clearColor= */ { .0f, .0f, .0f, .0f },
                                          rpp.fRequiresMSAA,
-                                         *writeSwizzle,
+                                         writeSwizzle,
                                          caps->getDstReadStrategy());
 
             SkColorInfo ci(rpp.fDstCT, kPremul_SkAlphaType, rpp.fDstCS);

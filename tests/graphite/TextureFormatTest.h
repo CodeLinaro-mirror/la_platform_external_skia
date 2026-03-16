@@ -94,7 +94,7 @@ static const FormatExpectation kExpectations[] {
               /*isFloatingPoint=*/false,
               {{kAlpha_8_SkColorType, Swizzle("000r"), Swizzle("a000")},
                {kR8_unorm_SkColorType, Swizzle::RGBA(), Swizzle::RGBA()},
-               {kGray_8_SkColorType, Swizzle("rrra"), std::nullopt}}),
+               {kGray_8_SkColorType, Swizzle("rrr1"), std::nullopt}}),
 
     MakeColor(TextureFormat::kR16,
               /*bytesPerBlock=*/2,
@@ -524,24 +524,21 @@ void RunTextureFormatTest(skiatest::Reporter* r,
 
                     // Check swizzles here, the rest of the color type checks happen outside the
                     // loop based on `foundColorExpectation`.
-                    Swizzle actualReadSwizzle = ReadSwizzleForColorType(ct, format);
-                    REPORTER_ASSERT(r, ec.fReadSwizzle == actualReadSwizzle,
+                    REPORTER_ASSERT(r, ec.fReadSwizzle == caps->getReadSwizzle(ct, texInfo),
                                     "actual %s vs. expected %s",
-                                    actualReadSwizzle.asString().c_str(),
+                                    caps->getReadSwizzle(ct, texInfo).asString().c_str(),
                                     ec.fReadSwizzle.asString().c_str());
 
-                    auto actualWriteSwizzle = WriteSwizzleForColorType(ct, format);
                     if (ec.fWriteSwizzle.has_value()) {
-                        REPORTER_ASSERT(r, actualWriteSwizzle.has_value());
-                        REPORTER_ASSERT(r, ec.fWriteSwizzle == actualWriteSwizzle,
+                        REPORTER_ASSERT(r, ec.fWriteSwizzle == caps->getWriteSwizzle(ct, texInfo),
                                         "actual %s vs. expected %s",
-                                        actualWriteSwizzle ? actualWriteSwizzle->asString().c_str()
-                                                           : "null",
+                                        caps->getWriteSwizzle(ct, texInfo).asString().c_str(),
                                         ec.fWriteSwizzle->asString().c_str());
                     } else {
-                        REPORTER_ASSERT(r, !actualWriteSwizzle.has_value());
-                        // This is a proxy for "the format can represent CT, and there are some
-                        // formats that can render CT, but this format does not render w/ CT".
+                        // getWriteSwizzle asserts if there is no color info rule so test other ways
+                        // to verify that it's not renderable with the given color type. This is a
+                        // proxy for "the format can represent CT, and there are some formats that
+                        // can render CT, but this format does not render w/ CT".
                         TextureInfo renderableInfo = caps->getDefaultSampledTextureInfo(
                                 ct, Mipmapped::kNo, Protected::kNo, Renderable::kYes);
                         REPORTER_ASSERT(r, format != TextureInfoPriv::ViewFormat(renderableInfo));

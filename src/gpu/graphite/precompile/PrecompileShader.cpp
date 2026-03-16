@@ -22,8 +22,6 @@
 #include "src/gpu/graphite/PaintParamsKey.h"
 #include "src/gpu/graphite/PrecompileInternal.h"
 #include "src/gpu/graphite/RecorderPriv.h"
-#include "src/gpu/graphite/TextureFormat.h"
-#include "src/gpu/graphite/TextureInfoPriv.h"
 #include "src/gpu/graphite/precompile/PrecompileBaseComplete.h"
 #include "src/gpu/graphite/precompile/PrecompileBasePriv.h"
 #include "src/gpu/graphite/precompile/PrecompileBlenderPriv.h"
@@ -301,9 +299,10 @@ void PrecompileImageShader::addToKey(const KeyContext& keyContext, int desiredCo
     const bool alphaOnly = SkColorTypeIsAlphaOnly(colorInfo.colorType());
 
     const Caps* caps = keyContext.caps();
-    TextureFormat format = TextureInfoPriv::ViewFormat(caps->getDefaultSampledTextureInfo(
-            colorInfo.colorType(), Mipmapped::kNo, Protected::kNo, Renderable::kNo));
-    Swizzle readSwizzle = ReadSwizzleForColorType(colorInfo.colorType(), format);
+    Swizzle readSwizzle = caps->getReadSwizzle(
+            colorInfo.colorType(),
+            caps->getDefaultSampledTextureInfo(
+                    colorInfo.colorType(), Mipmapped::kNo, Protected::kNo, Renderable::kNo));
 
     ColorSpaceTransformBlock::ColorSpaceTransformData colorXformData(readSwizzle);
 
@@ -462,9 +461,10 @@ private:
         const SkColorInfo& colorInfo = fColorInfos[desiredColorInfo];
 
         const Caps* caps = keyContext.caps();
-        TextureFormat format = TextureInfoPriv::ViewFormat(caps->getDefaultSampledTextureInfo(
-                colorInfo.colorType(), Mipmapped::kNo, Protected::kNo, Renderable::kNo));
-        Swizzle readSwizzle = ReadSwizzleForColorType(colorInfo.colorType(), format);
+        Swizzle readSwizzle = caps->getReadSwizzle(
+                colorInfo.colorType(),
+                caps->getDefaultSampledTextureInfo(
+                        colorInfo.colorType(), Mipmapped::kNo, Protected::kNo, Renderable::kNo));
         ColorSpaceTransformBlock::ColorSpaceTransformData colorXformData(readSwizzle);
 
         const SkColorSpace* dstColorSpace = fUseDstColorSpace

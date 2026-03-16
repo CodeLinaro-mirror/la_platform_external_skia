@@ -13,6 +13,7 @@
 #include "src/base/SkTInternalLList.h"
 #include "src/core/SkTHash.h"
 #include "src/gpu/ResourceKey.h"
+#include "src/gpu/graphite/AtlasTypes.h"
 #include "src/gpu/graphite/ClipStack.h"
 #include "src/gpu/graphite/DrawAtlas.h"
 
@@ -51,8 +52,7 @@ public:
 
 private:
     // Wrapper class to manage DrawAtlas and associated caching operations
-    class DrawAtlasMgr : public DrawAtlas::GenerationCounter,
-                         public DrawAtlas::PlotEvictionCallback {
+    class DrawAtlasMgr : public AtlasGenerationCounter, public PlotEvictionCallback {
     public:
         DrawAtlasMgr(size_t width, size_t height,
                      size_t plotWidth, size_t plotHeight,
@@ -70,9 +70,9 @@ private:
                                        const ClipStack::ElementList*,
                                        SkIRect maskDeviceBounds,
                                        SkIPoint* outPos,
-                                       DrawAtlas::AtlasLocator* locator);
+                                       AtlasLocator* locator);
         bool recordUploads(DrawContext*, Recorder*);
-        void evict(DrawAtlas::PlotLocator) override;
+        void evict(PlotLocator) override;
         void compact(Recorder*);
         void freeGpuResources(Recorder*);
 
@@ -84,7 +84,7 @@ private:
         // Tracks whether a combined clip mask is already in the DrawAtlas and its location
         struct MaskHashEntry {
             SkIRect fBounds;
-            DrawAtlas::AtlasLocator fLocator;
+            AtlasLocator fLocator;
             MaskHashEntry* fNext = nullptr;
         };
         struct UniqueKeyHash {

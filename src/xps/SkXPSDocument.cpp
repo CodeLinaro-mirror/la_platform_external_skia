@@ -39,12 +39,17 @@ SkXPSDocument::SkXPSDocument(SkWStream* stream,
                              SkTScopedComPtr<IXpsOMObjectFactory> xpsFactory)
         : SkDocument(stream)
         , fXpsFactory(std::move(xpsFactory))
-        , fDevice(SkISize{10000, 10000}, opts) {
+        , fDevice(SkISize{10000, 10000}, {}) {
     const SkScalar kPointsPerMeter = SkDoubleToScalar(360000.0 / 127.0);
     fUnitsPerMeter.set(kPointsPerMeter, kPointsPerMeter);
     SkScalar pixelsPerMeterScale = SkDoubleToScalar(opts.dpi * 5000.0 / 127.0);
     fPixelsPerMeter.set(pixelsPerMeterScale, pixelsPerMeterScale);
     SkASSERT(fXpsFactory);
+    if (!opts.pngEncoder) {
+        if (!opts.allowNoPngs) {
+            SK_ABORT("Must set a PNG encoder to make XPS documents");
+        }
+    }
     fDevice.beginPortfolio(stream, fXpsFactory.get());
 }
 

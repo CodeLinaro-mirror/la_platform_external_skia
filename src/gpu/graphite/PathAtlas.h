@@ -12,6 +12,7 @@
 #include "src/base/SkTInternalLList.h"
 #include "src/core/SkTHash.h"
 #include "src/gpu/ResourceKey.h"
+#include "src/gpu/graphite/AtlasTypes.h"
 #include "src/gpu/graphite/DrawAtlas.h"
 #include "src/gpu/graphite/geom/CoverageMaskShape.h"
 
@@ -120,8 +121,7 @@ protected:
                                            skvx::half2* outPos) = 0;
 
     // Wrapper class to manage DrawAtlas and associated caching operations
-    class DrawAtlasMgr : public DrawAtlas::GenerationCounter,
-                         public DrawAtlas::PlotEvictionCallback {
+    class DrawAtlasMgr : public AtlasGenerationCounter, public PlotEvictionCallback {
     public:
         // Adds to the DrawAtlas and shape cache.
         // If successful, returns a ref for the caller to use.
@@ -142,9 +142,9 @@ protected:
                                        skvx::half2 maskSize,
                                        SkIVector transformedMaskOffset,
                                        skvx::half2* outPos,
-                                       DrawAtlas::AtlasLocator* locator);
+                                       AtlasLocator* locator);
         bool recordUploads(DrawContext*, Recorder*);
-        void evict(DrawAtlas::PlotLocator) override;
+        void evict(PlotLocator) override;
         void compact(Recorder*);
         void freeGpuResources(Recorder*);
 
@@ -161,18 +161,16 @@ protected:
                                   const SkStrokeRec&,
                                   SkIRect shapeBounds,
                                   SkIVector transformedMaskOffset,
-                                  const DrawAtlas::AtlasLocator&) = 0;
+                                  const AtlasLocator&) = 0;
 
         std::unique_ptr<DrawAtlas> fDrawAtlas;
 
     private:
         // Tracks whether a shape is already in the DrawAtlas, and its location in the atlas
         struct UniqueKeyHash {
-            uint32_t operator()(const UniqueKey& key) const { return key.hash(); }
+            uint32_t operator()(const skgpu::UniqueKey& key) const { return key.hash(); }
         };
-        using ShapeCache = skia_private::THashMap<UniqueKey,
-                                                  DrawAtlas::AtlasLocator,
-                                                  UniqueKeyHash>;
+        using ShapeCache = skia_private::THashMap<skgpu::UniqueKey, AtlasLocator, UniqueKeyHash>;
         ShapeCache fShapeCache;
 
         // List of stored keys per Plot, used to invalidate cache entries.
@@ -180,7 +178,7 @@ protected:
         // PlotLocator, index into the fKeyLists array to get the ShapeKeyList for that Plot,
         // then iterate through the list and remove entries matching those keys from the ShapeCache.
         struct ShapeKeyEntry {
-            UniqueKey fKey;
+            skgpu::UniqueKey fKey;
             SK_DECLARE_INTERNAL_LLIST_INTERFACE(ShapeKeyEntry);
         };
         using ShapeKeyList = SkTInternalLList<ShapeKeyEntry>;
