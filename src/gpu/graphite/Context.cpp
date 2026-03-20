@@ -257,6 +257,8 @@ bool Context::submit(SubmitInfo submitInfo) {
 
 bool Context::hasUnfinishedGpuWork() const { return fQueueManager->hasUnfinishedGpuWork(); }
 
+bool Context::hasPendingGPUWork() const { return fQueueManager->hasPendingGPUWork(); }
+
 template <typename SrcPixels>
 struct Context::AsyncParams {
     const SrcPixels* fSrcImage;
@@ -793,10 +795,18 @@ Context::PixelTransferResult Context::transferPixels(Recorder* recorder,
     // which may be different; dstColorInfo is what we have to transform it into when invoking the
     // async callbacks.
     SkColorInfo readColorInfo = srcColorInfo.makeColorType(supportedColorType);
-    if (readColorInfo != dstColorInfo || isRGB888Format) {
+    if (readColorInfo.alphaType() == kUnknown_SkAlphaType) {
+        readColorInfo = readColorInfo.makeAlphaType(kOpaque_SkAlphaType);
+    }
+    SkColorInfo outColorInfo = dstColorInfo;
+    if (outColorInfo.alphaType() == kUnknown_SkAlphaType) {
+        outColorInfo = outColorInfo.makeAlphaType(kOpaque_SkAlphaType);
+    }
+    if (readColorInfo != outColorInfo || isRGB888Format) {
         SkISize dims = srcRect.size();
         SkImageInfo srcInfo = SkImageInfo::Make(dims, readColorInfo);
-        SkImageInfo dstInfo = SkImageInfo::Make(dims, dstColorInfo);
+        SkImageInfo dstInfo = SkImageInfo::Make(dims, outColorInfo);
+
         result.fRowBytes = dstInfo.minRowBytes();
         result.fPixelConverter = [dstInfo, srcInfo, rowBytes, isRGB888Format](
                 void* dst, const void* src) {
