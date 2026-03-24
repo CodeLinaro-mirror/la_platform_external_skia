@@ -12,7 +12,7 @@
 #include "include/core/SkSize.h"
 #include "include/private/base/SkAssert.h"
 #include "include/private/base/SkDebug.h"
-#include "src/gpu/AtlasTypes.h"
+#include "src/gpu/graphite/AtlasTypes.h"
 
 #include <cstddef>
 #include <cstdint>
@@ -23,6 +23,10 @@
 
 class SkAutoPixmapStorage;
 enum SkColorType : int;
+
+namespace skgpu {
+enum class MaskFormat : int;
+}
 
 namespace skgpu::graphite {
 
@@ -65,8 +69,7 @@ public:
 
     /**
      * Returns a DrawAtlas.
-     *  @param ct                  The colorType which this atlas will store.
-     *  @param bpp                 Size in bytes of each pixel.
+     *  @param maskFormat          The maskFormat which this atlas will store.
      *  @param width               Width in pixels of the atlas.
      *  @param height              Height in pixels of the atlas.
      *  @param plotWidth           The width of each plot. width/plotWidth should be an integer.
@@ -79,7 +82,7 @@ public:
      *
      *  @return                    An initialized DrawAtlas, or nullptr if creation fails.
      */
-    static std::unique_ptr<DrawAtlas> Make(SkColorType ct, size_t bpp,
+    static std::unique_ptr<DrawAtlas> Make(MaskFormat maskFormat,
                                            int width, int height,
                                            int plotWidth, int plotHeight,
                                            AtlasGenerationCounter* generationCounter,
@@ -207,8 +210,9 @@ public:
 #endif
 
 private:
-    DrawAtlas(SkColorType, size_t bpp,
-              int width, int height, int plotWidth, int plotHeight,
+    DrawAtlas(MaskFormat,
+              int width, int height,
+              int plotWidth, int plotHeight,
               AtlasGenerationCounter* generationCounter,
               AllowMultitexturing allowMultitexturing,
               UseStorageTextures useStorageTextures,
@@ -250,16 +254,15 @@ private:
     // when we know we won't be adding to the Plot immediately afterwards.
     void processEvictionAndResetRects(Plot* plot, bool freeData);
 
-    SkColorType           fColorType;
-    size_t                fBytesPerPixel;
-    int                   fTextureWidth;
-    int                   fTextureHeight;
-    int                   fPlotWidth;
-    int                   fPlotHeight;
-    unsigned int          fNumPlots;
-    UseStorageTextures    fUseStorageTextures;
-    const std::string     fLabel;
-    uint32_t              fAtlasID;   // unique identifier for this atlas
+    MaskFormat         fMaskFormat;
+    int                fTextureWidth;
+    int                fTextureHeight;
+    int                fPlotWidth;
+    int                fPlotHeight;
+    unsigned int       fNumPlots;
+    UseStorageTextures fUseStorageTextures;
+    const std::string  fLabel;
+    uint32_t           fAtlasID;   // unique identifier for this atlas
 
     // A counter to track the atlas eviction state for Glyphs. Each Glyph has a PlotLocator
     // which contains its current generation. When the atlas evicts a plot, it increases
@@ -281,7 +284,7 @@ private:
 
     struct Page {
         // allocated array of Plots
-        std::unique_ptr<sk_sp<Plot>[]> fPlotArray;
+        std::unique_ptr<std::unique_ptr<Plot>[]> fPlotArray;
         // LRU list of Plots (MRU at head - LRU at tail)
         PlotList fPlotList;
     };

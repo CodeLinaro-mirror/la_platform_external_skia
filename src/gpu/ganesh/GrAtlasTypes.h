@@ -5,8 +5,8 @@
  * found in the LICENSE file.
  */
 
-#ifndef skgpu_AtlasTypes_DEFINED
-#define skgpu_AtlasTypes_DEFINED
+#ifndef GrAtlasTypes_DEFINED
+#define GrAtlasTypes_DEFINED
 
 #include "include/core/SkColor.h"
 #include "include/core/SkColorType.h"
@@ -28,37 +28,34 @@
 #include <utility>
 
 class SkPixmap;
-namespace skgpu::graphite { class RecorderPriv; }
 
 /**
- * This file includes internal types that are used by all of our gpu backends for atlases.
+ * This file includes internal types that are used by Ganesh for atlases.
  */
 
-namespace skgpu {
-
-struct IRect16 {
+struct GrIRect16 {
     int16_t fLeft, fTop, fRight, fBottom;
 
-    [[nodiscard]] static IRect16 MakeEmpty() {
-        IRect16 r;
+    [[nodiscard]] static GrIRect16 MakeEmpty() {
+        GrIRect16 r;
         r.setEmpty();
         return r;
     }
 
-    [[nodiscard]] static IRect16 MakeWH(int16_t w, int16_t h) {
-        IRect16 r;
+    [[nodiscard]] static GrIRect16 MakeWH(int16_t w, int16_t h) {
+        GrIRect16 r;
         r.set(0, 0, w, h);
         return r;
     }
 
-    [[nodiscard]] static IRect16 MakeXYWH(int16_t x, int16_t y, int16_t w, int16_t h) {
-        IRect16 r;
+    [[nodiscard]] static GrIRect16 MakeXYWH(int16_t x, int16_t y, int16_t w, int16_t h) {
+        GrIRect16 r;
         r.set(x, y, x + w, y + h);
         return r;
     }
 
-    [[nodiscard]] static IRect16 Make(const SkIRect& ir) {
-        IRect16 r;
+    [[nodiscard]] static GrIRect16 Make(const SkIRect& ir) {
+        GrIRect16 r;
         r.set(ir);
         return r;
     }
@@ -93,48 +90,9 @@ struct IRect16 {
 };
 
 /**
- *  Formats for masks, used by the font cache. Important that these are 0-based.
- */
-enum class MaskFormat : int {
-    kA8,    //!< 1-byte per pixel
-    kA565,  //!< 2-bytes per pixel, RGB represent 3-channel LCD coverage
-    kARGB,  //!< 4-bytes per pixel, color format
-
-    kLast = kARGB
-};
-static const int kMaskFormatCount = static_cast<int>(MaskFormat::kLast) + 1;
-
-/**
- *  Return the number of bytes-per-pixel for the specified mask format.
- */
-inline constexpr int MaskFormatBytesPerPixel(MaskFormat format) {
-    SkASSERT(static_cast<int>(format) < kMaskFormatCount);
-    // kA8   (0) -> 1
-    // kA565 (1) -> 2
-    // kARGB (2) -> 4
-    static_assert(static_cast<int>(MaskFormat::kA8) == 0, "enum_order_dependency");
-    static_assert(static_cast<int>(MaskFormat::kA565) == 1, "enum_order_dependency");
-    static_assert(static_cast<int>(MaskFormat::kARGB) == 2, "enum_order_dependency");
-
-    return SkTo<int>(1u << static_cast<int>(format));
-}
-
-static constexpr SkColorType MaskFormatToColorType(MaskFormat format) {
-    switch (format) {
-        case MaskFormat::kA8:
-            return kAlpha_8_SkColorType;
-        case MaskFormat::kA565:
-            return kRGB_565_SkColorType;
-        case MaskFormat::kARGB:
-            return kRGBA_8888_SkColorType;
-    }
-    SkUNREACHABLE;
-}
-
-/**
  * Keep track of generation number for atlases and Plots.
  */
-class AtlasGenerationCounter {
+class GrAtlasGenerationCounter {
 public:
     inline static constexpr uint64_t kInvalidGeneration = 0;
     uint64_t next() {
@@ -152,7 +110,7 @@ private:
  * In fact PlotLocator is a portion of a glyph image location in the atlas fully specified by:
  *    format/atlasGeneration/page/plot/plotGeneration/rect
  */
-class PlotLocator {
+class GrPlotLocator {
 public:
     // These are both restricted by the space they occupy in the PlotLocator.
     // maxPages is also limited by being crammed into the glyph uvs.
@@ -161,7 +119,7 @@ public:
     inline static constexpr auto kMaxMultitexturePages = 4;
     inline static constexpr int kMaxPlots = 32;
 
-    PlotLocator(uint32_t pageIdx, uint32_t plotIdx, uint64_t generation)
+    GrPlotLocator(uint32_t pageIdx, uint32_t plotIdx, uint64_t generation)
             : fGenID(generation)
             , fPlotIndex(plotIdx)
             , fPageIndex(pageIdx) {
@@ -170,23 +128,23 @@ public:
         SkASSERT(generation < ((uint64_t)1 << 48));
     }
 
-    PlotLocator()
-            : fGenID(AtlasGenerationCounter::kInvalidGeneration)
+    GrPlotLocator()
+            : fGenID(GrAtlasGenerationCounter::kInvalidGeneration)
             , fPlotIndex(0)
             , fPageIndex(0) {}
 
     bool isValid() const {
-        return fGenID != AtlasGenerationCounter::kInvalidGeneration ||
+        return fGenID != GrAtlasGenerationCounter::kInvalidGeneration ||
                fPlotIndex != 0 || fPageIndex != 0;
     }
 
     void makeInvalid() {
-        fGenID = AtlasGenerationCounter::kInvalidGeneration;
+        fGenID = GrAtlasGenerationCounter::kInvalidGeneration;
         fPlotIndex = 0;
         fPageIndex = 0;
     }
 
-    bool operator==(const PlotLocator& other) const {
+    bool operator==(const GrPlotLocator& other) const {
         return fGenID == other.fGenID &&
                fPlotIndex == other.fPlotIndex &&
                fPageIndex == other.fPageIndex; }
@@ -205,7 +163,7 @@ private:
 // encoded UV coordinates. The bits 13 & 14 of the U coordinates hold the atlas page index.
 // This information is handed directly as is from fUVs. This encoding has the nice property
 // that width = fUVs[2] - fUVs[0]; the page encoding in the top bits subtracts to zero.
-class AtlasLocator {
+class GrAtlasLocator {
 public:
     std::array<uint16_t, 4> getUVs() const {
         return fUVs;
@@ -214,7 +172,7 @@ public:
     void invalidatePlotLocator() { fPlotLocator.makeInvalid(); }
 
     // TODO: Remove the small path renderer's use of this for eviction
-    PlotLocator plotLocator() const { return fPlotLocator; }
+    GrPlotLocator plotLocator() const { return fPlotLocator; }
 
     uint32_t pageIndex() const { return fPlotLocator.pageIndex(); }
 
@@ -227,7 +185,7 @@ public:
     }
 
     SkPoint widthHeight() const {
-        auto width =  fUVs[2] - fUVs[0],
+        auto width  = fUVs[2] - fUVs[0],
              height = fUVs[3] - fUVs[1];
         return SkPoint::Make(width, height);
     }
@@ -250,7 +208,7 @@ public:
         fUVs[3] -= padding;
     }
 
-    void updatePlotLocator(PlotLocator p) {
+    void updatePlotLocator(GrPlotLocator p) {
         fPlotLocator = p;
         SkASSERT(fPlotLocator.pageIndex() <= 3);
         uint16_t page = fPlotLocator.pageIndex() << 13;
@@ -258,7 +216,7 @@ public:
         fUVs[2] = (fUVs[2] & 0x1FFF) | page;
     }
 
-    void updateRect(skgpu::IRect16 rect) {
+    void updateRect(GrIRect16 rect) {
         SkASSERT(rect.fLeft <= rect.fRight);
         SkASSERT(rect.fRight <= 0x1FFF);
         fUVs[0] = (fUVs[0] & 0xE000) | rect.fLeft;
@@ -268,7 +226,7 @@ public:
     }
 
 private:
-    PlotLocator fPlotLocator{0, 0, AtlasGenerationCounter::kInvalidGeneration};
+    GrPlotLocator fPlotLocator{0, 0, GrAtlasGenerationCounter::kInvalidGeneration};
 
     // The inset padded bounds in the atlas in the lower 13 bits, and page index in bits 13 &
     // 14 of the Us.
@@ -277,12 +235,12 @@ private:
 
 /**
  * An interface for eviction callbacks. Whenever an atlas evicts a specific PlotLocator,
- * it will call all of the registered listeners so they can process the eviction.
+ * it will call all the registered listeners so they can process the eviction.
  */
-class PlotEvictionCallback {
+class GrPlotEvictionCallback {
 public:
-    virtual ~PlotEvictionCallback() = default;
-    virtual void evict(PlotLocator) = 0;
+    virtual ~GrPlotEvictionCallback() = default;
+    virtual void evict(GrPlotLocator) = 0;
 };
 
 /**
@@ -290,17 +248,17 @@ public:
  * current max number of plots per page an atlas can handle is 32. If in the future
  * this is insufficient then we can move to a 64 bit int.
  */
-class BulkUsePlotUpdater {
+class GrBulkUsePlotUpdater {
 public:
-    BulkUsePlotUpdater() {
+    GrBulkUsePlotUpdater() {
         memset(fPlotAlreadyUpdated, 0, sizeof(fPlotAlreadyUpdated));
     }
-    BulkUsePlotUpdater(const BulkUsePlotUpdater& that)
+    GrBulkUsePlotUpdater(const GrBulkUsePlotUpdater& that)
             : fPlotsToUpdate(that.fPlotsToUpdate) {
         memcpy(fPlotAlreadyUpdated, that.fPlotAlreadyUpdated, sizeof(fPlotAlreadyUpdated));
     }
 
-    bool add(const skgpu::AtlasLocator& atlasLocator) {
+    bool add(const GrAtlasLocator& atlasLocator) {
         int plotIdx = atlasLocator.plotIndex();
         int pageIdx = atlasLocator.pageIndex();
         if (this->find(pageIdx, plotIdx)) {
@@ -327,7 +285,7 @@ public:
 
 private:
     bool find(int pageIdx, int index) const {
-        SkASSERT(index < skgpu::PlotLocator::kMaxPlots);
+        SkASSERT(index < GrPlotLocator::kMaxPlots);
         return (fPlotAlreadyUpdated[pageIdx] >> index) & 1;
     }
 
@@ -340,7 +298,7 @@ private:
     inline static constexpr int kMinItems = 4;
     skia_private::STArray<kMinItems, PlotData, true> fPlotsToUpdate;
     // TODO: increase this to uint64_t to allow more plots per page
-    uint32_t fPlotAlreadyUpdated[skgpu::PlotLocator::kMaxMultitexturePages];
+    uint32_t fPlotAlreadyUpdated[GrPlotLocator::kMaxMultitexturePages];
 };
 
 /**
@@ -349,47 +307,34 @@ private:
  * the atlas class needs to track additional information. Plots are initialized to zero
  * for all color types.
  */
-class Plot : public SkRefCnt {
-    SK_DECLARE_INTERNAL_LLIST_INTERFACE(Plot);
+class GrPlot : public SkRefCnt {
+    SK_DECLARE_INTERNAL_LLIST_INTERFACE(GrPlot);
 
 public:
-    Plot(int pageIndex, int plotIndex, AtlasGenerationCounter* generationCounter,
-         int offX, int offY, int width, int height, SkColorType colorType, size_t bpp);
+    GrPlot(int pageIndex,
+           int plotIndex,
+           GrAtlasGenerationCounter* generationCounter,
+           int offX, int offY,
+           int width, int height,
+           SkColorType colorType,
+           size_t bpp);
 
-    uint32_t pageIndex() const { return fPageIndex; }
+    uint32_t pageIndex() const { return this->plotLocator().pageIndex(); }
 
     /** plotIndex() is a unique id for the plot relative to the owning GrAtlas and page. */
-    uint32_t plotIndex() const { return fPlotIndex; }
+    uint32_t plotIndex() const { return this->plotLocator().plotIndex(); }
     /**
      * genID() is incremented when the plot is evicted due to a atlas spill. It is used to
      * know if a particular subimage is still present in the atlas.
      */
     uint64_t genID() const { return fGenID; }
-    PlotLocator plotLocator() const {
+    GrPlotLocator plotLocator() const {
         SkASSERT(fPlotLocator.isValid());
         return fPlotLocator;
     }
     SkDEBUGCODE(size_t bpp() const { return fBytesPerPixel; })
 
-    /**
-     * To add data to the Plot, first call addRect to see if it's possible. If successful,
-     * use the atlasLocator to get a pointer to the location in the atlas via dataAt() and render to
-     * that location, or if you already have data use copySubImage().
-     */
-    bool addRect(int width, int height, AtlasLocator* atlasLocator);
-    void* dataAt(const AtlasLocator& atlasLocator);
-    void copySubImage(const AtlasLocator& atlasLocator, const void* image);
-    // Returns a Pixmap pointing to the backing data for the locator. Optionally, the caller can
-    // provide an inset that is applied to all four sides. This is useful for use cases that need
-    // to leave space between items in the atlas. The pixmap will exclude the padding. The entire
-    // Plot is cleared to zero when allocated. By passing an initialColor here, the caller can
-    // re-clear the entire locator's rect (including any padding) to any color.
-    SkPixmap prepForRender(const AtlasLocator&,
-                           int padding = 0,
-                           std::optional<SkColor> initialColor = {});
-
-    // TODO: Utility method for Ganesh, consider removing
-    bool addSubImage(int width, int height, const void* image, AtlasLocator* atlasLocator);
+    bool addSubImage(int width, int height, const void* image, GrAtlasLocator* atlasLocator);
 
     /**
      * To manage the lifetime of a plot, we use two tokens. We use the last upload token to
@@ -415,18 +360,18 @@ public:
     // when we know we won't be adding to the Plot immediately afterwards.
     void resetRects(bool freeData);
 
-    void markFullIfUsed() { fIsFull = !fDirtyRect.isEmpty(); }
-    bool isEmpty() const { return fRectanizer.percentFull() == 0; }
-    bool hasAllocation() const { return fData != nullptr; }
-
     /**
      * Create a clone of this plot. The cloned plot will take the place of the current plot in
      * the atlas
      */
-    sk_sp<Plot> clone() const {
-        return sk_sp<Plot>(new Plot(
-            fPageIndex, fPlotIndex, fGenerationCounter, fX, fY, fWidth, fHeight, fColorType,
-            fBytesPerPixel));
+    sk_sp<GrPlot> clone() const {
+        return sk_sp<GrPlot>(new GrPlot(this->pageIndex(),
+                                        this->plotIndex(),
+                                        fGenerationCounter,
+                                        fX, fY,
+                                        fWidth, fHeight,
+                                        fColorType,
+                                        fBytesPerPixel));
     }
 
 #ifdef SK_DEBUG
@@ -437,21 +382,18 @@ public:
 #endif
 
 private:
-    ~Plot() override;
+    ~GrPlot() override;
     size_t rowBytes() const { return fWidth * fBytesPerPixel; }
     void* dataAt(SkIPoint atlasPoint);
+    bool addRect(int width, int height, GrAtlasLocator* atlasLocator);
 
     skgpu::Token fLastUpload;
     skgpu::Token fLastUse;
     int          fFlushesSinceLastUse;
 
-    struct {
-        const uint32_t fPageIndex : 16;
-        const uint32_t fPlotIndex : 16;
-    };
-    AtlasGenerationCounter* const fGenerationCounter;
+    GrAtlasGenerationCounter* const fGenerationCounter;
     uint64_t fGenID;
-    PlotLocator fPlotLocator;
+    GrPlotLocator fPlotLocator;
     std::byte* fData;
     const int fWidth;
     const int fHeight;
@@ -462,12 +404,9 @@ private:
     const SkColorType fColorType;
     const size_t fBytesPerPixel;
     SkIRect fDirtyRect;  // area in the Plot that needs to be uploaded
-    bool fIsFull;
     SkDEBUGCODE(bool fDirty;)
 };
 
-typedef SkTInternalLList<Plot> PlotList;
+typedef SkTInternalLList<GrPlot> GrPlotList;
 
-} // namespace skgpu
-
-#endif // skgpu_AtlasTypes_DEFINED
+#endif  // GrAtlasTypes_DEFINED
