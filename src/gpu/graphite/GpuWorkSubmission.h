@@ -12,10 +12,6 @@
 
 #include <memory>
 
-namespace skgpu {
-class RefCntedCallback;
-}
-
 namespace skgpu::graphite {
 class CommandBuffer;
 class SharedContext;
@@ -27,8 +23,6 @@ public:
 
     bool isFinished(const SharedContext* sharedContext);
     void waitUntilFinished(const SharedContext* sharedContext);
-
-    void addFinishedProc(sk_sp<RefCntedCallback> finishedProc);
 
 protected:
     CommandBuffer* commandBuffer() { return fCommandBuffer.get(); }

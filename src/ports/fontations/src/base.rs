@@ -254,7 +254,7 @@ pub fn coordinates_for_shifted_named_instance_index(
 
             Some(instance_coords.len() as isize)
         })
-        .unwrap_or(0)
+        .unwrap_or(-1)
 }
 
 pub fn num_axes(font_ref: &BridgeFontRef) -> usize {

@@ -1129,8 +1129,6 @@ void populateStopsAndColors(std::vector<SkScalar>& dest_stops,
         SkColor4f dest_color;
         if (color_stop.palette_index == kForegroundColorPaletteIndex) {
             dest_color = SkColor4f::FromColor(foregroundColor);
-        } else if (color_stop.palette_index >= palette.size()) {
-            dest_color = SkColors::kMagenta;
         } else {
             dest_color = SkColor4f::FromColor(palette[color_stop.palette_index]);
         }
@@ -1310,8 +1308,6 @@ void ColorPainter::configure_solid_paint(uint16_t palette_index, float alpha, Sk
     SkColor4f color;
     if (palette_index == kForegroundColorPaletteIndex) {
         color = SkColor4f::FromColor(fForegroundColor);
-    } else if (palette_index >= fPalette.size()) {
-        color = SkColors::kMagenta;
     } else {
         color = SkColor4f::FromColor(fPalette[palette_index]);
     }

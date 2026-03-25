@@ -23,7 +23,6 @@
 #include "tools/graphite/TestOptions.h"
 #include "tools/graphite/dawn/GraphiteDawnToggles.h"
 #include "tools/window/GraphiteDisplayParams.h"
-#include "include/private/base/SkLog.h"
 
 #include "dawn/dawn_proc.h"
 
@@ -143,7 +142,6 @@ wgpu::Device GraphiteDawnWindowContext::createDevice(wgpu::BackendType type) {
 
     std::vector<dawn::native::Adapter> adapters = fInstance->EnumerateAdapters(&adapterOptions);
     if (adapters.empty()) {
-        SKIA_LOG_E("No dawn adapters available");
         return nullptr;
     }
 
@@ -166,12 +164,13 @@ wgpu::Device GraphiteDawnWindowContext::createDevice(wgpu::BackendType type) {
             [](const wgpu::Device&, wgpu::DeviceLostReason reason, wgpu::StringView message) {
                 if (reason == wgpu::DeviceLostReason::Unknown ||
                     reason == wgpu::DeviceLostReason::FailedCreation) {
-                    SKIA_LOG_F("Device lost: %.*s\n", static_cast<int>(message.length), message.data);
+                    SK_ABORT("Device lost: %.*s\n", static_cast<int>(message.length), message.data);
                 }
             });
     deviceDescriptor.SetUncapturedErrorCallback(
             [](const wgpu::Device&, wgpu::ErrorType, wgpu::StringView message) {
-                SKIA_LOG_F("Device error: %.*s\n", static_cast<int>(message.length), message.data);
+                SkDebugf("Device error: %.*s\n", static_cast<int>(message.length), message.data);
+                SkASSERT(false);
             });
 
     wgpu::DawnTogglesDescriptor deviceTogglesDesc;
@@ -191,7 +190,6 @@ wgpu::Device GraphiteDawnWindowContext::createDevice(wgpu::BackendType type) {
 
     auto device = adapter.CreateDevice(&deviceDescriptor);
     if (!device) {
-        SKIA_LOG_E("Could not create device from adapter");
         return nullptr;
     }
 

@@ -538,19 +538,15 @@ static const Window::BackendType kSupportedBackends[] = {
 #endif
 
 #if defined(SK_DAWN) && defined(SK_GRAPHITE)
-#if defined(SK_DAWN_HAS_D3D11)
+#if defined(SK_BUILD_FOR_WIN)
         sk_app::Window::BackendType::kGraphiteDawnD3D11,
-#endif
-#if defined(SK_DAWN_HAS_D3D12)
         sk_app::Window::BackendType::kGraphiteDawnD3D12,
 #endif
-#if defined(SK_DAWN_HAS_METAL)
+#if defined(SK_BUILD_FOR_MAC) || defined(SK_BUILD_FOR_IOS)
         sk_app::Window::BackendType::kGraphiteDawnMetal,
 #endif
-#if defined(SK_DAWN_HAS_OPENGLES)
+#if defined(SK_BUILD_FOR_UNIX) || defined(SK_BUILD_FOR_ANDROID)
         sk_app::Window::BackendType::kGraphiteDawnOpenGLES,
-#endif
-#if defined(SK_DAWN_HAS_VULKAN)
         sk_app::Window::BackendType::kGraphiteDawnVulkan,
 #endif
 #endif
@@ -997,7 +993,7 @@ Viewer::Viewer(int argc, char** argv, void* platformData)
     fCommands.addCommand('a', "Transform", "Toggle Animation", [this]() {
         fAnimTimer.togglePauseResume();
     });
-    fCommands.addCommand('u', "GUI", "Zoom Stats UI", [this]() {
+    fCommands.addCommand('u', "GUI", "Zoom UI", [this]() {
         fZoomUI = !fZoomUI;
         fStatsLayer.setDisplayScale((fZoomUI ? 2.0f : 1.0f) * fWindow->scaleFactor());
         fWindow->inval();

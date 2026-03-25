@@ -156,7 +156,7 @@ bool DrawContext::readsTexture(const TextureProxy* texture) const {
     return !notFound; // double negation means its found in a pending child task
 }
 
-std::pair<DrawParams*, Insertion> DrawContext::recordDraw(
+std::pair<DrawParams*, Layer*> DrawContext::recordDraw(
         const Renderer* renderer,
         const Transform& localToDevice,
         const Geometry& geometry,
@@ -166,7 +166,7 @@ std::pair<DrawParams*, Insertion> DrawContext::recordDraw(
         SkEnumBitMask<DstUsage> dstUsage,
         PipelineDataGatherer* gatherer,
         const StrokeStyle* stroke,
-        const Insertion& latestInsertion) {
+        Layer* latestDepthLayer) {
     SkASSERTF(SkIRect::MakeSize(this->imageInfo().dimensions()).contains(clip.scissor()),
               "Image %dx%d, scissor %d,%d,%d,%d",
               this->imageInfo().width(), this->imageInfo().height(),
@@ -188,7 +188,7 @@ std::pair<DrawParams*, Insertion> DrawContext::recordDraw(
 
     return fPendingDraws->recordDraw(renderer, localToDevice, geometry, clip, ordering, paintID,
                                      dstUsage,  barrierBeforeDraws, gatherer, stroke,
-                                     latestInsertion);
+                                     latestDepthLayer);
 }
 
 bool DrawContext::recordUpload(Recorder* recorder,

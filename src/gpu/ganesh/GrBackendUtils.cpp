@@ -13,21 +13,48 @@
 #include "include/private/gpu/ganesh/GrTypesPriv.h"
 #include "src/gpu/DataUtils.h"
 #include "src/gpu/ganesh/GrBackendSurfacePriv.h"
+#include "src/gpu/ganesh/mock/GrMockBackendSurfacePriv.h"
 
 SkTextureCompressionType GrBackendFormatToCompressionType(const GrBackendFormat& format) {
-    if (!format.isValid()) {
-        return SkTextureCompressionType::kNone;
+    switch (format.backend()) {
+        case GrBackendApi::kDirect3D: [[fallthrough]];
+        case GrBackendApi::kMetal:    [[fallthrough]];
+        case GrBackendApi::kOpenGL:   [[fallthrough]];
+        case GrBackendApi::kVulkan:
+            return GrBackendSurfacePriv::GetBackendData(format)->compressionType();
+        case GrBackendApi::kMock: {
+            return GrMockBackendSurfacePriv::AsMockCompressionType(format);
+        }
+        case GrBackendApi::kUnsupported: {
+            break;
+        }
     }
-    SkASSERT(format.backend() != GrBackendApi::kUnsupported);
-    return GrBackendSurfacePriv::GetBackendData(format)->compressionType();
+    return SkTextureCompressionType::kNone;
 }
 
 size_t GrBackendFormatBytesPerBlock(const GrBackendFormat& format) {
-    if (!format.isValid()) {
-        return 0;
+    switch (format.backend()) {
+        case GrBackendApi::kDirect3D: [[fallthrough]];
+        case GrBackendApi::kMetal:    [[fallthrough]];
+        case GrBackendApi::kOpenGL:   [[fallthrough]];
+        case GrBackendApi::kVulkan:
+            return GrBackendSurfacePriv::GetBackendData(format)->bytesPerBlock();
+        case GrBackendApi::kMock: {
+            SkTextureCompressionType compression =
+                    GrMockBackendSurfacePriv::AsMockCompressionType(format);
+            if (compression != SkTextureCompressionType::kNone) {
+                return skgpu::CompressedRowBytes(compression, 1);
+            } else if (GrMockBackendSurfacePriv::IsMockStencilFormat(format)) {
+                static constexpr int kMockStencilSize = 4;
+                return kMockStencilSize;
+            }
+            return GrColorTypeBytesPerPixel(GrMockBackendSurfacePriv::AsMockColorType(format));
+        }
+        case GrBackendApi::kUnsupported: {
+            break;
+        }
     }
-    SkASSERT(format.backend() != GrBackendApi::kUnsupported);
-    return GrBackendSurfacePriv::GetBackendData(format)->bytesPerBlock();
+    return 0;
 }
 
 size_t GrBackendFormatBytesPerPixel(const GrBackendFormat& format) {
@@ -38,9 +65,22 @@ size_t GrBackendFormatBytesPerPixel(const GrBackendFormat& format) {
 }
 
 int GrBackendFormatStencilBits(const GrBackendFormat& format) {
-    if (!format.isValid()) {
-        return 0;
+    switch (format.backend()) {
+        case GrBackendApi::kDirect3D: [[fallthrough]];
+        case GrBackendApi::kMetal:    [[fallthrough]];
+        case GrBackendApi::kOpenGL:   [[fallthrough]];
+        case GrBackendApi::kVulkan:
+            return GrBackendSurfacePriv::GetBackendData(format)->stencilBits();
+        case GrBackendApi::kMock: {
+            if (GrMockBackendSurfacePriv::IsMockStencilFormat(format)) {
+                static constexpr int kMockStencilBits = 8;
+                return kMockStencilBits;
+            }
+            break;
+        }
+        case GrBackendApi::kUnsupported: {
+            break;
+        }
     }
-    SkASSERT(format.backend() != GrBackendApi::kUnsupported);
-    return GrBackendSurfacePriv::GetBackendData(format)->stencilBits();
+    return 0;
 }

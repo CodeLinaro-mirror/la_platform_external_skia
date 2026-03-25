@@ -14,7 +14,6 @@ CORE_PRIV_HDRS = [
     "SkGainmapShader.h",
     "SkGainmapInfo.h",
     "SkHdrMetadata.h",
-    "SkPixelStorage.h",
 ]
 
 CORE_SRCS = [

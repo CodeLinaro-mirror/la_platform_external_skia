@@ -40,8 +40,8 @@ bool ContentLightLevelInformation::parse(const SkData* data) {
 
 sk_sp<SkData> ContentLightLevelInformation::serialize() const {
     SkDynamicMemoryWStream s;
-    SkStreamPriv::WriteU16BE(&s, getUint16MaxCLL());
-    SkStreamPriv::WriteU16BE(&s, getUint16MaxFALL());
+    SkStreamPriv::WriteU16BE(&s, std::llroundf(fMaxCLL));
+    SkStreamPriv::WriteU16BE(&s, std::llroundf(fMaxFALL));
     return s.detachAsData();
 }
 

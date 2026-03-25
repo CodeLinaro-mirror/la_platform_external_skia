@@ -987,13 +987,7 @@ public:
         return fConicWeights;
     }
 
-    enum class Reserve {
-        // Reserves the exact amount of storage needed for pathraw (never overallocates).
-        kExact,
-        // Allows the storage buffers to overallocate, based on their internal growth policy.
-        kGrow
-    };
-    SkPathBuilder& addRaw(const SkPathRaw&, Reserve);
+    SkPathBuilder& addRaw(const SkPathRaw&);
 
     SkPathIter iter() const;
 
