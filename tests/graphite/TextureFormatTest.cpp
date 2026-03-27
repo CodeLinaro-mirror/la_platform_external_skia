@@ -14,11 +14,11 @@
 #include "src/base/SkFloatBits.h"
 #include "src/base/SkHalf.h"
 #include "src/core/SkRasterPipeline.h"
-#include "src/core/SkRasterPipelineOpContexts.h"
 #include "src/gpu/Swizzle.h"
 #include "src/gpu/graphite/Caps.h"
 #include "src/gpu/graphite/ContextPriv.h"
 #include "src/gpu/graphite/TextureFormat.h"
+#include "src/gpu/graphite/TextureFormatXferFn.h"
 #include "src/gpu/graphite/TextureInfoPriv.h"
 #include "tools/ToolUtils.h"
 
@@ -133,10 +133,13 @@ using PixelData = std::array<uint8_t, 16>; // The largest texel/pixel size is RG
 uint32_t channel_to_bits(const Channel& channel, float value) {
     switch (channel.fType) {
         case Pad:
-            // Pad should only be used with 'x', then just fall through to turn x's value as Unorm
-            // for packing into the right bit size
+            // Pad should only be used with 'x', which produces NaN in channel_to_float, so
+            // replace `value` with the default 'x' bit pattern in gen_channel_values, and then
+            // fall through to UNorm handling to adjust it to the right bit depth
             SkASSERT(channel.fName == 'x');
+            value = 0b0101 / 15.f;
             [[fallthrough]];
+
         case sRGB:
             // sRGB data is stored in a non-linear gamma and automatically decodes to linear when
             // being sampled or rendered into. This means an SRGB_8888 image with a linear
@@ -454,31 +457,9 @@ bool compare_pixels(SkSpan<const Channel> channels,
     return true;
 }
 
-// TODO(michaelludwig): This is a simple stub implementation (we aren't planning to use the
-// SkConvertPixels code currently used by UploadTask and asyncReads). It's purpose is to validate
-// that the generated test cases make sense before we introduce a new TextureFormatXferFn utility.
-// As such, 3-channel formats are not supported.
-PixelData transfer_data(SkColorType srcType,
-                        SkEnumBitMask<FormatXferOp> xferOps,
-                        Swizzle srcToDst,
-                        SkColorType dstType,
-                        const PixelData& inputData) {
-    SkASSERT(!(xferOps & FormatXferOp::kDropAlpha));
-    SkASSERT(!(xferOps & FormatXferOp::kDisabled));
-
+PixelData transfer_data(const TextureFormatXferFn& xferFn, const PixelData& inputData) {
     PixelData outputData{}; // zero-initialize for comparison stability on unwritten values.
-    SkRasterPipelineContexts::MemoryCtx srcCtx{const_cast<PixelData*>(&inputData), 1},
-                                        dstCtx{&outputData, 1};
-
-    SkRasterPipeline_<256> rp;
-    rp.appendLoad(srcType, &srcCtx);
-    if (xferOps & FormatXferOp::kSwapRB) {
-        srcToDst = Swizzle::Concat(srcToDst, Swizzle::BGRA());
-    }
-    srcToDst.apply(&rp);
-    rp.appendStore(dstType, &dstCtx);
-    rp.run(0, 0, 1, 1);
-
+    xferFn.run(1, 1, &inputData, sizeof(PixelData), &outputData, sizeof(PixelData));
     return outputData;
 }
 
@@ -559,6 +540,7 @@ PixelData transfer_data(SkColorType srcType,
                                                         {'a', 32, Float}}},
     {kR8G8_unorm_SkColorType,         Swizzle("rg01"), {{'r', 8, UNorm}, {'g', 8, UNorm}}},
     {kA16_float_SkColorType,          Swizzle("000a"), {{'a', 16, Float}}},
+    {kR16_float_SkColorType,          Swizzle("r001"), {{'r', 16, Float}}},
     {kR16G16_float_SkColorType,       Swizzle("rg01"), {{'r', 16, Float}, {'g', 16, Float}}},
     {kA16_unorm_SkColorType,          Swizzle("000a"), {{'a', 16, UNorm}}},
     {kR16_unorm_SkColorType,          Swizzle("r001"), {{'r', 16, UNorm}}},
@@ -600,14 +582,13 @@ static const FormatExpectation kExpectations[] {
     {.fFormat=TextureFormat::kR16F,
      .fChannels={{'r', 16, Float}},
      .fXferSwizzle=Swizzle("r001"),
-     .fCompatibleColorTypes={{kA16_float_SkColorType, Swizzle("000r"), Swizzle("a000")}}},
+     .fCompatibleColorTypes={{kR16_float_SkColorType, Swizzle::RGBA(), Swizzle::RGBA()},
+                             {kA16_float_SkColorType, Swizzle("000r"), Swizzle("a000")}}},
 
     {.fFormat=TextureFormat::kR32F,
      .fChannels={{'r', 32, Float}},
      .fXferSwizzle=std::nullopt,
-     // TODO(b/494552359): Use kR16_float_SkColorType once
-     // https://skia-review.git.corp.google.com/c/skia/+/1165337 is landed.
-     .fCompatibleColorTypes={{kA16_float_SkColorType, Swizzle("000r"), Swizzle("a000")}}},
+     .fCompatibleColorTypes={{kR16_float_SkColorType, Swizzle::RGBA(), Swizzle::RGBA()}}},
 
     {.fFormat=TextureFormat::kA8,
      .fChannels={{'a', 8, UNorm}},
@@ -849,16 +830,6 @@ static const FormatExpectation kExpectations[] {
 void test_format_transfers(skiatest::Reporter* r,
                            const FormatExpectation& textureFormat,
                            const ColorTypeExpectation& textureCT) {
-    auto [baseCT, xferOps] = TextureFormatColorTypeInfo(textureFormat.fFormat);
-    if (xferOps & FormatXferOp::kDropAlpha) {
-        // 3-channel formats aren't supported by transfer_data() yet.
-        return;
-    }
-    if (textureCT.fColorType == kA16_float_SkColorType) {
-        // TODO(b/494552359): Re-enable this once we have a kR16F color type
-        return;
-    }
-
     // When transferring to CPU->GPU, we want to apply the textureCT's write swizzle, but if that
     // is undefined because rendering is disabled, infer a "write" swizzle by picking the swizzle
     // from its color type.
@@ -879,10 +850,13 @@ void test_format_transfers(skiatest::Reporter* r,
             ToolUtils::colortype_name(textureCT.fColorType));
     // Transfering from srcCT into a GPU textureFormat interpreted as textureCT
     for (const ColorTypeChannels& src : kColorTypeChannels) {
-        if (textureFormat.fXferSwizzle.has_value()) {
-            REPORTER_ASSERT(r, !(xferOps & FormatXferOp::kDisabled),
-                            "Expected CPU->GPU xfer function");
+        std::optional<TextureFormatXferFn> xferFn =
+                TextureFormatXferFn::MakeCpuToGpu(src.fColorType,
+                                                  textureFormat.fFormat,
+                                                  textureCT.fReadSwizzle);
+        REPORTER_ASSERT(r, textureFormat.fXferSwizzle.has_value() == xferFn.has_value());
 
+        if (textureFormat.fXferSwizzle.has_value() && xferFn.has_value()) {
             PixelData cpuPixel = gen_pixel_data(src.fChannels);
 
             // The expected GPU value is formed by applying the source colortype's effective
@@ -892,11 +866,7 @@ void test_format_transfers(skiatest::Reporter* r,
                         textureFormat.fChannels,
                         Swizzle::Concat(src.fEffectiveSwizzle, writeSwizzle),
                         src.fChannels);
-            PixelData actualGpuPixel = transfer_data(src.fColorType,
-                                                     xferOps,
-                                                     writeSwizzle,
-                                                     baseCT,
-                                                     cpuPixel);
+            PixelData actualGpuPixel = transfer_data(*xferFn, cpuPixel);
 
             const int tol = channel_tolerance(textureFormat.fChannels, src.fChannels);
             if (!compare_pixels(textureFormat.fChannels, expectedGpuPixel, actualGpuPixel, tol)) {
@@ -912,19 +882,18 @@ void test_format_transfers(skiatest::Reporter* r,
                 REPORTER_ASSERT(r, false,  "Pixel mismatch uploading from %s", ctLabel.c_str());
                 STOP_ON_TRANSFER_FAILURE
             }
-        } else {
-            // Uploads are expected to be disabled, so the xferFn should be empty
-            REPORTER_ASSERT(r, xferOps & FormatXferOp::kDisabled,
-                            "Expected empty CPU->GPU xfer function");
         }
     }
 
     // Transfering from a GPU textureFormat interpreted as textureCT into dstCT
     for (const ColorTypeChannels& dst : kColorTypeChannels) {
-        if (textureFormat.fXferSwizzle.has_value()) {
-            REPORTER_ASSERT(r, !(xferOps & FormatXferOp::kDisabled),
-                            "Expected GPU->CPU xfer function");
+        std::optional<TextureFormatXferFn> xferFn =
+                TextureFormatXferFn::MakeGpuToCpu(textureFormat.fFormat,
+                                                  textureCT.fReadSwizzle,
+                                                  dst.fColorType);
+        REPORTER_ASSERT(r, textureFormat.fXferSwizzle.has_value() == xferFn.has_value());
 
+        if (textureFormat.fXferSwizzle.has_value() && xferFn.has_value()) {
             PixelData gpuPixel = gen_pixel_data(textureFormat.fChannels);
 
             // The expected CPU value is formed by applying the TextureFormat's implicit transfer
@@ -935,11 +904,7 @@ void test_format_transfers(skiatest::Reporter* r,
                     Swizzle::Concat(*textureFormat.fXferSwizzle, textureCT.fReadSwizzle),
                     textureFormat.fChannels);
 
-            PixelData actualCpuPixel = transfer_data(baseCT,
-                                                     xferOps,
-                                                     textureCT.fReadSwizzle,
-                                                     dst.fColorType,
-                                                     gpuPixel);
+            PixelData actualCpuPixel = transfer_data(*xferFn, gpuPixel);
 
             const int tol = channel_tolerance(dst.fChannels, textureFormat.fChannels);
             if (!compare_pixels(dst.fChannels, expectedCpuPixel, actualCpuPixel, tol)) {
@@ -956,10 +921,6 @@ void test_format_transfers(skiatest::Reporter* r,
                 REPORTER_ASSERT(r, false,  "Pixel mismatch reading back to %s", ctLabel.c_str());
                 STOP_ON_TRANSFER_FAILURE
             }
-        } else {
-            // Readbacks are expected to be disabled, so the xferFn should be empty
-            REPORTER_ASSERT(r, xferOps & FormatXferOp::kDisabled,
-                            "Expected empty GPU->CPU xfer function");
         }
     }
 }
