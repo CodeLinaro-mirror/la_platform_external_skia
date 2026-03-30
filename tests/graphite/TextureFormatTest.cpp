@@ -8,10 +8,12 @@
 #include "tests/Test.h"
 
 #include "include/core/SkColorType.h"
+#include "include/gpu/graphite/Context.h"
 #include "include/gpu/graphite/TextureInfo.h"
 #include "include/private/base/SkTArray.h"
 #include "src/gpu/Swizzle.h"
 #include "src/gpu/graphite/Caps.h"
+#include "src/gpu/graphite/ContextPriv.h"
 #include "src/gpu/graphite/TextureFormat.h"
 #include "src/gpu/graphite/TextureInfoPriv.h"
 
@@ -28,7 +30,7 @@ struct FormatExpectation {
 
     // Fixed properties
     SkTextureCompressionType fCompressionType;
-    size_t fBytesPerBlock;
+    int fBytesPerBlock;
     uint32_t fChannelMask;
     bool fHasDepth;
     bool fHasStencil;
@@ -40,9 +42,8 @@ struct FormatExpectation {
     skia_private::TArray<ColorTypeExpectation> fCompatibleColorTypes;
 };
 
-inline
 FormatExpectation MakeColor(TextureFormat format,
-                            size_t bytesPerBlock,
+                            int bytesPerBlock,
                             uint32_t channels,
                             bool multiplanar,
                             bool autoClamps,
@@ -52,10 +53,9 @@ FormatExpectation MakeColor(TextureFormat format,
             /*fHasStencil=*/false, multiplanar, autoClamps, isFloatingPoint, compatibleColorTypes};
 }
 
-inline
 FormatExpectation MakeCompressed(TextureFormat format,
                                  SkTextureCompressionType compressionType,
-                                 size_t bytesPerBlock,
+                                 int bytesPerBlock,
                                  uint32_t channels,
                                  std::initializer_list<ColorTypeExpectation> compatibleColorTypes) {
     return {format, compressionType, bytesPerBlock, channels, /*fHasDepth=*/false,
@@ -63,9 +63,8 @@ FormatExpectation MakeCompressed(TextureFormat format,
             /*fIsFloatingPoint=*/false, compatibleColorTypes};
 }
 
-inline
-FormatExpectation MakeDepthStencil(TextureFormat format, size_t
-                                   bytesPerBlock,
+FormatExpectation MakeDepthStencil(TextureFormat format,
+                                   int bytesPerBlock,
                                    bool hasDepth,
                                    bool hasStencil,
                                    bool autoClamps,
@@ -84,16 +83,14 @@ static const FormatExpectation kExpectations[] {
               /*isFloatingPoint=*/false,
               {}),
 
-    // TODO(michaelludwig): Right now the alpha-only color types are the expected defaults for
-    // red formats. In the future this will be changed to red-only color type.
     MakeColor(TextureFormat::kR8,
               /*bytesPerBlock=*/1,
               kRed_SkColorChannelFlag,
               /*multiplanar=*/false,
               /*autoClamps=*/true,
               /*isFloatingPoint=*/false,
-              {{kAlpha_8_SkColorType, Swizzle("000r"), Swizzle("a000")},
-               {kR8_unorm_SkColorType, Swizzle::RGBA(), Swizzle::RGBA()},
+              {{kR8_unorm_SkColorType, Swizzle::RGBA(), Swizzle::RGBA()},
+               {kAlpha_8_SkColorType, Swizzle("000r"), Swizzle("a000")},
                {kGray_8_SkColorType, Swizzle("rrra"), std::nullopt}}),
 
     MakeColor(TextureFormat::kR16,
@@ -102,8 +99,8 @@ static const FormatExpectation kExpectations[] {
               /*multiplanar=*/false,
               /*autoClamps=*/true,
               /*isFloatingPoint=*/false,
-              {{kA16_unorm_SkColorType, Swizzle("000r"), Swizzle("a000")},
-               {kR16_unorm_SkColorType, Swizzle::RGBA(), Swizzle::RGBA()}}),
+              {{kR16_unorm_SkColorType, Swizzle::RGBA(), Swizzle::RGBA()},
+               {kA16_unorm_SkColorType, Swizzle("000r"), Swizzle("a000")}}),
 
     MakeColor(TextureFormat::kR16F,
               /*bytesPerBlock=*/2,
@@ -121,7 +118,7 @@ static const FormatExpectation kExpectations[] {
               /*isFloatingPoint=*/true,
               // TODO(michaelludwig): Use kR16_float_SkColorType once
               // https://skia-review.git.corp.google.com/c/skia/+/1165337 is landed.
-              {{kA16_float_SkColorType, Swizzle::RGBA(), Swizzle::RGBA()}}),
+              {{kA16_float_SkColorType, Swizzle("000r"), Swizzle("a000")}}),
 
     MakeColor(TextureFormat::kA8,
               /*bytesPerBlock=*/1,
@@ -379,7 +376,8 @@ static const FormatExpectation kExpectations[] {
                    SkTextureCompressionType::kBC1_RGBA8_UNORM,
                    /*bytesPerBlock=*/8,
                    kRGBA_SkColorChannelFlags,
-                   {{kRGBA_8888_SkColorType, Swizzle::RGBA(), std::nullopt}}),
+                   {{kRGBA_8888_SkColorType, Swizzle::RGBA(), std::nullopt},
+                    {kRGB_888x_SkColorType, Swizzle::RGB1(), std::nullopt}}),
 
     MakeCompressed(TextureFormat::kRGBA8_BC1_sRGB,
                    SkTextureCompressionType::kBC1_RGBA8_UNORM,
@@ -458,16 +456,7 @@ static const FormatExpectation kExpectations[] {
                      /*isFloatingPoint=*/true),
 };
 
-// TODO(michaelludwig): For now format-colortype validation relies on Caps APIs that require a full
-// TextureInfo, but they will be moved to fixed rules by TextureFormat. At that point, the
-// backend-specific test files can also go away.
-using TextureInfoFactoryFn = TextureInfo(*)(TextureFormat);
-
-inline
-void RunTextureFormatTest(skiatest::Reporter* r,
-                          const Caps* caps,
-                          TextureFormat format,
-                          TextureInfoFactoryFn texInfoFactory) {
+void run_texture_format_test(skiatest::Reporter* r, const Caps* caps, TextureFormat format) {
     bool foundExpectation = false;
     for (auto&& e : kExpectations) {
         if (e.fFormat != format) {
@@ -492,16 +481,9 @@ void RunTextureFormatTest(skiatest::Reporter* r,
         REPORTER_ASSERT(r, e.fIsFloatingPoint == TextureFormatIsFloatingPoint(format));
 
         // Verify compatible color types
-        TextureInfo texInfo = texInfoFactory(format);
-
-        SkColorType baseColorType = caps->getDefaultColorType(texInfo);
+        auto [baseColorType, _] = TextureFormatColorTypeInfo(format);
         if (baseColorType == kUnknown_SkColorType) {
-            // TODO(michaelludwig): Caps excludes color type infos for formats that aren't
-            // supported, so we could see kUnknown on a given device. When compatibility is
-            // separated from format support, we can instead assert this only happens when there
-            // really are no compatible color types.
-            // REPORTER_ASSERT(r, e.fCompatibleColorTypes.empty());
-            continue;
+            REPORTER_ASSERT(r, e.fCompatibleColorTypes.empty());
         } else {
             // Should be the first listed compatible color type
             REPORTER_ASSERT(r, !e.fCompatibleColorTypes.empty());
@@ -550,14 +532,21 @@ void RunTextureFormatTest(skiatest::Reporter* r,
             }
 
             // If we found an expectation, it should be detected as compatible (and false otherwise)
-            const bool actualCompatible = caps->areColorTypeAndTextureInfoCompatible(ct, texInfo);
+            const bool actualCompatible = AreColorTypeAndFormatCompatible(ct, format);
             REPORTER_ASSERT(r, foundColorExpectation == actualCompatible,
-                            "actual (%d) vs expected (%d)", actualCompatible, foundExpectation);
+                            "actual (%d) vs expected (%d)",
+                            actualCompatible, foundColorExpectation);
         }
     }
 
     // All formats should have expectations
     REPORTER_ASSERT(r, foundExpectation, "Missing expectation for %s", TextureFormatName(format));
+}
+
+DEF_GRAPHITE_TEST_FOR_ALL_CONTEXTS(TextureFormatTest, r, ctx, CtsEnforcement::kNextRelease) {
+    for (int i = 0; i < kTextureFormatCount; ++i) {
+        run_texture_format_test(r, ctx->priv().caps(), static_cast<TextureFormat>(i));
+    }
 }
 
 } // namespace skgpu::graphite
