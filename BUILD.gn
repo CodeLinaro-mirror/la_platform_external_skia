@@ -1709,6 +1709,7 @@ if (skia_use_rust_exif) {
 
 optional("rust_exif") {
   enabled = skia_use_rust_exif
+  public_defines = [ "SK_EXIF_PARSE_WITH_RUST" ]
   public = skia_rust_exif_ffi_cpp_hdrs
   sources = skia_rust_exif_ffi_cpp_srcs
   sources_for_tests = [ "tests/RustExifTest.cpp" ]
@@ -3112,6 +3113,7 @@ if (skia_enable_tools) {
         "fuzz/oss_fuzz/FuzzAnimatedImage.cpp",
         "fuzz/oss_fuzz/FuzzCOLRv1.cpp",
         "fuzz/oss_fuzz/FuzzColorspace.cpp",
+        "fuzz/oss_fuzz/FuzzHdrAgtm.cpp",
         "fuzz/oss_fuzz/FuzzImage.cpp",
         "fuzz/oss_fuzz/FuzzImageFilterDeserialize.cpp",
         "fuzz/oss_fuzz/FuzzIncrementalImage.cpp",
@@ -3822,7 +3824,7 @@ if (skia_build_fuzzers) {
     deps = []
   }
 
-  libfuzzer_app("grshape") {
+  libfuzzer_app("api_grshape") {
     sources = [
       "fuzz/FuzzCanvasHelpers.cpp",
       "fuzz/FuzzCanvasHelpers.h",
@@ -3920,6 +3922,11 @@ if (skia_build_fuzzers) {
 
   libfuzzer_app("parse_path") {
     sources = [ "fuzz/oss_fuzz/FuzzParsePath.cpp" ]
+    deps = []
+  }
+
+  libfuzzer_app("hdr_agtm") {
+    sources = [ "fuzz/oss_fuzz/FuzzHdrAgtm.cpp" ]
     deps = []
   }
 }
