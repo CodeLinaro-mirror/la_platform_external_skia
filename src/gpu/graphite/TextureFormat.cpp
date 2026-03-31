@@ -74,6 +74,15 @@ SkTextureCompressionType TextureFormatCompressionType(TextureFormat format) {
     }
 }
 
+TextureFormat CompressionTypeToTextureFormat(SkTextureCompressionType type) {
+    switch (type) {
+        case SkTextureCompressionType::kBC1_RGB8_UNORM:  return TextureFormat::kRGB8_BC1;
+        case SkTextureCompressionType::kBC1_RGBA8_UNORM: return TextureFormat::kRGBA8_BC1;
+        case SkTextureCompressionType::kETC2_RGB8_UNORM: return TextureFormat::kRGB8_ETC2;
+        default:                                         return TextureFormat::kUnsupported;
+    }
+}
+
 size_t TextureFormatBytesPerBlock(TextureFormat format) {
     switch (format) {
         case TextureFormat::kUnsupported: return 0;
@@ -112,7 +121,7 @@ size_t TextureFormatBytesPerBlock(TextureFormat format) {
         case TextureFormat::kD16:         return 2;
         case TextureFormat::kD32F:        return 4;
         case TextureFormat::kD24_S8:      return 4;
-        case TextureFormat::kD32F_S8:     return 8;
+        case TextureFormat::kD32F_S8:     return 5; // assuming it's multiplanar
         // NOTE: For compressed formats, the block size refers to an actual compressed block of
         // multiple texels, whereas with other formats the block size represents a single pixel.
         case TextureFormat::kRGB8_ETC2:
