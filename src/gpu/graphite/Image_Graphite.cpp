@@ -50,7 +50,7 @@ sk_sp<Image> Image::WrapDevice(sk_sp<Device> device, std::optional<SkColorInfo> 
 
     // If an overrideInfo is provided, it needs to be compatible with the format still and the
     // changes to alpha type need to make sense.
-    TextureFormat format = view.proxy()->format();
+    TextureFormat format = TextureInfoPriv::ViewFormat(view.proxy()->textureInfo());
     if (overrideInfo.has_value()) {
         if (!AreColorTypeAndFormatCompatible(overrideInfo->colorType(), format)) {
             return nullptr;

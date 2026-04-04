@@ -316,7 +316,7 @@ TextureProxyView MakeBitmapProxyView(Recorder* recorder,
         return {};
     }
 
-    const TextureFormat format = proxy->format();
+    const TextureFormat format = TextureInfoPriv::ViewFormat(proxy->textureInfo());
     SkASSERT(AreColorTypeAndFormatCompatible(ct, format));
     SkASSERT(mipmapped == Mipmapped::kNo || proxy->mipmapped() == Mipmapped::kYes);
 
@@ -579,14 +579,16 @@ bool GenerateMipmaps(Recorder* recorder, DrawContext* drawContext, sk_sp<Texture
     // filtering shader that sampled the base level several times with nearest filtering, convert
     // each sample to linear+premul space, average them, and then convert that to the source color
     // space and alpha type.
-    auto [colorType, _] = TextureFormatColorTypeInfo(texture->format());
+    auto [colorType, _] =
+            TextureFormatColorTypeInfo(TextureInfoPriv::ViewFormat(texture->textureInfo()));
     SkColorInfo colorInfo{colorType, kOpaque_SkAlphaType, /*cs=*/nullptr};
     // Since we are creating the color info from the default color type for the texture format,
     // it should match what we'd expect from make_renderable already.
     SkASSERT(make_renderable(colorInfo, colorInfo) == colorInfo);
 
     // Configure swizzle for the initial image to match what happens in Surface::asImage()
-    auto imgSwizzle = ReadSwizzleForColorType(colorInfo.colorType(), texture->format());
+    auto imgSwizzle = ReadSwizzleForColorType(colorInfo.colorType(),
+                                              TextureInfoPriv::ViewFormat(texture->textureInfo()));
     sk_sp<SkImage> scratchImg(new Image(TextureProxyView(texture, imgSwizzle), colorInfo));
 
     // Alternate between two scratch surfaces to avoid reading from and writing to a texture in the
@@ -771,7 +773,8 @@ public:
 
         const SkColorInfo& colorInfo = data.info().colorInfo();
         skgpu::Swizzle swizzle = skgpu::graphite::ReadSwizzleForColorType(
-                colorInfo.colorType(), proxy->format());
+                colorInfo.colorType(),
+                skgpu::graphite::TextureInfoPriv::ViewFormat(proxy->textureInfo()));
         return sk_make_sp<skgpu::graphite::Image>(
                 skgpu::graphite::TextureProxyView(std::move(proxy), swizzle),
                 colorInfo);

@@ -1589,13 +1589,12 @@ void Device::drawGeometry(const Transform& localToDevice,
     // non-null primitive blender.
     SkASSERT(SkToBool(paint.primitiveBlender()) == (renderer && renderer->emitsPrimitiveColor()));
 
-    TextureFormat format = fDC->target().proxy()->format();
     ShadingParams shading{fRecorder->priv().caps(),
                           paint,
                           clip.nonMSAAClip(),
                           clip.shader(),
                           renderer ? renderer->coverage() : Coverage::kSingleChannel,
-                          format};
+                          TextureInfoPriv::ViewFormat(fDC->target().proxy()->textureInfo())};
 
     // Some shapes and styles combine multiple draws so the total render step count is split between
     // the main renderer and possibly a secondaryRenderer. As we can't be sure whether a secondary
@@ -1681,7 +1680,8 @@ void Device::drawGeometry(const Transform& localToDevice,
             // but float formats can have NaNs after a discard that cause blending to fail. To
             // avoid that scenario, we clear to a known value instead.
             if (paint.finalBlendMode() == SkBlendMode::kSrcOver &&
-                TextureFormatIsFloatingPoint(format)) {
+                TextureFormatIsFloatingPoint(
+                        TextureInfoPriv::ViewFormat(fDC->target().proxy()->textureInfo()))) {
                 fDC->clear(SkColors::kMagenta); // This color doesn't matter
             } else {
                 fDC->discard();

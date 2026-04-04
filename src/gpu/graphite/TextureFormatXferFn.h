@@ -8,7 +8,6 @@
 #ifndef skgpu_graphite_TextureFormatXferFn_DEFINED
 #define skgpu_graphite_TextureFormatXferFn_DEFINED
 
-#include "include/core/SkRefCnt.h"
 #include "src/base/SkArenaAlloc.h"
 #include "src/core/SkRasterPipeline.h"
 #include "src/core/SkRasterPipelineOpContexts.h"
@@ -43,17 +42,6 @@ public:
                                                            const SkColorSpaceXformSteps& csSteps,
                                                            SkColorType dstCT);
 
-    TextureFormatXferFn(const TextureFormatXferFn&) = default;
-    TextureFormatXferFn(TextureFormatXferFn&&) = default;
-
-    TextureFormatXferFn& operator=(const TextureFormatXferFn&) = default;
-    TextureFormatXferFn& operator=(TextureFormatXferFn&&) = default;
-
-    // Returns true if the conversion is the identity function, i.e. memcpy.
-    bool isIdentity() const {
-        return !(fPreOps || fPostOps || SkToBool(fRP));
-    }
-
     // Apply the transfer function to a width x height block of pixels in `src` and write the
     // results to `dst`. Each `width` row of pixels in the src and dst images advances their
     // respective buffers by `srcRowBytes` and `dstRowBytes` respectively.
@@ -65,7 +53,7 @@ public:
              void* dst, size_t dstRowBytes) const;
 
 private:
-    struct RPOps : public SkNVRefCnt<RPOps> {
+    struct RPOps {
         SkRasterPipelineContexts::MemoryCtx fSrcCtx{nullptr, 0};
         SkRasterPipelineContexts::MemoryCtx fDstCtx{nullptr, 0};
 
@@ -76,7 +64,7 @@ private:
         const int fDstBpp;
 
         template<typename... RPModifiers>
-        static sk_sp<RPOps> Make(SkColorType srcCT, SkColorType dstCT, RPModifiers...);
+        static std::unique_ptr<RPOps> Make(SkColorType srcCT, SkColorType dstCT, RPModifiers...);
 
         // Returns true if RasterPipeline can process the whole 2D block via its strides
         bool setStrides(size_t srcRowBytes, size_t dstRowBytes, uint8_t otherOps);
@@ -87,7 +75,7 @@ private:
 
     TextureFormatXferFn(TextureFormat format,
                         uint8_t preOps,
-                        sk_sp<RPOps> rp,
+                        std::unique_ptr<RPOps> rp,
                         uint8_t postOps)
             : fFormat(format), fPreOps(preOps), fRP(std::move(rp)), fPostOps(postOps) {
         // At least one direction should not add extra conversion operations
@@ -102,9 +90,9 @@ private:
 
     // Logical flow of conversion (preOps and postOps are bit masks holding an extended set of
     // conversion ops built from FormatXferOp):
-    uint8_t fPreOps;  // 1. Bit manipulations to convert raw data to src ct
-    sk_sp<RPOps> fRP; // 2. Raster pipeline to convert to dst ct
-    uint8_t fPostOps; // 3. Bit manipulations to convert dst ct to raw data
+    uint8_t fPreOps;            // 1. Bit manipulations to convert raw data to src ct
+    std::unique_ptr<RPOps> fRP; // 2. Raster pipeline to convert to dst ct
+    uint8_t fPostOps;           // 3. Bit manipulations to convert dst ct to raw data
 };
 
 } // namespace skgpu::graphite

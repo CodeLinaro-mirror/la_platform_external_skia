@@ -69,7 +69,8 @@ sk_sp<DrawContext> DrawContext::Make(const Caps* caps,
     if (!caps->isRenderable(target->textureInfo())) {
         return nullptr;
     }
-    if (!AreColorTypeAndFormatCompatible(colorInfo.colorType(),  target->format())) {
+    if (!AreColorTypeAndFormatCompatible(colorInfo.colorType(),
+                                         TextureInfoPriv::ViewFormat(target->textureInfo()))) {
         return nullptr;
     }
 
@@ -85,7 +86,9 @@ DrawContext::DrawContext(const Caps* caps,
                          sk_sp<TextureProxy> target,
                          const SkImageInfo& ii,
                          const SkSurfaceProps& props)
-        : fTarget{target, ReadSwizzleForColorType(ii.colorType(), target->format())}
+        : fTarget(target,
+                  ReadSwizzleForColorType(ii.colorType(),
+                                          TextureInfoPriv::ViewFormat(target->textureInfo())))
         , fImageInfo(ii)
         , fSurfaceProps(props)
         , fIsTexturable(caps->isTexturable(fTarget.proxy()->textureInfo()) &&

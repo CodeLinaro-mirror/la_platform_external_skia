@@ -29,7 +29,6 @@ namespace skgpu {
 
 namespace graphite {
     class VelloRenderer;
-    class TextureFormatXferFn;
 }
 
 struct BufferWriter {
@@ -472,11 +471,6 @@ struct TextureUploadWriter : private BufferWriter {
             dRow += dstRowBytes;
         }
     }
-
-    // Graphite-only, defined in TextureFormatXferFn
-    void convert(size_t offset, int width, int height,
-                 const void* src, size_t srcRowBytes,
-                 const graphite::TextureFormatXferFn& dst, size_t dstRowBytes);
 };
 
 }  // namespace skgpu

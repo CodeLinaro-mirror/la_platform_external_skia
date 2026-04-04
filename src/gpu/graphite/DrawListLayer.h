@@ -75,8 +75,7 @@ private:
                          const LayerKey& key,
                          const DrawParams* drawParams,
                          const Insertion& stop,
-                         Insertion* capture,
-                         bool canForwardMerge);
+                         Insertion* capture);
 
     void recordForwards(int stepIndex,
                         bool isStencil,
