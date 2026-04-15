@@ -1,5 +1,5 @@
 /*
- * Copyright 2018 Google Inc.
+ * Copyright 2018 Google LLC
  *
  * Use of this source code is governed by a BSD-style license that can be
  * found in the LICENSE file.
@@ -3244,6 +3244,34 @@ HIGHP_STAGE(gather_af16, const SkRasterPipelineContexts::GatherCtx* ctx) {
 HIGHP_STAGE(store_af16, const SkRasterPipelineContexts::MemoryCtx* ctx) {
     auto ptr = ptr_at_xy<uint16_t>(ctx, dx,dy);
     store(ptr, to_half(a));
+}
+
+HIGHP_STAGE(load_rf16, const SkRasterPipelineContexts::MemoryCtx* ctx) {
+    auto ptr = ptr_at_xy<const uint16_t>(ctx, dx,dy);
+
+    U16 R = load<U16>((const uint16_t*)ptr);
+    r = from_half(R);
+    g = b = F0;
+    a = F1;
+}
+HIGHP_STAGE(load_rf16_dst, const SkRasterPipelineContexts::MemoryCtx* ctx) {
+    auto ptr = ptr_at_xy<const uint16_t>(ctx, dx, dy);
+
+    U16 R = load<U16>((const uint16_t*)ptr);
+    dr = from_half(R);
+    dg = db = F0;
+    da = F1;
+}
+HIGHP_STAGE(gather_rf16, const SkRasterPipelineContexts::GatherCtx* ctx) {
+    const uint16_t* ptr;
+    U32 ix = ix_and_ptr(&ptr, ctx, r, g);
+    r = from_half(gather_unaligned(ptr, ix));
+    g = b = F0;
+    a = F1;
+}
+HIGHP_STAGE(store_rf16, const SkRasterPipelineContexts::MemoryCtx* ctx) {
+    auto ptr = ptr_at_xy<uint16_t>(ctx, dx,dy);
+    store(ptr, to_half(r));
 }
 
 HIGHP_STAGE(load_rgf16, const SkRasterPipelineContexts::MemoryCtx* ctx) {
