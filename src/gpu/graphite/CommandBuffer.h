@@ -64,8 +64,8 @@ public:
     // If any work is needed to create new resources for a fresh command buffer do that here.
     virtual bool setNewCommandBufferResources() = 0;
 
-    virtual bool startTimerQuery() { SK_ABORT("Timer query unsupported."); }
-    virtual void endTimerQuery() { SK_ABORT("Timer query unsupported."); }
+    virtual bool startStatsQuery(GpuStatsFlags) { SK_ABORT("Stats query unsupported."); }
+    virtual void endStatsQuery(GpuStatsFlags) { SK_ABORT("Stats query unsupported."); }
     virtual std::optional<GpuStats> gpuStats() { return {}; }
 
     void addFinishedProc(sk_sp<RefCntedCallback> finishedProc);
@@ -143,7 +143,13 @@ protected:
     CommandBuffer(Protected);
 
     // These are the color attachment bounds, intersected with any clip provided on replay.
-    SkIRect fRenderPassBounds;
+    SkIRect fRenderTargetBounds;
+
+    // These are the bounds of all rendering operations in the current render pass. They have been
+    // intersected with render target bounds and translated by the replay transition. The value is
+    // undefined outside a call to `addRenderPass()`.
+    SkIRect fRenderAreaBounds;
+
     // This is also the origin of the logical viewport relative to the target texture's (0,0) pixel.
     SkIVector fReplayTranslation;
 
@@ -168,10 +174,8 @@ private:
 
     virtual void onResetCommandBuffer() = 0;
 
-    // Renderpass, viewport bounds have already been adjusted by the replay translation. The render
-    // pass bounds has been intersected with the color attachment bounds.
+    // Viewport bounds have already been adjusted by the replay translation.
     virtual bool onAddRenderPass(const RenderPassDesc&,
-                                 SkIRect renderPassBounds,
                                  const Texture* colorTexture,
                                  const Texture* resolveTexture,
                                  const Texture* depthStencilTexture,
