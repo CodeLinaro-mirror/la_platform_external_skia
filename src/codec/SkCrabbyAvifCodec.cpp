@@ -192,6 +192,7 @@ std::unique_ptr<SkCodec> SkCrabbyAvifCodec::MakeFromData(std::unique_ptr<SkStrea
     // created with older tools but can be decoded and rendered without any
     // issues.
     avifDecoder->strictFlags = crabbyavif::AVIF_STRICT_DISABLED;
+    avifDecoder->imageSizeLimit = 32768u * 32768u;
 
     // Disable support for sample transforms. Android pipeline does not support
     // these images.
