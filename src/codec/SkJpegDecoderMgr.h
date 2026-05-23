@@ -3,11 +3,9 @@
  *
  * Use of this source code is governed by a BSD-style license that can be
  * found in the LICENSE file.
-// QTI_BEGIN: 2025-04-28: Performance: Perf: Add QC support for jpeg decode multithread.
  * Changes from Qualcomm Technologies, Inc. are provided under the following license:
  * Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
  * SPDX-License-Identifier: BSD-3-Clause-Clear
-// QTI_END: 2025-04-28: Performance: Perf: Add QC support for jpeg decode multithread.
  */
 
 #ifndef SkJpegDecoderMgr_DEFINED
@@ -19,7 +17,6 @@
 #include "src/codec/SkJpegPriv.h"
 #include "src/codec/SkJpegSourceMgr.h"
 
-// QTI_BEGIN: 2025-04-28: Performance: Perf: Add QC support for jpeg decode multithread.
 #ifdef QC_JPEG_MT
 #include <dlfcn.h>
 #include <pthread.h>
@@ -37,7 +34,6 @@ struct qcJpegDecoder_Interface {
 extern qcJpegDecoder_Interface QCJPEG_DECODER;
 #endif
 
-// QTI_END: 2025-04-28: Performance: Perf: Add QC support for jpeg decode multithread.
 extern "C" {
     #include "jpeglib.h"  // NO_G3_REWRITE
 }
@@ -95,12 +91,10 @@ public:
     // Get the source manager.
     SkJpegSourceMgr* getSourceMgr();
 
-// QTI_BEGIN: 2025-04-28: Performance: Perf: Add QC support for jpeg decode multithread.
 #ifdef QC_JPEG_MT
     void* mQcJpeghandler = nullptr;
 #endif
 
-// QTI_END: 2025-04-28: Performance: Perf: Add QC support for jpeg decode multithread.
 private:
     // Wrapper that calls into the full SkJpegSourceMgr interface.
     struct SourceMgr : jpeg_source_mgr {
